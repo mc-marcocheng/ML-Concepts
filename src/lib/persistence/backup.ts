@@ -6,7 +6,7 @@ import { loadNotes, type NoteRecord } from './notes';
 import { loadSessions, type SessionRecord } from './sessions';
 
 export interface AppBackup {
-  version: 1 | 2 | 3;
+  version: 3;
   exportedAt: number;
   attempts: AttemptRecord[];
   readings: ReadingRecord[];
@@ -48,7 +48,7 @@ function writeLocalStorage(key: string, value: string | null) {
 
 export function importBackup(backup: AppBackup) {
   if (typeof window === 'undefined') return;
-  if (backup.version !== 1 && backup.version !== 2 && backup.version !== 3) throw new Error('Unsupported backup format');
+  if (backup.version !== 3) throw new Error('Unsupported backup format');
 
   window.localStorage.setItem('mlc.attempts', JSON.stringify(backup.attempts ?? []));
   window.localStorage.setItem('mlc.readings', JSON.stringify(backup.readings ?? []));

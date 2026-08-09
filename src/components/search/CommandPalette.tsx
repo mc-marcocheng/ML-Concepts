@@ -6,13 +6,11 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { CornerDownLeft, Search, X } from 'lucide-react';
 import { useUiStore } from '@/lib/store/ui';
 import { searchChunks, searchConcepts } from '@/lib/retrieval/search';
-import { CATEGORIES } from '@/lib/content/categories';
+import { CATEGORY_TITLE } from '@/lib/content/categories';
 
 type Result =
   | { kind: 'concept'; id: string; href: string; title: string; sub: string }
   | { kind: 'section'; id: string; href: string; title: string; sub: string };
-
-const CATEGORY_TITLE = Object.fromEntries(CATEGORIES.map(category => [category.id, category.title]));
 
 export function CommandPalette() {
   const router = useRouter();
@@ -60,7 +58,7 @@ export function CommandPalette() {
         return;
       }
 
-      const [concepts, sections] = await Promise.all([searchConcepts(q, 8), searchChunks(q, 8)]);
+      const [concepts, sections] = await Promise.all([searchConcepts(q, 8), searchChunks(q, { limit: 8 })]);
       if (cancelled) return;
 
       const conceptRows: Result[] = concepts.map(concept => ({
@@ -92,12 +90,13 @@ export function CommandPalette() {
   }, [open, query]);
 
   const grouped = useMemo(() => {
-    const conceptItems = results.filter(result => result.kind === 'concept');
-    const sectionItems = results.filter(result => result.kind === 'section');
-    return [
-      ...(conceptItems.length ? [{ label: 'Concepts', items: conceptItems }] : []),
-      ...(sectionItems.length ? [{ label: 'Sections', items: sectionItems }] : []),
-    ];
+    const groups: { label: string; items: (Result & { index: number })[] }[] = [];
+    let index = 0;
+    for (const [label, kind] of [['Concepts', 'concept'], ['Sections', 'section']] as const) {
+      const items = results.filter(result => result.kind === kind).map(result => ({ ...result, index: index++ }));
+      if (items.length) groups.push({ label, items });
+    }
+    return groups;
   }, [results]);
 
   const go = (item: Result) => {
@@ -128,18 +127,16 @@ export function CommandPalette() {
     listRef.current?.querySelector<HTMLElement>('[data-cursor="true"]')?.scrollIntoView({ block: 'nearest' });
   }, [cursor]);
 
-  let index = -1;
-
   return (
     <Dialog.Root open={open} onOpenChange={value => (value ? openPalette() : closePalette())}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-[rgba(17,21,16,.42)]" />
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-scrim" />
         <Dialog.Content
           onKeyDown={onKeyDown}
           className="fixed left-1/2 top-[max(12vh,72px)] z-50 w-[min(94vw,760px)] -translate-x-1/2 overflow-hidden rounded-xl border border-line bg-canvas shadow-overlay outline-none"
         >
           <Dialog.Title className="sr-only">Search concepts</Dialog.Title>
-          <div className="flex items-center gap-3 border-b border-line px-4">
+          <div data-focus-inset className="flex items-center gap-3 border-b border-line px-4">
             <Search size={18} aria-hidden="true" className="text-muted" />
             <input
               autoFocus
@@ -147,7 +144,7 @@ export function CommandPalette() {
               onChange={event => setQuery(event.target.value)}
               placeholder="Search concepts and sections…"
               aria-label="Search concepts and sections"
-              className="h-14 w-full bg-transparent text-[16px] text-ink outline-none placeholder:text-muted"
+              className="h-14 w-full rounded-md bg-transparent px-1 text-[16px] text-ink outline-none placeholder:text-muted"
               autoComplete="off"
               spellCheck={false}
             />
@@ -160,7 +157,7 @@ export function CommandPalette() {
             </button>
           </div>
 
-          <div ref={listRef} className="max-h-[min(60vh,520px)] overflow-y-auto p-2">
+          <div ref={listRef} className="max-h-[min(60vh,520px)] overflow-y-auto p-2" data-scroll-region>
             {query.trim().length < 2 ? (
               <p className="px-4 py-6 text-[14px] text-muted">Type at least two characters.</p>
             ) : results.length === 0 ? (
@@ -169,8 +166,7 @@ export function CommandPalette() {
               <div key={group.label} className="mb-1">
                 <p className="t-eyebrow px-3 py-2 text-muted">{group.label}</p>
                 {group.items.map(item => {
-                  index += 1;
-                  const currentIndex = index;
+                  const currentIndex = item.index;
                   return (
                     <button
                       key={item.id}

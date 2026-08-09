@@ -49,11 +49,11 @@ export default function TracesPage() {
         Traces are redacted and persisted in this browser&apos;s local storage, so they survive reloads and are shared
         between tabs. In production, tracing must be enabled in this browser first.
       </p>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="actions mt-4">
         {!enabled ? <Button size="sm" onClick={enableTracing}>Enable tracing</Button> : null}
         <Button size="sm" variant="tertiary" onClick={() => { refreshTraces(); sync(); }}>Refresh</Button>
-        <Button size="sm" variant="tertiary" onClick={clearTraces}>Clear</Button>
-        <Button size="sm" variant="tertiary" onClick={() => navigator.clipboard.writeText(JSON.stringify(traces, null, 2))}>Copy JSON</Button>
+        <Button size="sm" variant="tertiary" onClick={() => { clearTraces(); sync(); }}>Clear</Button>
+        <Button size="sm" variant="tertiary" disabled={!traces.length} onClick={() => { void navigator.clipboard?.writeText(JSON.stringify(traces, null, 2)); }}>Copy JSON</Button>
       </div>
       <p className="mt-3 font-mono text-[12px] text-muted">
         Tracing: {enabled ? 'on' : 'off'} · in view: {traces.length} · persisted: {info.persisted} · store: {(info.bytes / 1024).toFixed(1)} KB

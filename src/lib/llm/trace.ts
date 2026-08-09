@@ -52,14 +52,6 @@ function readStore(): Trace[] {
   let raw: string | null = null;
   try {
     raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw === null) {
-      const legacy = window.sessionStorage.getItem(STORAGE_KEY);
-      if (legacy) {
-        raw = legacy;
-        window.localStorage.setItem(STORAGE_KEY, legacy);
-      }
-    }
-    window.sessionStorage.removeItem(STORAGE_KEY);
   } catch {
     return [];
   }
@@ -230,7 +222,6 @@ export function clearTraces() {
   live.length = 0;
   if (typeof window !== 'undefined') {
     try {
-      window.sessionStorage.removeItem(STORAGE_KEY);
       window.localStorage.removeItem(STORAGE_KEY);
     } catch {
       // best effort only

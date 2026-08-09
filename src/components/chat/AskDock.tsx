@@ -33,11 +33,12 @@ function useAutosize(ref: RefObject<HTMLTextAreaElement | null>, value: string) 
     const chrome =
       parseFloat(style.paddingTop) + parseFloat(style.paddingBottom) +
       parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+    const border = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
     const max = Math.round(line * MAX_ROWS + chrome);
     el.style.height = 'auto';
-    const next = Math.min(el.scrollHeight + (parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth)), max);
-    el.style.height = `${next}px`;
-    el.style.overflowY = el.scrollHeight + chrome > max ? 'auto' : 'hidden';
+    const content = el.scrollHeight;
+    el.style.height = `${Math.min(content + border, max + border)}px`;
+    el.style.overflowY = content > max ? 'auto' : 'hidden';
   }, [ref, value]);
 }
 
@@ -54,6 +55,7 @@ export function AskDock() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [wide, setWide] = useState(false);
+  const [contextDismissed, setContextDismissed] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -78,10 +80,14 @@ export function AskDock() {
   }, [askOpen, consumeSeed]);
 
   useEffect(() => {
-    if (!askOpen || askContext) return;
+    if (!askOpen || askContext || contextDismissed) return;
     const ctx = currentConceptContext();
     if (ctx?.conceptId) openAsk(ctx);
-  }, [askOpen, askContext, openAsk]);
+  }, [askOpen, askContext, contextDismissed, openAsk]);
+
+  useEffect(() => {
+    if (!askOpen) setContextDismissed(false);
+  }, [askOpen]);
 
   useEffect(() => {
     if (!askOpen) abortRef.current?.abort();
@@ -97,6 +103,7 @@ export function AskDock() {
     setError(null);
     setStatus(null);
     setStreaming(false);
+    setContextDismissed(false);
     requestAnimationFrame(() => inputRef.current?.focus());
   }, []);
 
@@ -184,14 +191,14 @@ export function AskDock() {
         <ContextChip
           ctx={askContext}
           onClearSelection={() => openAsk({ ...askContext, selection: undefined, headings: undefined, heading: undefined, sectionText: undefined, sections: askContext.sections?.map(section => ({ ...section, selected: false })) })}
-          onClearAll={() => openAsk(null)}
+          onClearAll={() => { setContextDismissed(true); openAsk(null); }}
         />
       ) : null}
 
       <MessageList messages={messages} streaming={streaming} status={status} wide={wide} />
 
       {messages.length === 0 ? (
-        <div className="mx-auto flex w-full max-w-[52rem] flex-wrap gap-2 px-4 pb-3">
+        <div className="mx-auto flex w-full max-w-208 flex-wrap gap-2 px-4 pb-3">
           {QUICK.map(question => (
             <button key={question} onClick={() => send(question)} className="min-h-10 rounded-pill border border-line bg-card px-3 py-2 text-[13px] text-ink hover:bg-primary-pale">
               {question}
@@ -201,7 +208,7 @@ export function AskDock() {
       ) : null}
 
       <form onSubmit={event => { event.preventDefault(); send(); }} className="border-t border-line p-3 pb-[max(12px,env(safe-area-inset-bottom))]">
-        <div className="mx-auto flex w-full max-w-[52rem] items-end gap-2">
+        <div className="mx-auto flex w-full max-w-208 items-end gap-2">
           <textarea
             ref={inputRef}
             value={input}

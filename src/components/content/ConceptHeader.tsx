@@ -10,8 +10,7 @@ export function ConceptHeader({ fm, all }: { fm: Frontmatter; all: ConceptMeta[]
   return (
     <header>
       <p className="t-eyebrow text-muted">
-        {cat?.title} <span aria-hidden="true">/</span> difficulty {fm.difficulty}/5
-        <span aria-hidden="true"> / </span>{fm.estReadMin} min
+        {cat?.title}
       </p>
       <h1 className="t-display-md has-highlight mt-3">{fm.title}</h1>
       <p className="t-body-lg mt-4 text-body">{fm.summary}</p>

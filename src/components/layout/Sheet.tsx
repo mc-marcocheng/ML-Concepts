@@ -15,7 +15,7 @@ export function Sheet({ open, onOpenChange, side = 'right', title, widthClass, c
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-[rgba(17,21,16,.42)]" />
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-scrim" />
         <Dialog.Content
           aria-label={title}
           className={cn(

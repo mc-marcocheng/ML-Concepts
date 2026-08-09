@@ -15,15 +15,6 @@ type OpenAiChatResponse = {
   error?: { message?: string; code?: string; param?: string };
 };
 
-interface Variant {
-  tokenParam: 'max_tokens' | 'max_completion_tokens';
-  sendTemperature: boolean;
-  sendReasoning: boolean;
-  sendResponseFormat: boolean;
-  stream: boolean;
-  budget: number;
-}
-
 const REASONING_MODEL = /(^|[-/])(o[1-9]|gpt-5|deepseek-r\d|r1|qwq|magistral)|think|reason/i;
 const THINK_BLOCK = /<(think|thinking|reasoning|analysis)>[\s\S]*?(<\/\1>|$)/gi;
 

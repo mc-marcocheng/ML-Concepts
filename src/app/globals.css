@@ -1,6 +1,7 @@
 @import "../styles/tokens.css";
 @import "../styles/typography.css";
 @import "../styles/primitives.css";
+@import "../styles/code.css";
 @import "katex/dist/katex.min.css";
 @import "../styles/katex-overrides.css";
 
@@ -21,13 +22,30 @@ img, svg, video { max-width: 100%; height: auto; display: block; }
 .container-read { width: min(calc(100% - 48px), var(--container-reading)); margin-inline: auto; }
 @media (max-width: 1023px) {
   .container, .container-wide { width: calc(100% - 48px); }
+  :root { --header-h: 64px; }
+  body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
 }
 @media (max-width: 767px) {
   .container, .container-wide, .container-read { width: calc(100% - 32px); }
-  body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
 }
 
 .band { padding-block: clamp(48px, 7vw, 96px); }
 .band--soft { background: var(--color-canvas-soft); }
 .band--mint { background: var(--color-canvas-mint); }
 .band--tint { background: var(--color-section-tint); }
+
+/* Focus must never be scrolled under the sticky header. */
+html { scroll-padding-top: calc(var(--header-h) + 16px); }
+
+/* Single source of truth for focus rings. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--rounded-sm);
+  scroll-margin-top: calc(var(--header-h) + 24px);
+  scroll-margin-bottom: 24px;
+}
+
+/* Inside clipping/scrolling containers the ring must be inset or it gets cut off. */
+:where([data-scroll-region], [data-focus-inset]) :focus-visible,
+:where([data-focus-inset]):focus-visible { outline-offset: -2px; }

@@ -49,12 +49,9 @@ async function ensureConceptIndex() {
   await conceptLoading;
 }
 
-export async function searchChunks(query: string, optionsOrLimit: number | ChunkSearchOptions = 5, preferConceptId?: string) {
-  const options: ChunkSearchOptions = typeof optionsOrLimit === 'number'
-    ? { limit: optionsOrLimit, preferConceptId: preferConceptId ?? null }
-    : optionsOrLimit;
+export async function searchChunks(query: string, options: ChunkSearchOptions = {}) {
   const { limit = 5, minRelativeScore = 0.4, maxPerConcept = 2 } = options;
-  const preferred = options.preferConceptId ?? preferConceptId ?? null;
+  const preferred = options.preferConceptId ?? null;
   if (query.trim().length < 2) return [];
   await ensureChunkIndex();
   const raw = chunkIndex!.search(query, {

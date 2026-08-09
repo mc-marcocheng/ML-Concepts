@@ -1,21 +1,16 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Check, CloudDownload, Loader2, Trash2 } from 'lucide-react';
+import { CloudDownload, Loader2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ON_DEVICE_MODELS } from '@/lib/llm/capability';
-import { cancelPreload, deleteWebGpuModel, isModelCached, preloadWebGpuModel } from '@/lib/llm/providers/webgpu';
-
-type CacheState = 'checking' | 'cached' | 'missing';
+import { cancelPreload, deleteWebGpuModel, preloadWebGpuModel } from '@/lib/llm/providers/webgpu';
 
 function formatGB(mb: number) {
   return mb >= 1000 ? `${(mb / 1000).toFixed(1)} GB` : `${mb} MB`;
 }
 
 export function OnDeviceModels({ supported, selectedKey, onSelect }: { supported: boolean; selectedKey: string; onSelect: (key: string) => void }) {
-  const [cache, setCache] = useState<Record<string, CacheState>>(
-    () => Object.fromEntries(ON_DEVICE_MODELS.map(model => [model.key, 'checking' as CacheState])),
-  );
   const [progress, setProgress] = useState<{ key: string; pct: number; text: string } | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [storage, setStorage] = useState('');
@@ -29,18 +24,10 @@ export function OnDeviceModels({ supported, selectedKey, onSelect }: { supported
       const usage = estimate.usage ?? 0;
       const quota = estimate.quota ?? 0;
       if (mounted.current) setStorage(`${formatGB(Math.round(usage / 1e6))} used of ${formatGB(Math.round(quota / 1e6))} available`);
-    }).catch(() => setStorage(''));
+    }).catch(() => { if (mounted.current) setStorage(''); });
   }, []);
 
-  const refreshCache = useCallback(async () => {
-    const entries = await Promise.all(
-      ON_DEVICE_MODELS.map(async model => [model.key, (await isModelCached(model.key)) ? 'cached' : 'missing'] as const),
-    );
-    if (mounted.current) setCache(Object.fromEntries(entries) as Record<string, CacheState>);
-    refreshStorage();
-  }, [refreshStorage]);
-
-  useEffect(() => { void refreshCache(); }, [refreshCache]);
+  useEffect(() => { refreshStorage(); }, [refreshStorage]);
 
   const download = async (key: string) => {
     setError(null);
@@ -57,7 +44,7 @@ export function OnDeviceModels({ supported, selectedKey, onSelect }: { supported
       setError((caught as Error).message);
     } finally {
       setBusyKey(null);
-      void refreshCache();
+      refreshStorage();
     }
   };
 
@@ -71,7 +58,7 @@ export function OnDeviceModels({ supported, selectedKey, onSelect }: { supported
       setError((caught as Error).message);
     } finally {
       setBusyKey(null);
-      void refreshCache();
+      refreshStorage();
     }
   };
 
@@ -80,7 +67,7 @@ export function OnDeviceModels({ supported, selectedKey, onSelect }: { supported
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-[16px] font-extrabold text-ink">On-device models</h3>
-          <p className="mt-1 text-[14px] text-body">Weights are downloaded once and cached in this browser. Downloaded models keep working offline.</p>
+          <p className="mt-1 text-[14px] text-body">Weights download once and are cached by the browser. A model already in cache finishes &ldquo;downloading&rdquo; almost instantly; Delete clears it.</p>
         </div>
         <span className={`rounded-pill px-3 py-1 text-[12px] font-semibold ${supported ? 'bg-primary-pale text-ink' : 'bg-warning-pale text-warning-content'}`}>
           {supported ? 'WebGPU available' : 'WebGPU unavailable'}
@@ -89,13 +76,12 @@ export function OnDeviceModels({ supported, selectedKey, onSelect }: { supported
 
       <ul className="mt-4 grid gap-3">
         {ON_DEVICE_MODELS.map(model => {
-          const state = cache[model.key];
           const active = model.key === selectedKey;
           const downloading = progress?.key === model.key && busyKey === model.key;
           return (
             <li key={model.key}>
               <div className={`rounded-lg border-2 p-4 transition-colors ${active ? 'border-primary-active bg-primary-pale' : 'border-line bg-card'}`}>
-                <div className="flex flex-wrap items-start gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
                   <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
                     <input
                       type="radio"
@@ -109,31 +95,23 @@ export function OnDeviceModels({ supported, selectedKey, onSelect }: { supported
                         <span className="text-[15px] font-extrabold text-ink">{model.label}</span>
                         <span className="rounded-pill border border-line bg-canvas-soft px-2 py-0.5 font-mono text-[11px] text-muted">{model.params}</span>
                         <span className="rounded-pill border border-line bg-canvas-soft px-2 py-0.5 font-mono text-[11px] text-muted">~{formatGB(model.approxDownloadMB)}</span>
-                        {state === 'checking' ? (
-                          <span className="font-mono text-[11px] text-muted">checking…</span>
-                        ) : state === 'cached' ? (
-                          <span className="inline-flex items-center gap-1 rounded-pill bg-positive-pale px-2 py-0.5 text-[11px] font-semibold text-positive-content">
-                            <Check size={11} aria-hidden="true" /> Downloaded
-                          </span>
-                        ) : (
-                          <span className="rounded-pill bg-canvas-soft px-2 py-0.5 text-[11px] font-semibold text-muted">Not downloaded</span>
-                        )}
                       </span>
                       <span className="mt-1 block text-[13px] leading-6 text-body">{model.blurb}</span>
                     </span>
                   </label>
 
-                  <div className="flex flex-none flex-wrap gap-2">
+                  <div className="flex flex-none items-center gap-2 sm:justify-end">
                     {downloading ? (
-                      <Button variant="tertiary" size="sm" onClick={() => cancelPreload(model.key)}>Cancel</Button>
-                    ) : state === 'cached' ? (
-                      <Button variant="tertiary" size="sm" disabled={busyKey !== null} onClick={() => remove(model.key)}>
-                        <Trash2 size={14} aria-hidden="true" /> Delete
-                      </Button>
+                      <Button variant="tertiary" size="sm" className="flex-1 sm:flex-none" onClick={() => cancelPreload(model.key)}>Cancel</Button>
                     ) : (
-                      <Button size="sm" disabled={!supported || busyKey !== null} onClick={() => download(model.key)}>
-                        <CloudDownload size={14} aria-hidden="true" /> Download
-                      </Button>
+                      <>
+                        <Button size="sm" className="flex-1 sm:flex-none" disabled={!supported || busyKey !== null} onClick={() => download(model.key)}>
+                          <CloudDownload size={14} aria-hidden="true" /> Download
+                        </Button>
+                        <Button variant="tertiary" size="sm" disabled={busyKey !== null} onClick={() => remove(model.key)} aria-label={`Delete ${model.label} weights`} title="Delete downloaded weights">
+                          <Trash2 size={15} aria-hidden="true" />
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>

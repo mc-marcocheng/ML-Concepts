@@ -2,19 +2,22 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Search } from 'lucide-react';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { CATEGORIES } from '@/lib/content/categories';
 import type { ConceptMeta } from '@/lib/content/types';
+import { groupConceptsByCategory } from '@/lib/content/order';
 import { computeMastery, loadAttempts, type AttemptRecord } from '@/lib/persistence/progress';
 import { MasteryRing } from './MasteryRing';
+import { cn } from '@/lib/utils/cn';
 
-type Filter = 'all' | 'written' | 'started' | 'weak';
+type Filter = 'all' | 'started' | 'weak';
 
 export function ConceptIndex({ concepts }: { concepts: ConceptMeta[] }) {
   const [attempts, setAttempts] = useState<AttemptRecord[]>([]);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<string>('all');
   const [filter, setFilter] = useState<Filter>('all');
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     const refresh = () => setAttempts(loadAttempts());
@@ -31,47 +34,80 @@ export function ConceptIndex({ concepts }: { concepts: ConceptMeta[] }) {
     return map;
   }, [attempts, concepts]);
 
-  const grouped = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return CATEGORIES.map(cat => {
-      const items = concepts.filter(concept => {
-        if (concept.category !== cat.id) return false;
-        if (category !== 'all' && cat.id !== category) return false;
-        const text = `${concept.title} ${concept.summary}`;
-        if (q && !text.toLowerCase().includes(q)) return false;
-        if (filter === 'written') return true;
-        if (filter === 'started') return (masteryById.get(concept.id)?.attempts ?? 0) > 0;
-        if (filter === 'weak') return (masteryById.get(concept.id)?.attempts ?? 0) > 0 && (masteryById.get(concept.id)?.mastery ?? 0) < 0.7;
-        return true;
-      });
-      return { cat, items };
-    }).filter(group => group.items.length);
-  }, [category, concepts, filter, masteryById, query]);
+  const orderedGroups = useMemo(() => groupConceptsByCategory(concepts), [concepts]);
 
-  const writtenCount = concepts.length;
+  const groups = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    const matches = (concept: ConceptMeta) => {
+      if (category !== 'all' && concept.category !== category) return false;
+      const text = `${concept.title} ${concept.summary} ${concept.tags.join(' ')}`.toLowerCase();
+      if (needle && !text.includes(needle)) return false;
+      if (filter === 'started') return (masteryById.get(concept.id)?.attempts ?? 0) > 0;
+      if (filter === 'weak') {
+        return (masteryById.get(concept.id)?.attempts ?? 0) > 0 && (masteryById.get(concept.id)?.mastery ?? 0) < 0.7;
+      }
+      return true;
+    };
+    return orderedGroups
+      .map(group => ({ ...group, items: group.items.filter(entry => matches(entry.concept)) }))
+      .filter(group => group.items.length > 0);
+  }, [orderedGroups, query, category, filter, masteryById]);
+
+  const activeFilterCount = (category === 'all' ? 0 : 1) + (filter === 'all' ? 0 : 1);
+  const resetFilters = () => {
+    setCategory('all');
+    setFilter('all');
+  };
 
   return (
     <div className="band band--soft">
       <div className="container-wide py-8">
         <p className="t-eyebrow text-muted">Library</p>
         <h1 className="t-display-lg mt-3">Concepts</h1>
-        <p className="mt-3 max-w-[62ch] text-[16px] leading-7 text-body">
-          {writtenCount} concepts are written. Use the filters below to narrow the library by category, progress, or text.
-        </p>
 
         <div className="sticky top-(--header-h) z-20 -mx-2 mt-6 bg-canvas-soft/85 px-2 py-3 backdrop-blur-[10px]">
-          <label className="relative block">
-            <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
-            <span className="sr-only">Filter concepts</span>
-            <input
-              value={query}
-              onChange={event => setQuery(event.target.value)}
-              placeholder="Filter by name or summary…"
-              className="h-12 w-full rounded-pill border border-line bg-card pl-11 pr-4 text-[15px] text-ink outline-none focus:border-line-strong"
-            />
-          </label>
+          <div className="flex items-end gap-2 md:block">
+            <label className="relative block flex-1">
+              <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+              <span className="sr-only">Filter concepts</span>
+              <input
+                value={query}
+                onChange={event => setQuery(event.target.value)}
+                placeholder="Filter by name or summary…"
+                className="h-12 w-full rounded-pill border border-line bg-card pl-11 pr-4 text-[15px] text-ink outline-none focus:border-line-strong md:pr-4"
+              />
+            </label>
 
-          <div className="mt-3 flex flex-wrap gap-2">
+            <div className="md:hidden">
+              <button
+                type="button"
+                onClick={() => setFiltersOpen(open => !open)}
+                aria-expanded={filtersOpen}
+                aria-controls="concept-filters"
+                className="inline-flex min-h-11 items-center gap-2 rounded-pill border border-line bg-card px-4 text-[14px] font-semibold text-ink hover:bg-primary-pale"
+              >
+                <SlidersHorizontal size={16} aria-hidden="true" />
+                Filters
+                {activeFilterCount ? (
+                  <span className="rounded-pill bg-primary px-2 py-0.5 font-mono text-[11px] text-on-primary">{activeFilterCount}</span>
+                ) : null}
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center gap-2 md:hidden">
+            {activeFilterCount ? (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-pill px-3 text-[13px] font-semibold text-muted hover:bg-primary-pale hover:text-ink"
+              >
+                <X size={14} aria-hidden="true" /> Reset
+              </button>
+            ) : null}
+          </div>
+
+          <div id="concept-filters" className={cn('mt-3 flex-wrap gap-2 md:flex', filtersOpen ? 'flex' : 'hidden')}>
             <Chip active={category === 'all'} onClick={() => setCategory('all')}>All areas</Chip>
             {CATEGORIES.map(cat => (
               <Chip key={cat.id} active={category === cat.id} onClick={() => setCategory(cat.id)}>
@@ -80,26 +116,25 @@ export function ConceptIndex({ concepts }: { concepts: ConceptMeta[] }) {
             ))}
             <span className="mx-1 w-px self-stretch bg-line" aria-hidden="true" />
             <Chip active={filter === 'all'} onClick={() => setFilter('all')}>All</Chip>
-            <Chip active={filter === 'written'} onClick={() => setFilter('written')}>Written</Chip>
             <Chip active={filter === 'started'} onClick={() => setFilter('started')}>Started</Chip>
             <Chip active={filter === 'weak'} onClick={() => setFilter('weak')}>Weak</Chip>
           </div>
         </div>
 
-        {grouped.length === 0 ? (
+        {groups.length === 0 ? (
           <p className="mt-10 rounded-lg border border-line bg-card p-6 text-[15px] text-body">
             No concepts match that filter.
           </p>
         ) : null}
 
-        {grouped.map(({ cat, items }) => (
-          <section key={cat.id} className="mt-10">
+        {groups.map(group => (
+          <section key={group.id} id={group.id} className="mt-10">
             <div className="flex items-baseline gap-3">
-              <h2 className="t-display-sm">{cat.title}</h2>
-              <span className="font-mono text-[12px] text-muted">{items.length}</span>
+              <h2 className="t-display-sm">{group.title}</h2>
+              <span className="font-mono text-[12px] text-muted">{group.items.length}</span>
             </div>
             <ul className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {items.map(concept => {
+              {group.items.map(({ concept, cycleBreak }) => {
                 const mastery = masteryById.get(concept.id);
                 return (
                   <li key={concept.id}>
@@ -112,13 +147,9 @@ export function ConceptIndex({ concepts }: { concepts: ConceptMeta[] }) {
                         <MasteryRing value={mastery?.mastery ?? 0} started={(mastery?.attempts ?? 0) > 0} />
                       </div>
                       <p className="mt-2 line-clamp-3 text-[14px] leading-6 text-body">{concept.summary}</p>
-                      <p className="mt-4 flex flex-wrap items-center gap-2 font-mono text-[11px] text-muted">
-                        <span>d{concept.difficulty}/5</span>
-                        <span aria-hidden="true">·</span>
-                        <span>{concept.estReadMin} min</span>
-                        <span aria-hidden="true">·</span>
-                        <span>{concept.quizCount} quiz</span>
-                      </p>
+                      {cycleBreak ? (
+                        <p className="mt-4 font-mono text-[12px] text-muted">circular prereq</p>
+                      ) : null}
                     </Link>
                   </li>
                 );

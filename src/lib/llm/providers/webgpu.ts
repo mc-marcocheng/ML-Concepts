@@ -21,18 +21,6 @@ async function createEngine(modelKey: string, onProgress?: (pct: number, text: s
   });
 }
 
-export async function isModelCached(modelKey: string): Promise<boolean> {
-  try {
-    const spec = getOnDeviceModel(modelKey);
-    const modelId = await resolveModelId(spec);
-    const mod: typeof import('@mlc-ai/web-llm') = await import('@mlc-ai/web-llm');
-    if (typeof mod.hasModelInCache !== 'function') return false;
-    return await mod.hasModelInCache(modelId, mod.prebuiltAppConfig);
-  } catch {
-    return false;
-  }
-}
-
 export async function deleteWebGpuModel(modelKey: string) {
   const spec = getOnDeviceModel(modelKey);
   const modelId = await resolveModelId(spec);
@@ -49,7 +37,8 @@ export function cancelPreload(modelKey: string) {
   cancelled.add(modelKey);
 }
 
-export async function generateWebGpuReply(modelKey: string, options: GenerateOptions, onToken?: (token: string) => void, onStatus?: (status: string) => void) {
+export async function generateWebGpuReply(modelKey: string, options: GenerateOptions, onToken?: (token: string) => void) {
+  const onStatus = options.onStatus;
   if (typeof navigator === 'undefined' || !('gpu' in navigator)) {
     throw new Error('WebGPU is not available in this browser');
   }

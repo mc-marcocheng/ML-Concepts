@@ -19,7 +19,7 @@ export function ThemeToggle({ withLabel = false }: { withLabel?: boolean }) {
 
   return (
     <button onClick={toggleTheme} aria-label={label} title={label} className="app-row min-h-11 rounded-pill border border-line bg-card px-3 hover:bg-primary-pale hover:text-ink">
-      {theme === 'dark' ? <Moon size={17} aria-hidden="true" /> : <Sun size={17} aria-hidden="true" />}
+      {theme === 'dark' ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
       {withLabel && <span className="text-[14px]">{label}</span>}
     </button>
   );

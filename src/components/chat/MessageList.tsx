@@ -50,8 +50,8 @@ export function MessageList({ messages, streaming, status, wide }: { messages: C
   }, [messages, status]);
 
   return (
-    <div ref={scroller} onScroll={onScroll} className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-      <div className={cn('mx-auto grid w-full gap-3', wide && 'max-w-[52rem]')} aria-live="polite" aria-busy={streaming ? 'true' : 'false'}>
+    <div ref={scroller} onScroll={onScroll} className="min-h-0 flex-1 overflow-y-auto px-4 py-4" data-scroll-region>
+      <div className={cn('mx-auto grid w-full max-w-208 gap-3', wide && 'max-w-5xl')} aria-live="polite" aria-busy={streaming ? 'true' : 'false'}>
         {messages.map((message, index) => (
           <Bubble key={index} message={message} live={Boolean(streaming) && index === messages.length - 1 && message.role === 'assistant'} />
         ))}

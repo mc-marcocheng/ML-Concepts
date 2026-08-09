@@ -56,7 +56,7 @@ for (const category of await fs.readdir(CONTENT)) {
   for (const file of (await fs.readdir(dir)).filter(name => name.endsWith('.mdx'))) {
     const slug = file.replace(/\.mdx$/, '');
     const raw = await fs.readFile(path.join(dir, file), 'utf8');
-    const { data, content } = matter(raw);
+    const { data } = matter(raw);
     if (data.id !== `${category}/${slug}`) throw new Error(`id mismatch in ${file}: ${data.id}`);
 
     let items = [];

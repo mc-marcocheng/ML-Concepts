@@ -107,8 +107,12 @@ export const useLlm = create<LlmState>(set => ({
     const sessionApiKey = readSessionStorage(STORAGE_KEYS.apiKey, '');
     const apiKey = rememberApiKey ? localApiKey : (sessionApiKey || localApiKey);
     if (!rememberApiKey && localApiKey && !sessionApiKey) {
-      window.sessionStorage.setItem(STORAGE_KEYS.apiKey, localApiKey);
-      window.localStorage.removeItem(STORAGE_KEYS.apiKey);
+      try {
+        window.sessionStorage.setItem(STORAGE_KEYS.apiKey, localApiKey);
+        window.localStorage.removeItem(STORAGE_KEYS.apiKey);
+      } catch {
+        // best effort only
+      }
     }
     set({
       enabled,
@@ -214,7 +218,6 @@ export const useLlm = create<LlmState>(set => ({
               state.onDeviceModelKey,
               { messages, temperature, maxTokens: maxTokens ?? DEFAULT_MAX_TOKENS, signal, onStatus },
               onToken,
-              onStatus,
             );
             span.setOutput(text);
             return text;

@@ -1,8 +1,8 @@
 'use client';
 
-export default function GlobalError({ error, reset }: { error: Error; reset: () => void }) {
+export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="light">
       <body>
         <div className="container-read py-16">
           <p className="t-eyebrow text-muted">Fatal error</p>

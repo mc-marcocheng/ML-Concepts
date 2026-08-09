@@ -105,14 +105,14 @@ export default function SettingsPage() {
   return (
     <div className="container-read py-10">
       <p className="t-eyebrow text-muted">Settings</p>
-      <h1 className="t-display-md mt-3">Model manager</h1>
-      <p className="mt-4 text-[17px] leading-7 text-body">This section now includes the local controls for theme, saved quiz progress, and the assistant model provider.</p>
+      <h1 className="t-display-md mt-3">Settings</h1>
+      <p className="mt-4 text-[17px] leading-7 text-body">Local controls for the assistant model, theme, reading preferences, offline storage, and backups.</p>
 
       <ModelManager />
 
       <section className="mt-8 rounded-lg border border-line bg-card p-5">
         <p className="t-eyebrow text-muted">Theme</p>
-        <div className="mt-4 flex items-center justify-between gap-4">
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
             <h2 className="text-[18px] font-extrabold text-ink">Colour mode</h2>
             <p className="mt-1 text-[15px] text-body">Switch between light and dark themes.</p>
@@ -123,7 +123,7 @@ export default function SettingsPage() {
 
       <section className="mt-4 rounded-lg border border-line bg-card p-5">
         <p className="t-eyebrow text-muted">Reading</p>
-        <div className="mt-4 flex items-center justify-between gap-4">
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
             <h2 className="text-[18px] font-extrabold text-ink">Expand proofs by default</h2>
             <p className="mt-1 text-[15px] text-body">Open collapsible proof blocks automatically when concepts load.</p>
@@ -142,14 +142,14 @@ export default function SettingsPage() {
 
       <section className="mt-4 rounded-lg border border-line bg-card p-5">
         <p className="t-eyebrow text-muted">Storage</p>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
             <h2 className="text-[18px] font-extrabold text-ink">Local progress</h2>
             <p className="mt-1 text-[15px] text-body">{attemptCount} saved attempt{attemptCount === 1 ? '' : 's'} in this browser.</p>
             <p className="mt-1 font-mono text-[12px] text-muted">Connection status: {online ? 'online' : 'offline'}</p>
             <p className="mt-1 font-mono text-[12px] text-muted">Storage: {storageUsage || 'checking...'}</p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="actions">
             <Button
               variant="tertiary"
               size="sm"
@@ -175,12 +175,12 @@ export default function SettingsPage() {
       {process.env.NODE_ENV !== 'production' ? (
         <section className="mt-4 rounded-lg border border-line bg-card p-5">
           <p className="t-eyebrow text-muted">Developer</p>
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <div>
               <h2 className="text-[18px] font-extrabold text-ink">Tracing</h2>
               <p className="mt-1 text-[15px] text-body">Inspect recent assistant and grading spans captured in memory.</p>
             </div>
-            <Link href="/dev/traces" className="rounded-pill border border-line bg-canvas-soft px-4 py-2.5 text-[14px] font-semibold text-ink hover:bg-primary-pale">
+            <Link href="/dev/traces" className="inline-flex min-h-11 w-full items-center justify-center rounded-pill border border-line bg-canvas-soft px-4 py-2.5 text-[14px] font-semibold text-ink hover:bg-primary-pale sm:w-auto">
               Open traces
             </Link>
           </div>
@@ -189,16 +189,16 @@ export default function SettingsPage() {
 
       <section className="mt-4 rounded-lg border border-line bg-card p-5">
         <p className="t-eyebrow text-muted">Backup</p>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
             <h2 className="text-[18px] font-extrabold text-ink">Export or import your local data</h2>
             <p className="mt-1 text-[15px] text-body">Backs up attempts, readings, notes, and non-secret settings. API keys are not included.</p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="actions">
             <Button variant="tertiary" size="sm" onClick={downloadBackup}>
               <Download size={14} aria-hidden="true" /> Download backup
             </Button>
-            <label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-pill border-2 border-line-strong bg-card px-4 py-2.5 text-[14px] font-semibold text-ink hover:bg-ink hover:text-canvas dark:hover:bg-primary dark:hover:text-on-primary">
+            <label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-pill border-2 border-line-strong bg-card px-4 py-2.5 text-[14px] font-semibold text-ink focus-within:outline-2 focus-within:outline-primary hover:bg-ink hover:text-canvas dark:hover:bg-primary dark:hover:text-on-primary">
               <Upload size={14} aria-hidden="true" /> Import backup
               <input
                 type="file"
@@ -207,7 +207,7 @@ export default function SettingsPage() {
                 onChange={event => {
                   const file = event.target.files?.[0] ?? null;
                   void handleImport(file);
-                  event.currentTarget.value = '';
+                  event.target.value = '';
                 }}
               />
             </label>

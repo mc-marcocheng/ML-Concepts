@@ -117,7 +117,6 @@ export function ConceptAnnotations({ conceptId, conceptTitle }: { conceptId: str
       body: text.trim(),
       createdAt: Date.now(),
       updatedAt: Date.now(),
-      text: text.trim(),
     };
     upsertNote(note);
     clearDraft();
@@ -141,7 +140,7 @@ export function ConceptAnnotations({ conceptId, conceptTitle }: { conceptId: str
           onHover={hover => setActiveId(hover ? item.note.id : null)}
           onEdit={() => setEditing(item.note.id)}
           onCancel={() => setEditing(null)}
-          onSave={text => { upsertNote({ ...item.note, body: text.trim(), text: text.trim() }); setEditing(null); }}
+          onSave={text => { upsertNote({ ...item.note, body: text.trim() }); setEditing(null); }}
           onColor={color => upsertNote({ ...item.note, color })}
           onDelete={() => { deleteNote(item.note.id); setEditing(null); }}
         />
@@ -156,8 +155,8 @@ export function ConceptAnnotations({ conceptId, conceptTitle }: { conceptId: str
 
       {draft ? <DraftComposer onCancel={clearDraft} onSave={saveDraft} quote={quote(draft.exact)} /> : null}
 
-      <section className="mt-10" aria-label={`Notes for ${conceptTitle}`}>
-        <div className="md:hidden">
+      <section className="mt-10 md:hidden" aria-label={`Notes for ${conceptTitle}`}>
+        <div>
           <p className="t-eyebrow text-muted">Notes ({notes.length})</p>
           <div className="mt-3 grid gap-3">
             {notes.length === 0 ? (

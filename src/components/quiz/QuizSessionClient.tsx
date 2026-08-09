@@ -1,19 +1,25 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { LoaderCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, LoaderCircle } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { addAttempt, loadAttempts, type AttemptRecord } from '@/lib/persistence/progress';
 import { buildSession, type QuizEntry, type SessionParams } from '@/lib/quiz/load';
 import { CodeCloze } from './CodeCloze';
-import { gradeAnswer, rubricFor, type GradeResult } from '@/lib/grading/pipeline';
+import { gradeAnswer, type GradeResult } from '@/lib/grading/pipeline';
+import { rubricFor } from '@/lib/grading/rubric';
 import { VerdictCard } from './VerdictCard';
 import { saveSession, type SessionItemRecord } from '@/lib/persistence/sessions';
 import type { AskContext } from '@/lib/llm/types';
+import type { QuizItem } from '@/lib/content/types';
 
 type SessionOutcome = SessionItemRecord;
+
+function defaultOrderAnswer(item: QuizItem) {
+  return (item.steps ?? []).map((_, stepIndex) => stepIndex).reverse().join(',');
+}
 
 export function QuizSessionClient() {
   const params = useSearchParams();
@@ -33,7 +39,7 @@ export function QuizSessionClient() {
   const [done, setDone] = useState(false);
   const [grading, setGrading] = useState(false);
   const [attempts, setAttempts] = useState<AttemptRecord[]>([]);
-  const [sessionLog, setSessionLog] = useState<SessionOutcome[]>([]);
+  const [sessionLog, setSessionLog] = useState<Record<string, SessionOutcome>>({});
   const [hintIndex, setHintIndex] = useState(0);
   const [sessionSaved, setSessionSaved] = useState(false);
   const [startedAt] = useState(() => Date.now());
@@ -62,13 +68,17 @@ export function QuizSessionClient() {
   }), [current?.conceptId, current?.conceptTitle, current?.conceptSummary]);
 
   useEffect(() => {
+    if (current?.item.type === 'order') setAnswer(defaultOrderAnswer(current.item));
+  }, [current]);
+
+  useEffect(() => {
     if (!done || sessionSaved || !entries.length) return;
     saveSession({
       id: `s_${startedAt.toString(36)}`,
       startedAt,
       completedAt: Date.now(),
       params: sessionParams,
-      items: sessionLog,
+      items: Object.values(sessionLog),
     });
     setSessionSaved(true);
   }, [done, entries.length, sessionLog, sessionParams, sessionSaved, startedAt]);
@@ -88,15 +98,23 @@ export function QuizSessionClient() {
   const currentHints = current?.item.hints ?? [];
   const visibleHints = currentHints.slice(0, hintIndex);
 
-  const recordOutcome = (outcome: SessionOutcome) => {
-    setSessionLog(previous => {
-      const next = [...previous];
-      next[index] = outcome;
-      return next;
-    });
+  const orderSequence = current?.item.type === 'order'
+    ? answer.split(',').filter(Boolean).map(Number)
+    : [];
+
+  const moveOrderStep = (position: number, direction: -1 | 1) => {
+    const target = position + direction;
+    if (target < 0 || target >= orderSequence.length) return;
+    const next = [...orderSequence];
+    [next[position], next[target]] = [next[target], next[position]];
+    setAnswer(next.join(','));
   };
 
-  const advance = () => {
+  const recordOutcome = useCallback((outcome: SessionOutcome) => {
+    setSessionLog(previous => ({ ...previous, [outcome.itemId]: outcome }));
+  }, []);
+
+  const advance = useCallback(() => {
     const next = index + 1;
     if (next >= entries.length) {
       setDone(true);
@@ -110,9 +128,9 @@ export function QuizSessionClient() {
     setHintIndex(0);
     setGrading(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, [entries.length, index]);
 
-  const submitCurrent = async () => {
+  const submitCurrent = useCallback(async () => {
     if (!current || grading || revealed) return;
     setGrading(true);
     setRevealed(true);
@@ -177,7 +195,7 @@ export function QuizSessionClient() {
     } finally {
       setGrading(false);
     }
-  };
+  }, [current, grading, revealed, answerText, recordOutcome]);
 
   const skipCurrent = () => {
     if (!current || grading || revealed) return;
@@ -200,7 +218,8 @@ export function QuizSessionClient() {
       gradedBy: 'pending',
       checks: [],
       note: 'Skipped by learner',
-      rubric: current.item.rubric,
+      rubric: rubricFor(current.item),
+      needsSelfGrade: false,
     });
     recordOutcome({
       conceptId: current.conceptId,
@@ -215,7 +234,6 @@ export function QuizSessionClient() {
       ts: skippedAt,
     });
     setRevealed(true);
-    advance();
   };
 
   const selfGrade = (verdict: 'correct' | 'partial' | 'incorrect', score: number) => {
@@ -259,7 +277,7 @@ export function QuizSessionClient() {
 
       if (grading || !current) return;
 
-      if (current.item.type === 'mcq' && event.key >= '1' && event.key <= '9') {
+      if (current.item.type === 'mcq' && !revealed && event.key >= '1' && event.key <= '9') {
         const optionIndex = Number(event.key) - 1;
         if (current.item.options?.[optionIndex]) {
           event.preventDefault();
@@ -291,7 +309,7 @@ export function QuizSessionClient() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [advance, current, grading, result]);
+  }, [advance, current, grading, result, revealed, submitCurrent]);
 
   if (loading) {
     return (
@@ -313,7 +331,8 @@ export function QuizSessionClient() {
   }
 
   if (done || !current) {
-    const average = sessionLog.length ? sessionLog.reduce((sum, item) => sum + item.score, 0) / sessionLog.length : 0;
+    const sessionItems = Object.values(sessionLog);
+    const average = sessionItems.length ? sessionItems.reduce((sum, item) => sum + item.score, 0) / sessionItems.length : 0;
 
     return (
       <div className="container-read py-10">
@@ -325,7 +344,7 @@ export function QuizSessionClient() {
         <section className="mt-8 rounded-xl border border-line bg-card p-6">
           <p className="t-eyebrow text-muted">Summary</p>
           <div className="mt-4 grid gap-3">
-            {sessionLog.map(item => (
+            {sessionItems.map(item => (
               <article key={`${item.itemId}-${item.ts}`} className="rounded-lg border border-line bg-canvas-soft p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -409,6 +428,35 @@ export function QuizSessionClient() {
               onSubmit={() => void submitCurrent()}
             />
           </div>
+        ) : current.item.type === 'order' ? (
+          <ol className="mt-6 grid gap-2">
+            {orderSequence.map((stepIndex, position) => (
+              <li key={stepIndex} className="flex items-center gap-3 rounded-lg border border-line bg-canvas-soft p-4 text-ink">
+                <span className="font-mono text-[12px] text-muted">{position + 1}</span>
+                <span className="flex-1 text-[15px] leading-6">{current.item.steps?.[stepIndex]}</span>
+                <div className="flex gap-1">
+                  <Button
+                    variant="icon"
+                    size="sm"
+                    disabled={revealed || position === 0}
+                    onClick={() => moveOrderStep(position, -1)}
+                    aria-label="Move step up"
+                  >
+                    <ChevronUp size={16} aria-hidden="true" />
+                  </Button>
+                  <Button
+                    variant="icon"
+                    size="sm"
+                    disabled={revealed || position === orderSequence.length - 1}
+                    onClick={() => moveOrderStep(position, 1)}
+                    aria-label="Move step down"
+                  >
+                    <ChevronDown size={16} aria-hidden="true" />
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ol>
         ) : (
           <textarea
             value={answer}
@@ -420,7 +468,7 @@ export function QuizSessionClient() {
               }
             }}
             rows={current.item.type === 'numeric' ? 1 : 4}
-            className="mt-6 w-full rounded-lg border border-line bg-canvas-soft p-4 text-ink"
+            className="mt-6 w-full scroll-mt-[calc(var(--header-h)+24px)] rounded-lg border border-line bg-canvas-soft p-4 text-ink"
             placeholder={current.item.type === 'numeric' ? '0.95' : 'Type your answer'}
           />
         )}

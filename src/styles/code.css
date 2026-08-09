@@ -1,0 +1,68 @@
+/* rehype-pretty-code / shiki output --------------------------------------- */
+[data-rehype-pretty-code-figure] { margin-block: 24px; }
+
+[data-rehype-pretty-code-title] {
+  border: 1px solid var(--color-line);
+  border-bottom: 0;
+  border-radius: var(--rounded-lg) var(--rounded-lg) 0 0;
+  background: var(--color-canvas-soft);
+  padding: 8px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+[data-rehype-pretty-code-title] + pre { border-radius: 0 0 var(--rounded-lg) var(--rounded-lg); }
+
+.prose pre,
+[data-rehype-pretty-code-figure] pre {
+  margin: 0;
+  overflow-x: auto;
+  padding: 16px 0;
+  border: 1px solid var(--color-line);
+  border-radius: var(--rounded-lg);
+  background: var(--color-canvas-soft);
+  font-size: 13.5px;
+  line-height: 1.7;
+  tab-size: 2;
+}
+
+.prose pre code,
+[data-rehype-pretty-code-figure] pre code {
+  display: grid;
+  min-width: max-content;
+  background: none;
+  padding: 0;
+  font-family: var(--font-mono);
+}
+
+.prose pre code [data-line],
+[data-rehype-pretty-code-figure] pre code [data-line] { padding-inline: 18px; border-left: 2px solid transparent; }
+
+.prose pre code [data-highlighted-line],
+[data-rehype-pretty-code-figure] pre code [data-highlighted-line] {
+  background: var(--color-primary-pale);
+  border-left-color: var(--color-primary-active);
+}
+
+[data-highlighted-chars] {
+  background: var(--color-primary-pale);
+  border-radius: 4px;
+  padding: 0.1em 0.25em;
+}
+
+code[data-line-numbers] { counter-reset: line; }
+
+code[data-line-numbers] > [data-line]::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 2ch;
+  margin-right: 1.25ch;
+  text-align: right;
+  color: var(--color-muted);
+}
+
+/* Dual-theme token colours driven by the html[data-theme] attribute. */
+[data-rehype-pretty-code-figure] span[data-line] span { color: var(--shiki-light); }
+html[data-theme='dark'] [data-rehype-pretty-code-figure] span[data-line] span { color: var(--shiki-dark); }

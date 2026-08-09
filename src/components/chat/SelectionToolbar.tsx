@@ -33,7 +33,7 @@ export function SelectionToolbar() {
       window.clearTimeout(timeout);
       timeout = window.setTimeout(() => {
         const capture = captureSelection();
-        if (!capture) return setPosition(null);
+        if (!capture) { setPosition(null); setPayload(null); return; }
         const rect = capture.range.getBoundingClientRect();
         const noteAnchor = capture.body && capture.body.contains(capture.range.commonAncestorContainer)
           ? rangeToAnchor(capture.body, capture.range)
@@ -73,7 +73,6 @@ export function SelectionToolbar() {
       body: '',
       createdAt: Date.now(),
       updatedAt: Date.now(),
-      text: '',
     });
     setPosition(null);
     window.getSelection()?.removeAllRanges();

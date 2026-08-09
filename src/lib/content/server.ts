@@ -7,12 +7,18 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import rehypeSlug from 'rehype-slug';
-import rehypePrettyCode from 'rehype-pretty-code';
+import rehypePrettyCode, { type Options as PrettyCodeOptions } from 'rehype-pretty-code';
 import { rehypeTexSource } from './rehype-tex-source';
 import { mdxComponents } from '@/components/content/mdxComponents';
 import { FrontmatterSchema, type ConceptMeta } from './types';
 
 const CONTENT = path.join(process.cwd(), 'content');
+const prettyCodeOptions: PrettyCodeOptions = {
+  theme: { light: 'github-light', dark: 'github-dark-default' },
+  keepBackground: false,
+  defaultLang: { block: 'text', inline: 'text' },
+  bypassInlineCode: true,
+};
 
 export async function listConcepts(): Promise<ConceptMeta[]> {
   const raw = await fs.readFile(path.join(process.cwd(), 'public/data/concepts.json'), 'utf8');
@@ -32,9 +38,9 @@ export async function getConcept(category: string, slug: string) {
         remarkPlugins: [remarkGfm, remarkMath],
         rehypePlugins: [
           rehypeSlug,
+          [rehypePrettyCode, prettyCodeOptions],
           [rehypeKatex, { output: 'htmlAndMathml', throwOnError: false, strict: 'ignore' }],
           rehypeTexSource,
-          [rehypePrettyCode, { theme: { light: 'github-light', dark: 'github-dark-dimmed' }, keepBackground: false }],
         ],
       },
     },

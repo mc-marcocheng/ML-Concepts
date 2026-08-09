@@ -1,6 +1,6 @@
 'use client';
 
-export default function Error({ error, reset }: { error: Error; reset: () => void }) {
+export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <div className="container-read py-16">
       <p className="t-eyebrow text-muted">Error</p>

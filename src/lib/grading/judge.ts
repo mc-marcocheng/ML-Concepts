@@ -2,6 +2,7 @@ import type { QuizItem } from '@/lib/content/types';
 import { ensureLlmHydrated, useLlm } from '@/lib/llm/client';
 import { startTrace } from '@/lib/llm/trace';
 import { stripThinking } from '@/lib/llm/providers/remote';
+import { rubricFor } from './rubric';
 
 export interface RubricCheck {
   i: number;
@@ -22,26 +23,6 @@ Do not invent criteria. Do not grade style, length or spelling.
 Reply with JSON only, no prose and no code fences, in exactly this shape:
 {"checks":[{"i":1,"ok":true,"why":"short reason"}],"note":"one sentence summary"}`;
 
-const SCHEMA = {
-  type: 'object',
-  properties: {
-    checks: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          i: { type: 'integer' },
-          ok: { type: 'boolean' },
-          why: { type: 'string' },
-        },
-        required: ['i', 'ok', 'why'],
-      },
-    },
-    note: { type: 'string' },
-  },
-  required: ['checks', 'note'],
-} as const;
-
 function extractJson(raw: string): JudgeResult | null {
   const text = stripThinking(raw)
     .replace(/^\s*```(?:json)?/i, '')
@@ -56,21 +37,6 @@ function extractJson(raw: string): JudgeResult | null {
   } catch {
     return null;
   }
-}
-
-function rubricFor(item: QuizItem | null | undefined): string[] {
-  const authored = Array.isArray(item?.rubric)
-    ? item.rubric.filter(entry => typeof entry === 'string' && entry.trim().length > 0)
-    : [];
-  if (authored.length) return authored;
-
-  if (item?.type === 'mcq' && Number.isInteger(item.correctIndex)) {
-    const option = item.options?.[item.correctIndex as number];
-    if (option) return [`Selects: ${option}`];
-  }
-
-  if (item?.answer) return [`Matches the reference answer: ${item.answer}`];
-  return ['Addresses the prompt correctly'];
 }
 
 function buildPrompt(item: QuizItem, student: string) {

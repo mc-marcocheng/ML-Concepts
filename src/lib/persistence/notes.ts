@@ -14,7 +14,6 @@ export interface NoteRecord {
   createdAt: number;
   updatedAt: number;
   orphan?: boolean;
-  text?: string;
 }
 
 const NOTES_KEY = 'mlc.notes';
@@ -44,78 +43,30 @@ export function loadNotes(): NoteRecord[] {
   const notes = readJson<unknown[]>(NOTES_KEY, []);
   return notes.flatMap(note => {
     if (!note || typeof note !== 'object') return [];
-    const value = note as Partial<NoteRecord> & { conceptId?: string; text?: string; updatedAt?: number };
-    if (typeof value.id === 'string' && typeof value.exact === 'string') {
-      return [{
-        id: value.id,
-        conceptId: value.conceptId ?? '',
-        color: value.color ?? 'yellow',
-        exact: value.exact,
-        prefix: value.prefix ?? '',
-        suffix: value.suffix ?? '',
-        start: value.start ?? 0,
-        body: value.body ?? value.text ?? '',
-        createdAt: value.createdAt ?? value.updatedAt ?? Date.now(),
-        updatedAt: value.updatedAt ?? value.createdAt ?? Date.now(),
-        orphan: value.orphan,
-        text: value.text,
-      }];
-    }
-    if (typeof value.conceptId === 'string' && typeof value.text === 'string') {
-      const now = value.updatedAt ?? Date.now();
-      return [{
-        id: newId(),
-        conceptId: value.conceptId,
-        color: 'yellow',
-        exact: '',
-        prefix: '',
-        suffix: '',
-        start: 0,
-        body: value.text,
-        createdAt: now,
-        updatedAt: now,
-        orphan: true,
-        text: value.text,
-      }];
-    }
-    return [];
+    const value = note as Partial<NoteRecord>;
+    if (typeof value.id !== 'string' || typeof value.exact !== 'string') return [];
+    return [{
+      id: value.id,
+      conceptId: value.conceptId ?? '',
+      color: value.color ?? 'yellow',
+      exact: value.exact,
+      prefix: value.prefix ?? '',
+      suffix: value.suffix ?? '',
+      start: value.start ?? 0,
+      body: value.body ?? '',
+      createdAt: value.createdAt ?? value.updatedAt ?? Date.now(),
+      updatedAt: value.updatedAt ?? value.createdAt ?? Date.now(),
+      orphan: value.orphan,
+    }];
   });
 }
 
 export function upsertNote(note: NoteRecord) {
   const notes = loadNotes().filter(existing => existing.id !== note.id);
-  notes.unshift({ ...note, updatedAt: Date.now(), text: note.body || note.text || '' });
+  notes.unshift({ ...note, updatedAt: Date.now() });
   writeJson(NOTES_KEY, notes.slice(0, 200));
 }
 
 export function deleteNote(id: string) {
   writeJson(NOTES_KEY, loadNotes().filter(note => note.id !== id));
-}
-
-export function saveNote(conceptId: string, text: string) {
-  const trimmed = text.trim();
-  const notes = loadNotes().filter(note => !(
-    note.conceptId === conceptId
-    && !note.exact
-    && (note.body ?? note.text ?? '').trim() === trimmed
-  ));
-  if (!trimmed) {
-    writeJson(NOTES_KEY, notes);
-    return;
-  }
-  notes.unshift({
-    id: newId(),
-    conceptId,
-    color: 'yellow',
-    exact: '',
-    prefix: '',
-    suffix: '',
-    start: 0,
-    body: trimmed,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-    orphan: true,
-    text: trimmed,
-  });
-  writeJson(NOTES_KEY, notes.slice(0, 200));
 }

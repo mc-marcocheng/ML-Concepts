@@ -44,6 +44,8 @@ export function ModelManager() {
     probeWebGpu().then(result => setWebGpu(result)).catch(() => setWebGpu({ supported: false }));
   }, [hydrate]);
 
+  useEffect(() => () => checkAbort.current?.abort(), []);
+
   const runCheck = async () => {
     checkAbort.current?.abort();
     const controller = new AbortController();
@@ -63,7 +65,7 @@ export function ModelManager() {
     <section id="assistant" className="mt-4 rounded-lg border border-line bg-card p-5">
       <p className="t-eyebrow text-muted">Assistant</p>
       <div className="mt-4 grid gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
             <h2 className="text-[18px] font-extrabold text-ink">Model settings</h2>
             <p className="mt-1 text-[15px] text-body">Use a remote OpenAI-compatible endpoint, or an on-device WebGPU model. Turn the assistant on or off separately.</p>
@@ -81,7 +83,7 @@ export function ModelManager() {
 
         {provider === 'remote' ? (
           <div className="rounded-lg border border-line bg-canvas-soft p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-[16px] font-extrabold text-ink">Remote endpoint</h3>
                 <p className="mt-1 text-[14px] text-body">OpenAI-compatible endpoints work here, including Ollama and OpenRouter-style servers.</p>
@@ -120,15 +122,15 @@ export function ModelManager() {
               </label>
             </div>
             <p className="mt-2 text-[13px] text-muted">Reasoning models automatically use <code className="font-mono">max_completion_tokens</code> and get extra hidden-reasoning budget on top of the value above.</p>
-              <label className="mt-3 inline-flex items-center gap-2 text-[13px] text-body">
-                <input
-                  type="checkbox"
-                  checked={rememberApiKey}
-                  onChange={event => setRememberApiKey(event.target.checked)}
-                  className="h-4 w-4 rounded border-line text-primary"
-                />
-                Remember API key on this device
-              </label>
+            <label className="mt-3 inline-flex items-center gap-2 text-[13px] text-body">
+              <input
+                type="checkbox"
+                checked={rememberApiKey}
+                onChange={event => setRememberApiKey(event.target.checked)}
+                className="h-4 w-4 rounded border-line text-primary"
+              />
+              Remember API key on this device
+            </label>
           </div>
         ) : (
           <OnDeviceModels
@@ -139,12 +141,12 @@ export function ModelManager() {
         )}
 
         <div className="rounded-lg border border-line bg-canvas-soft p-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <div>
               <h3 className="text-[16px] font-extrabold text-ink">Connection check</h3>
               <p className="mt-1 text-[14px] text-body">Uses <code className="font-mono">GET /models</code> first, so it normally costs zero tokens.</p>
             </div>
-            <Button size="sm" variant="tertiary" onClick={runCheck} disabled={checking}>
+            <Button size="sm" variant="tertiary" className="w-full justify-center sm:w-auto" onClick={runCheck} disabled={checking}>
               {checking ? 'Checking…' : 'Run check'}
             </Button>
           </div>
@@ -170,7 +172,7 @@ export function ModelManager() {
           ) : null}
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="actions">
           {provider === 'remote' ? <Button variant="tertiary" size="sm" onClick={() => setRemote({ baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini', maxTokens: 1024, reasoningEffort: 'low' })}>Reset remote defaults</Button> : null}
           {provider === 'ondevice' ? <Button variant="tertiary" size="sm" onClick={() => setOnDeviceModel(DEFAULT_ON_DEVICE_KEY)}>Reset on-device model</Button> : null}
         </div>
