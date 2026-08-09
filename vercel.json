@@ -3,6 +3,10 @@
   "git": {
     "deploymentEnabled": false
   },
+  "rewrites": [
+    { "source": "/", "destination": "/index/" },
+    { "source": "/:path*/", "destination": "/:path*/index/" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
