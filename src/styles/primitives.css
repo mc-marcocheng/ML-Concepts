@@ -106,11 +106,136 @@ mark.hl[data-math='block'] > .katex-display { margin: 0; }
 mark.hl .katex,
 mark.hl .katex * { background: transparent; }
 
-.note-card {
+/* Rail cards are absolutely positioned by the stacking algorithm;
+   inline cards flow normally inside the article column. */
+.note-card--rail {
   position: absolute;
   left: 0;
   width: 100%;
   transition: top 180ms cubic-bezier(.2,.8,.2,1);
+}
+
+.note-card--inline {
+  position: static;
+  width: auto;
+  /* Highlight → card scrolling must not tuck the card under the sticky header. */
+  scroll-margin-top: calc(var(--header-h) + 16px);
+  scroll-margin-bottom: 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .note-card--rail { transition: none; }
+}
+
+/* ---- text selection actions -------------------------------------------- */
+
+/* We keep the OS text-selection menu, so do NOT suppress the callout on the
+   article. Images are the one case where the long-press menu is noise. */
+[data-askable] img { -webkit-touch-callout: none; }
+
+/* Zero-width probe: reports tab-bar height + bottom safe-area inset to JS. */
+.sel-probe {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 12px);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+@media (min-width: 1024px) {
+  .sel-probe { height: calc(env(safe-area-inset-bottom) + 12px); }
+}
+
+.sel-bar {
+  position: fixed;
+  z-index: 39;
+  animation: sel-bar-in 160ms var(--ease-standard);
+}
+
+.sel-bar[data-dock='bottom'] {
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 12px);
+}
+
+.sel-bar[data-dock='top'] {
+  left: 12px;
+  right: 12px;
+  top: calc(var(--header-h) + 12px);
+}
+
+.sel-bar[data-dock='float'] { transform: translateX(-50%); }
+
+.sel-bar__inner {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--rounded-pill);
+  background: var(--color-card);
+  box-shadow: var(--shadow-overlay);
+}
+
+.sel-bar[data-dock='float'] .sel-bar__inner { width: max-content; }
+
+.sel-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-height: 44px;
+  padding-inline: 12px;
+  border: 0;
+  border-radius: var(--rounded-pill);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink);
+  transition: background 160ms var(--ease-standard);
+}
+
+.sel-action:hover { background: var(--color-primary-pale); }
+
+.sel-bar__close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: var(--rounded-pill);
+  background: transparent;
+  color: var(--color-muted);
+}
+
+.sel-bar__close:hover { background: var(--color-primary-pale); color: var(--color-ink); }
+
+@media (max-width: 379px) {
+  .sel-action span { display: none; }
+  .sel-action { padding-inline: 8px; }
+}
+
+/* De-emphasise the tab bar so the docked action bar reads as the live target
+   and stray taps do not navigate away mid-selection. */
+html[data-selection-active] [data-mobile-tabs] {
+  opacity: .4;
+  pointer-events: none;
+  transition: opacity 140ms var(--ease-standard);
+}
+
+@keyframes sel-bar-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.sel-bar[data-dock='float'] { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sel-bar { animation: none; }
 }
 
 :root {
@@ -215,6 +340,13 @@ mark.hl .katex * { background: transparent; }
   gap: 12px;
   flex-wrap: wrap;
   padding: 14px 20px;
+  /* Keep in sync with BAND_HEAD_H in src/lib/content/roadmap-layout.ts */
+  min-height: 66px;
+}
+
+.roadmap__band-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .roadmap__band-dot {
@@ -241,6 +373,34 @@ mark.hl .katex * { background: transparent; }
   height: 100%;
   background: var(--cat);
   border-radius: inherit;
+}
+
+/* ---- narrow containers: deterministic two-row head ---------------------
+   Row 1: dot + title + count.  Row 2: full-width progress bar.
+   Threshold must match ROADMAP_NARROW_W in roadmap-layout.ts.            */
+.roadmap[data-narrow='true'] .roadmap__band-head {
+  gap: 8px 10px;
+  padding: 12px 14px;
+}
+
+.roadmap[data-narrow='true'] .roadmap__band-title {
+  flex: 1 1 auto;
+  font-size: 20px;
+  line-height: 1.25;
+  letter-spacing: -.02em;
+}
+
+.roadmap[data-narrow='true'] .roadmap__band-bar {
+  flex: 1 0 100%;
+  max-width: none;
+  order: 3;
+}
+
+/* The band bleeds ±12px on desktop; trim it on phones so it does not
+   contribute to horizontal overflow inside .container-wide. */
+.roadmap[data-narrow='true'] .roadmap__band {
+  left: -6px;
+  right: -6px;
 }
 
 .roadmap__wires {

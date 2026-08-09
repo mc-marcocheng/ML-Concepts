@@ -11,7 +11,7 @@ export function MobileTabs({ onOpenAsk }: { onOpenAsk?: () => void }) {
   const tabs = PRIMARY_NAV.filter(item => item.tab);
 
   return (
-    <nav aria-label="Sections" className="lg:hidden fixed inset-x-0 bottom-0 z-30 border-t border-line bg-header backdrop-blur-[14px] pb-[env(safe-area-inset-bottom)]">
+    <nav data-mobile-tabs aria-label="Sections" className="lg:hidden fixed inset-x-0 bottom-0 z-30 border-t border-line bg-header backdrop-blur-[14px] pb-[env(safe-area-inset-bottom)]">
       <ul className="grid" style={{ gridTemplateColumns: `repeat(${tabs.length + 1}, minmax(0, 1fr))` }}>
         {tabs.map(item => {
           const Icon = item.icon;

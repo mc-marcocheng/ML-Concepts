@@ -71,6 +71,9 @@ export default async function ConceptPage({ params }: { params: Promise<{ slug: 
           <ConceptFooter fm={frontmatter} all={all} />
         </article>
 
+        {/* Note rail. The breakpoint here is authoritative: ConceptAnnotations measures
+            this element rather than duplicating the value. If you change `xl:` below,
+            also update the `xl:hidden` anti-flash guard in ConceptAnnotations. */}
         <aside data-note-rail className="relative hidden xl:block xl:min-h-24" aria-label="Notes" />
       </div>
 

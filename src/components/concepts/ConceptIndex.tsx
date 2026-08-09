@@ -117,12 +117,18 @@ export function ConceptIndex({ concepts }: { concepts: ConceptMeta[] }) {
                 onClick={() => setFiltersOpen(open => !open)}
                 aria-expanded={filtersOpen}
                 aria-controls="concept-filters"
-                className="inline-flex min-h-11 items-center gap-2 rounded-pill border border-line bg-card px-4 text-[14px] font-semibold text-ink hover:bg-primary-pale"
+                aria-label={activeFilterCount ? `Filters (${activeFilterCount} active)` : 'Filters'}
+                title="Filters"
+                className="relative grid h-11 w-11 place-items-center rounded-pill border border-line bg-card text-ink hover:bg-primary-pale"
               >
-                <SlidersHorizontal size={16} aria-hidden="true" />
-                Filters
+                <SlidersHorizontal size={18} aria-hidden="true" />
                 {activeFilterCount ? (
-                  <span className="rounded-pill bg-primary px-2 py-0.5 font-mono text-[11px] text-on-primary">{activeFilterCount}</span>
+                  <span
+                    aria-hidden="true"
+                    className="absolute -right-1 -top-1 grid h-4.5 min-w-4.5 place-items-center rounded-pill border border-card bg-primary px-1 font-mono text-[10px] leading-none text-on-primary"
+                  >
+                    {activeFilterCount}
+                  </span>
                 ) : null}
               </button>
             </div>

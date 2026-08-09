@@ -15,6 +15,20 @@ export const ROADMAP = {
   maxCols: 4,
 } as const;
 
+/** Height reserved for `.roadmap__band-head` on wide containers.
+ *  MUST stay in sync with `.roadmap__band-head { min-height }` in primitives.css. */
+export const BAND_HEAD_H = ROADMAP.sectionHeader;
+
+/** First-paint estimate for the two-row (narrow) head, before measurement lands. */
+export const BAND_HEAD_H_NARROW = 92;
+
+/** Container width under which the band head stacks onto two rows.
+ *  MUST stay in sync with the `[data-narrow]` rules in primitives.css. */
+export const ROADMAP_NARROW_W = 560;
+
+/** Safety gap between the band head and the first node row. */
+const BAND_HEAD_GAP = 8;
+
 export interface LayoutNode {
   id: string;
   x: number;
@@ -64,6 +78,7 @@ export interface RoadmapLayout {
   segments: LayoutSegment[];
   sections: LayoutSection[];
   sequence: string[];
+  bandHeadHeight: number;
 }
 
 type Point = { x: number; y: number };
@@ -106,11 +121,14 @@ function edgePath(a: LayoutNode, b: LayoutNode) {
   return `M${start.x.toFixed(1)},${start.y.toFixed(1)} C${c1.x.toFixed(1)},${c1.y.toFixed(1)} ${c2.x.toFixed(1)},${c2.y.toFixed(1)} ${end.x.toFixed(1)},${end.y.toFixed(1)}`;
 }
 
-export function layoutRoadmap({ graph, visibleIds, width }: {
+export function layoutRoadmap({ graph, visibleIds, width, bandHeadHeight = BAND_HEAD_H }: {
   graph: ConceptGraph;
   visibleIds: Set<string>;
   width: number;
+  /** Measured height of `.roadmap__band-head`. Defaults to the wide-screen constant. */
+  bandHeadHeight?: number;
 }): RoadmapLayout {
+  const headH = Math.max(0, Math.ceil(bandHeadHeight));
   const usable = Math.max(280, Math.floor(width));
   const cols = Math.max(1, Math.min(ROADMAP.maxCols,
     Math.floor((usable + ROADMAP.gapX) / (ROADMAP.minNodeWidth + ROADMAP.gapX))));
@@ -137,7 +155,7 @@ export function layoutRoadmap({ graph, visibleIds, width }: {
   runs.forEach((run, sectionIndex) => {
     const rows = Math.ceil(run.nodes.length / cols);
     const top = cursorY;
-    const bodyTop = top + ROADMAP.sectionHeader + amp;
+    const bodyTop = top + headH + BAND_HEAD_GAP + amp;
     let lastCol = 0;
 
     run.nodes.forEach((node, i) => {
@@ -153,7 +171,7 @@ export function layoutRoadmap({ graph, visibleIds, width }: {
       lastCol = col;
     });
 
-    const height = ROADMAP.sectionHeader + amp * 2
+    const height = headH + BAND_HEAD_GAP + amp * 2
       + rows * nodeHeight + Math.max(0, rows - 1) * ROADMAP.gapY + 20;
 
     const meta = CATEGORIES.find(category => category.id === run.id);
@@ -203,5 +221,5 @@ export function layoutRoadmap({ graph, visibleIds, width }: {
   }
 
   const height = Math.max(240, cursorY - ROADMAP.sectionGap + ROADMAP.padY);
-  return { width: usable, height, cols, nodeWidth, nodeHeight, nodes, byId, edges, segments, sections, sequence };
+  return { width: usable, height, cols, nodeWidth, nodeHeight, nodes, byId, edges, segments, sections, sequence, bandHeadHeight: headH };
 }
