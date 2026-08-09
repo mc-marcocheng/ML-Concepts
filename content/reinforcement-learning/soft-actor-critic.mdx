@@ -1,0 +1,93 @@
+---
+id: reinforcement-learning/soft-actor-critic
+title: Soft Actor-Critic
+category: reinforcement-learning
+summary: Soft Actor-Critic maximizes reward and entropy with an off-policy actor-critic algorithm.
+tags:
+  - rl
+  - actor-critic
+  - entropy
+difficulty: 4
+prereqs:
+  - reinforcement-learning/actor-critic
+  - reinforcement-learning/on-policy-vs-off-policy
+  - general-ml/entropy
+related:
+  - reinforcement-learning/exploration-vs-exploitation
+  - reinforcement-learning/model-based-vs-model-free
+  - reinforcement-learning/variance-reduction-in-rl
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Soft Actor-Critic trains a stochastic policy to maximize reward plus entropy. It is off-policy and uses replay for data efficiency.
+</TLDR>
+
+## Core idea
+
+SAC maximizes a maximum-entropy objective:
+
+$$
+\mathbb{E}
+\left[
+\sum_t
+\gamma^t
+(r_t+\alpha \mathcal{H}(\pi(\cdot \mid s_t)))
+\right].
+$$
+
+The entropy term rewards stochastic behavior.
+
+The temperature $\alpha$ controls the entropy reward.
+
+## Soft value target
+
+SAC uses a soft action value.
+
+A common target is:
+
+$$
+y
+=
+r+\gamma
+\left[
+Q_{\bar\phi}(s',a')
+-\alpha \log \pi_\theta(a' \mid s')
+\right].
+$$
+
+The action $a'$ comes from the current policy.
+
+Target networks stabilize the critic update.
+
+## Actor update
+
+The actor minimizes:
+
+$$
+\mathbb{E}_{s,a \sim \pi_\theta}
+[
+\alpha \log \pi_\theta(a \mid s)-Q_\phi(s,a)
+].
+$$
+
+This encourages high value and high entropy.
+
+## Why SAC works well
+
+SAC is off-policy.
+
+It can reuse replay-buffer data.
+
+Entropy helps exploration and reduces premature collapse.
+
+See <a href="/learn/reinforcement-learning/exploration-vs-exploitation">Exploration vs Exploitation</a>.
+
+## Common mistakes
+
+Do not drop the entropy term when describing SAC.
+
+Do not forget target networks for stable critic training.
+
+Do not assume SAC is on-policy.

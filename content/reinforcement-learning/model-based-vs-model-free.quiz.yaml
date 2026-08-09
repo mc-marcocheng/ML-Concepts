@@ -1,0 +1,43 @@
+- id: mbmf-mcq-1
+  type: mcq
+  prompt: "What does a model-based RL method use?"
+  difficulty: 2
+  options:
+    - "A dynamics model for planning or imagined data"
+    - "Only a fixed random policy"
+    - "No reward signal"
+    - "Only supervised labels"
+  correctIndex: 0
+  explanation: "Model-based methods use a model of environment behavior."
+  anchor: core-idea
+- id: mbmf-short-1
+  type: short
+  prompt: "Why can model-based RL be data efficient?"
+  difficulty: 3
+  answer: "It can use a learned or known model to plan or generate imagined experience without new environment steps."
+  rubric:
+    - "Mentions planning or imagined experience."
+    - "Mentions fewer environment steps."
+  explanation: "A model can provide extra learning signal."
+  anchor: model-based-strengths
+- id: mbmf-mcq-2
+  type: mcq
+  prompt: "Which risk is specific to learned model-based control?"
+  difficulty: 3
+  options:
+    - "Planning can exploit model errors"
+    - "The discount factor disappears"
+    - "The policy cannot be stochastic"
+    - "Rewards cannot be used"
+  correctIndex: 0
+  explanation: "A planner can find actions that look good only because the model is wrong."
+  anchor: model-based-risks
+- id: mbmf-short-2
+  type: short
+  prompt: "Give one example of a model-free RL method."
+  difficulty: 2
+  answer: "Q-learning is a model-free RL method."
+  rubric:
+    - "Names a valid model-free method such as Q-learning, PPO, or SAC."
+  explanation: "Model-free methods learn values or policies without explicit dynamics planning."
+  anchor: model-free-strengths

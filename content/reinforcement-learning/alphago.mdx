@@ -1,0 +1,80 @@
+---
+id: reinforcement-learning/alphago
+title: AlphaGo
+category: reinforcement-learning
+summary: AlphaGo combines policy networks, value networks, self-play, and Monte Carlo tree search for Go.
+tags:
+  - rl
+  - self-play
+  - planning
+difficulty: 4
+prereqs:
+  - reinforcement-learning/model-based-vs-model-free
+  - reinforcement-learning/policy-gradient-theorem
+related:
+  - reinforcement-learning/muzero
+  - reinforcement-learning/exploration-vs-exploitation
+  - reinforcement-learning/markov-decision-process
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+AlphaGo combines neural networks with search. Policy networks guide candidate moves, value networks evaluate positions, and self-play improves the system.
+</TLDR>
+
+## Core idea
+
+AlphaGo solved Go by combining learning and planning.
+
+It used policy networks to propose strong moves.
+
+It used value networks to estimate position strength.
+
+It used Monte Carlo tree search to plan ahead.
+
+## Training stages
+
+Early AlphaGo versions used supervised learning from human games.
+
+They trained a policy network to imitate expert moves.
+
+Then self-play reinforcement learning improved the policy.
+
+A value network learned to predict game outcomes from positions.
+
+## Monte Carlo tree search
+
+MCTS searches possible move sequences.
+
+The policy network narrows the search to promising moves.
+
+The value network evaluates leaf positions.
+
+Search returns an improved move distribution.
+
+## AlphaGo Zero
+
+AlphaGo Zero removed human game data.
+
+It learned from self-play only.
+
+It used the game rules and MCTS to create training targets.
+
+This showed the strength of self-play with search.
+
+## Link to MuZero
+
+MuZero extends this line.
+
+It learns a latent dynamics model instead of using known game dynamics.
+
+See <a href="/learn/reinforcement-learning/muzero">MuZero</a>.
+
+## Common mistakes
+
+Do not say AlphaGo is only a neural network.
+
+Do not ignore MCTS.
+
+Do not confuse AlphaGo with AlphaGo Zero.

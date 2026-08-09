@@ -1,0 +1,89 @@
+- id: cnn-numeric-1
+  type: numeric
+  prompt: "Input height is 32, kernel is 5, padding is 2, stride is 2. What is the output height?"
+  difficulty: 2
+  value: 16
+  tolerance: 0.5
+  explanation: "$\\lfloor (32+4-5)/2 \\rfloor + 1 = 15 + 1 = 16$."
+  anchor: output-size
+- id: cnn-numeric-2
+  type: numeric
+  prompt: "A conv layer has 64 input channels, 128 output channels, a 3 by 3 kernel, and a bias. How many parameters does it have?"
+  difficulty: 2
+  value: 73856
+  tolerance: 0.5
+  explanation: "$128\\times(64\\times 9 + 1) = 128\\times 577 = 73856$."
+  anchor: parameter-and-compute-count
+- id: cnn-mcq-1
+  type: mcq
+  prompt: "Which property does a convolution layer have by construction?"
+  difficulty: 2
+  options:
+    - "Translation invariance"
+    - "Translation equivariance"
+    - "Rotation invariance"
+    - "Scale invariance"
+  correctIndex: 1
+  explanation: "Shifting the input shifts the feature map by the same amount."
+  anchor: three-properties
+- id: cnn-short-1
+  type: short
+  prompt: "Why do two stacked 3 by 3 convolutions often replace one 5 by 5 convolution?"
+  difficulty: 3
+  answer: "Both give a 5 by 5 receptive field, but two 3 by 3 layers use fewer parameters per channel pair and add an extra nonlinearity between them."
+  rubric:
+    - "States the receptive fields match."
+    - "Mentions fewer parameters or an extra nonlinearity."
+  explanation: "Per channel pair the counts are 18 versus 25."
+  anchor: receptive-field
+- id: cnn-mcq-2
+  type: mcq
+  prompt: "What is the main purpose of a 1 by 1 convolution?"
+  difficulty: 2
+  options:
+    - "To increase the spatial receptive field"
+    - "To mix channels and change the channel count cheaply"
+    - "To perform downsampling"
+    - "To replace the activation function"
+  correctIndex: 1
+  explanation: "A 1 by 1 conv is a per position linear map across channels."
+  anchor: common-layer-types
+- id: cnn-short-2
+  type: short
+  prompt: "Why does weight sharing make CNNs data efficient?"
+  difficulty: 3
+  answer: "The same kernel is applied at every spatial position, so every position contributes to the same gradient. One filter is trained by many patches, and the parameter count does not grow with resolution."
+  rubric:
+    - "Mentions that the same weights are used at all positions."
+    - "Mentions that gradients accumulate over positions or that parameters are fewer."
+  explanation: "This is a strong and usually correct prior for images."
+  anchor: backward-pass
+- id: cnn-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the output spatial size and the patch extraction for a naive conv2d."
+  difficulty: 3
+  scaffold: |
+    H_out = ___
+    patch = xp[:, i * stride:i * stride + k, j * stride:j * stride + k]
+    out[o, i, j] = ___
+  blanks:
+    - id: 1
+      answer: "(H + 2 * pad - k) // stride + 1"
+      rubric:
+        - "Uses the standard output size formula."
+    - id: 2
+      answer: "np.sum(patch * w[o]) + b[o]"
+      rubric:
+        - "Multiplies the patch by the filter and sums."
+        - "Adds the bias."
+  explanation: "Each output is a dot product between a patch and a filter."
+  anchor: code-example
+- id: cnn-numeric-3
+  type: numeric
+  prompt: "A stack has three 3 by 3 convolutions with stride 1. What is the receptive field size in one dimension?"
+  difficulty: 3
+  value: 7
+  tolerance: 0.5
+  explanation: "Each layer adds $k-1=2$, so $1+2+2+2=7$."
+  anchor: receptive-field

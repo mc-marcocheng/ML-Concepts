@@ -1,0 +1,79 @@
+---
+id: general-ml/early-stopping
+title: Early Stopping
+category: general-ml
+summary: Early stopping ends training when validation performance stops improving.
+tags:
+  - regularization
+  - training
+difficulty: 2
+prereqs:
+  - general-ml/overfitting-underfitting
+related:
+  - general-ml/cross-validation
+  - general-ml/regularization-methods
+  - general-ml/gradient-descent-sgd
+estReadMin: 5
+updated: 2026-01-01
+---
+
+<TLDR>
+Early stopping uses validation performance to choose when to stop training. It is a simple regularization method.
+</TLDR>
+
+## Core idea
+
+Training loss can keep improving while validation loss worsens.
+
+Early stopping stops training after validation performance stops improving.
+
+A patience value gives the number of allowed non-improving epochs.
+
+## Why it works
+
+Early training often learns broad patterns.
+
+Later training can fit noise.
+
+Stopping early can reduce overfitting.
+
+See <a href="/learn/general-ml/overfitting-underfitting">Overfitting and Underfitting</a>.
+
+## Checkpointing
+
+Save the model with the best validation score.
+
+Do not only keep the final model.
+
+The final model can be worse than the best checkpoint.
+
+## Code example
+
+```python
+best = float("inf")
+patience = 3
+bad_epochs = 0
+
+for epoch in range(num_epochs):
+    train_one_epoch(model)
+    val_loss = evaluate(model)
+
+    if val_loss < best:
+        best = val_loss
+        bad_epochs = 0
+        best_state = copy_model(model)
+    else:
+        bad_epochs += 1
+
+    if bad_epochs >= patience:
+        break
+```
+
+## Common mistakes
+
+Do not monitor training loss for early stopping.
+
+Do not use the test set for stopping.
+
+Do not forget to restore the best checkpoint.
+```

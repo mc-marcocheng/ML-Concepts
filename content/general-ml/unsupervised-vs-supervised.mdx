@@ -1,0 +1,115 @@
+---
+id: general-ml/unsupervised-vs-supervised
+title: Unsupervised vs Supervised Learning
+category: general-ml
+summary: Supervised learning fits input to label pairs, while unsupervised learning models structure in unlabeled data.
+tags:
+  - fundamentals
+  - taxonomy
+difficulty: 2
+prereqs:
+  - general-ml/expectation
+  - general-ml/pdf-pmf
+related:
+  - general-ml/clustering-algorithms
+  - general-ml/autoencoders
+  - general-ml/dimensionality-reduction
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+Supervised learning estimates $p(y \mid x)$ from labeled pairs. Unsupervised learning estimates structure in $p(x)$ from unlabeled data. Self-supervised learning builds labels from the input itself and now drives most pretraining.
+</TLDR>
+
+## Supervised learning
+
+The data is a set of pairs $(x_i, y_i)$ drawn from a joint distribution $p(x,y)$.
+
+The goal is a predictor $f$ that minimizes expected loss:
+
+$$
+\min_f \; \mathbb{E}_{(x,y)\sim p}\big[\ell(f(x), y)\big].
+$$
+
+You cannot compute this expectation, so you minimize the empirical risk:
+
+$$
+\hat{R}(f) = \frac{1}{n}\sum_{i=1}^{n} \ell(f(x_i), y_i).
+$$
+
+Common tasks are classification and regression. Metrics are direct, such as accuracy or <a href="/learn/general-ml/precision-recall-f1-auc-roc">precision and recall</a>.
+
+## Unsupervised learning
+
+The data is a set of inputs $x_i$ with no labels.
+
+The goal is structure. Typical goals are:
+
+- density estimation, which fits $p(x)$,
+- <a href="/learn/general-ml/clustering-algorithms">clustering</a>, which groups similar points,
+- <a href="/learn/general-ml/dimensionality-reduction">dimensionality reduction</a>, which finds a compact code,
+- anomaly detection, which flags low density points.
+
+Evaluation is harder because no ground truth target exists. You use proxy scores such as reconstruction error, log likelihood, or silhouette score.
+
+## Self-supervised learning
+
+Self-supervised learning creates a supervised task from unlabeled data.
+
+| Method | Constructed target |
+|---|---|
+| Next token prediction | The following token |
+| Masked token prediction | The hidden tokens |
+| Contrastive learning | Which two views come from the same source |
+| <a href="/learn/general-ml/autoencoders">Denoising autoencoder</a> | The clean input |
+
+The trained representation then transfers to labeled tasks with a small head. See <a href="/learn/general-ml/transfer-learning">transfer learning</a>.
+
+## Semi-supervised learning
+
+Semi-supervised learning uses a small labeled set and a large unlabeled set.
+
+Common tools are pseudo-labeling, consistency regularization, and entropy minimization.
+
+These methods assume that the decision boundary lies in a low density region. If that assumption fails, the unlabeled data can hurt.
+
+## Comparison
+
+| Aspect | Supervised | Unsupervised |
+|---|---|---|
+| Data | Pairs $(x,y)$ | Inputs $x$ only |
+| Target | $p(y \mid x)$ | Structure in $p(x)$ |
+| Cost | Labeling is expensive | Data is cheap |
+| Evaluation | Direct metrics | Proxy metrics |
+| Failure mode | <a href="/learn/general-ml/overfitting-underfitting">Overfitting</a> to labels | Learning structure you do not need |
+
+## Code example
+
+```python
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.cluster import KMeans
+
+rng = np.random.default_rng(0)
+x = rng.normal(size=(200, 4))
+y = (x[:, 0] + x[:, 1] > 0).astype(int)
+
+# Supervised: uses labels.
+clf = LogisticRegression().fit(x, y)
+print(clf.score(x, y))
+
+# Unsupervised: ignores labels.
+km = KMeans(n_clusters=2, n_init=10).fit(x)
+print(np.mean(km.labels_ == y))
+```
+
+The clustering score is not accuracy, because cluster ids carry no label meaning.
+
+## Common mistakes
+
+Do not judge clusters with accuracy without fixing the label permutation.
+
+Do not assume unlabeled data always helps. Check the assumption behind the method.
+
+Do not call self-supervised pretraining unsupervised evaluation. The downstream task still needs labels.

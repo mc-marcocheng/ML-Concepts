@@ -1,0 +1,50 @@
+- id: dot-mcq-1
+  type: mcq
+  prompt: "What does a dot product of zero mean for two nonzero vectors?"
+  difficulty: 1
+  options:
+    - "They have the same length"
+    - "They are orthogonal"
+    - "They are linearly dependent"
+    - "They have zero norm"
+  correctIndex: 1
+  explanation: "A zero dot product means the nonzero vectors are orthogonal."
+  anchor: core-idea
+
+- id: dot-latex-1
+  type: latex
+  prompt: "Write the dot product of $a,b \\in \\mathbb{R}^n$."
+  difficulty: 1
+  answer: '\sum_{i=1}^{n} a_i b_i'
+  rubric:
+    - "Sums over matching coordinates."
+    - "Multiplies each $a_i$ by $b_i$."
+  explanation: "The dot product is the sum of coordinatewise products."
+  anchor: core-idea
+
+- id: dot-numeric-1
+  type: numeric
+  prompt: "Compute the dot product of $(1,2,3)$ and $(4,5,6)$."
+  difficulty: 1
+  value: 32
+  tolerance: 0.000001
+  explanation: "The result is $1\\cdot4 + 2\\cdot5 + 3\\cdot6 = 32$."
+  anchor: core-idea
+
+- id: dot-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the dot product computation."
+  difficulty: 2
+  scaffold: |
+    import numpy as np
+    a = np.array([1.0, 2.0, 3.0])
+    b = np.array([4.0, 5.0, 6.0])
+    dot = ___
+  blanks:
+    - id: 1
+      answer: "a @ b"
+      rubric:
+        - "Computes the dot product."
+  explanation: "In NumPy, the @ operator computes the vector dot product."
+  anchor: code-example

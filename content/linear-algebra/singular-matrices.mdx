@@ -1,0 +1,89 @@
+---
+id: linear-algebra/singular-matrices
+title: Singular Matrices
+category: linear-algebra
+summary: A singular matrix is a square matrix that has no inverse because it loses information.
+tags:
+  - matrices
+  - systems
+difficulty: 3
+prereqs:
+  - linear-algebra/determinant
+  - linear-algebra/rank-span
+related:
+  - linear-algebra/inverse-of-a-matrix
+  - linear-algebra/null-space-image-space
+  - linear-algebra/linear-independence
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+A singular matrix is a square matrix with no inverse. It collapses at least one nonzero direction to zero or to a dependent output.
+</TLDR>
+
+## Core idea
+
+A square matrix $A$ is singular if it is not invertible.
+
+Equivalently:
+
+$$
+\det(A)=0.
+$$
+
+It means the linear map loses information.
+
+See <a href="/learn/linear-algebra/inverse-of-a-matrix">Inverse of a Matrix</a>.
+
+## Equivalent views
+
+For an $n \times n$ matrix $A$, these statements are equivalent.
+
+| View | Condition |
+|---|---|
+| Determinant | $\det(A)=0$ |
+| Rank | $\operatorname{rank}(A)<n$ |
+| Columns | Columns are dependent |
+| Null space | Some $x \neq 0$ satisfies $Ax=0$ |
+| System solving | Some systems have no unique solution |
+
+## Geometry
+
+A singular matrix collapses volume to zero.
+
+In two dimensions, it maps the plane to a line or a point.
+
+In three dimensions, it can flatten space to a plane, line, or point.
+
+## Near singular matrices
+
+A matrix can be invertible but still poorly conditioned.
+
+Small input changes can cause large output changes.
+
+Numerical code can become unstable near singular matrices.
+
+Use condition numbers or solver warnings to detect this.
+
+## Code example
+
+```python
+import numpy as np
+
+A = np.array([[1.0, 2.0],
+              [2.0, 4.0]])
+
+rank = np.linalg.matrix_rank(A)
+is_singular = rank < A.shape[0]
+
+print(is_singular)
+```
+
+## Common mistakes
+
+Do not call a non-square matrix singular.
+
+Do not trust exact determinant checks in floating point code.
+
+Do not assume a small determinant always means the same condition level.

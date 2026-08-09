@@ -1,0 +1,195 @@
+---
+id: general-ml/few-shot-zero-shot-learning
+title: Few-Shot and Zero-Shot Learning
+category: general-ml
+summary: Few-shot learning generalizes from a handful of examples per class, and zero-shot learning uses a shared semantic space instead of examples.
+tags:
+  - representation
+  - meta-learning
+difficulty: 4
+prereqs:
+  - general-ml/transfer-learning
+  - general-ml/k-nearest-neighbours
+related:
+  - general-ml/domain-adaptation
+  - general-ml/unsupervised-vs-supervised
+  - general-ml/curse-of-dimensionality
+estReadMin: 10
+updated: 2026-01-01
+---
+
+<TLDR>
+Few-shot learning fits a new class from a few labeled examples, usually by comparing embeddings rather than retraining. Zero-shot learning needs no examples at all, because classes are described in a shared space such as text embeddings. Large pretrained models made in-context learning the dominant approach.
+</TLDR>
+
+## Problem setup
+
+An N-way K-shot task gives:
+
+- a support set with $N$ classes and $K$ labeled examples per class,
+- a query set of unlabeled examples from those same $N$ classes.
+
+Typical settings are 5-way 1-shot and 5-way 5-shot.
+
+Meta-learning trains on many such tasks drawn from a large base set of classes. The test tasks use classes never seen during training. This is episodic training.
+
+## Metric based methods
+
+These methods learn an embedding $f_\theta$ so that a simple distance rule solves the task.
+
+### Siamese networks
+
+Train a pair encoder with a contrastive loss. Two examples of the same class must land close and two of different classes must land far apart.
+
+### Matching networks
+
+Predict with a soft nearest neighbor over the support set:
+
+$$
+p(y \mid x)
+=
+\sum_{i=1}^{NK} a(x, x_i)\, y_i,
+\qquad
+a(x,x_i) = \frac{\exp\big(\cos(f(x), f(x_i))\big)}{\sum_j \exp\big(\cos(f(x), f(x_j))\big)} .
+$$
+
+### Prototypical networks
+
+Compute one prototype per class as the mean support embedding:
+
+$$
+c_k = \frac{1}{|S_k|}\sum_{(x_i,y_i)\in S_k} f_\theta(x_i).
+$$
+
+Classify by softmax over negative squared distance:
+
+$$
+p(y=k\mid x)
+=
+\frac{\exp\big(-\|f_\theta(x)-c_k\|^2\big)}
+{\sum_{k'}\exp\big(-\|f_\theta(x)-c_{k'}\|^2\big)} .
+$$
+
+<Proof title="Prototypical networks with squared distance are a linear classifier">
+Expand the squared distance:
+
+$$
+-\|f(x)-c_k\|^2
+=
+-\|f(x)\|^2 + 2c_k^\top f(x) - \|c_k\|^2 .
+$$
+
+The term $-\|f(x)\|^2$ does not depend on $k$, so it cancels inside the softmax.
+
+The remaining terms give
+
+$$
+\text{logit}_k = w_k^\top f(x) + b_k,
+\qquad
+w_k = 2c_k,
+\qquad
+b_k = -\|c_k\|^2 .
+$$
+
+So the model is a linear classifier on the embedding with weights set directly by the class means. No gradient step is needed at test time.
+</Proof>
+
+This explains why prototypical networks are fast and stable. The classifier is closed form.
+
+## Optimization based methods
+
+### MAML
+
+Model-agnostic meta-learning finds an initialization $\theta$ from which a few gradient steps solve any new task.
+
+Inner loop, on task $\mathcal{T}_i$:
+
+$$
+\theta_i' = \theta - \alpha\nabla_\theta \mathcal{L}_{\mathcal{T}_i}^{\text{support}}(\theta).
+$$
+
+Outer loop, across tasks:
+
+$$
+\theta \leftarrow \theta - \beta\nabla_\theta \sum_i \mathcal{L}_{\mathcal{T}_i}^{\text{query}}(\theta_i').
+$$
+
+The outer gradient passes through the inner update, so it needs second derivatives. First-order MAML and Reptile drop that term and work almost as well at much lower cost.
+
+## Zero-shot learning
+
+Zero-shot learning has no examples of the target class. It needs an auxiliary description that lives in a space shared with the inputs.
+
+| Description source | Example |
+|---|---|
+| Attribute vectors | has stripes, has four legs |
+| Word embeddings | The class name embedded by a text model |
+| Text descriptions | A sentence describing the class |
+| Knowledge graph relations | Parent and sibling classes |
+
+The classic recipe learns a compatibility function
+
+$$
+s(x, y) = f(x)^\top W\, \phi(y),
+$$
+
+where $\phi(y)$ is the class description embedding. Prediction takes the argmax over candidate classes.
+
+CLIP made this practical at scale. It trains an image encoder and a text encoder with a contrastive loss over 400 million pairs. Classification then compares the image embedding against embeddings of prompts such as "a photo of a dog".
+
+## In-context learning
+
+Large language models perform few-shot learning without any weight update. You place examples in the prompt and the model infers the pattern.
+
+| Mode | Prompt content |
+|---|---|
+| Zero-shot | Instruction only |
+| One-shot | Instruction plus one example |
+| Few-shot | Instruction plus several examples |
+
+The weights never change. The examples condition the forward pass. This behaviour appears as scale grows and it is one reason scaling laws matter.
+
+## Evaluation pitfalls
+
+- Report the mean over many sampled episodes with a confidence interval. Single episode results are very noisy.
+- Keep the meta-test classes strictly disjoint from the meta-train classes.
+- Compare against a strong baseline. A simple fine-tuned linear probe on a good pretrained embedding beats many meta-learning methods.
+- Check for prompt leakage in language model evaluation. The test items may appear in pretraining data.
+
+## Code example
+
+```python
+import numpy as np
+
+def prototypical_predict(support_x, support_y, query_x, n_classes):
+    """support_x: (NK, d) embeddings, support_y: (NK,) labels."""
+    protos = np.stack([
+        support_x[support_y == k].mean(axis=0) for k in range(n_classes)
+    ])
+    d2 = ((query_x[:, None, :] - protos[None, :, :]) ** 2).sum(-1)
+    logits = -d2
+    logits = logits - logits.max(axis=1, keepdims=True)
+    probs = np.exp(logits)
+    probs = probs / probs.sum(axis=1, keepdims=True)
+    return probs.argmax(axis=1), probs
+
+rng = np.random.default_rng(0)
+centers = rng.normal(size=(5, 16)) * 3
+sx = np.repeat(centers, 5, axis=0) + rng.normal(size=(25, 16))
+sy = np.repeat(np.arange(5), 5)
+qx = np.repeat(centers, 3, axis=0) + rng.normal(size=(15, 16))
+qy = np.repeat(np.arange(5), 3)
+
+pred, _ = prototypical_predict(sx, sy, qx, 5)
+print((pred == qy).mean())
+```
+
+## Common mistakes
+
+Do not let base classes leak into the test episodes.
+
+Do not report a single episode score. Variance across episodes is large.
+
+Do not assume a meta-learning method beats simple fine-tuning. Check the baseline.
+
+Do not confuse zero-shot with unsupervised. Zero-shot uses class side information, which is a form of supervision.

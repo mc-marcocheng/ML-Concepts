@@ -1,0 +1,145 @@
+---
+id: general-ml/curse-of-dimensionality
+title: Curse of Dimensionality
+category: general-ml
+summary: In high dimensions volume grows fast, data becomes sparse, and distances between points concentrate.
+tags:
+  - geometry
+  - generalisation
+  - statistics
+difficulty: 3
+prereqs:
+  - general-ml/expectation
+  - general-ml/variance-and-covariance
+related:
+  - general-ml/k-nearest-neighbours
+  - general-ml/dimensionality-reduction
+  - general-ml/bias-variance-tradeoff
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+Volume grows exponentially with dimension, so any fixed sample covers less of the space. Distances between random points also become almost equal, which weakens methods that rely on nearest neighbors.
+</TLDR>
+
+## Core idea
+
+Let the data live in $\mathbb{R}^d$. Three effects appear as $d$ grows.
+
+1. Sample sparsity. The number of points needed to cover the space grows exponentially in $d$.
+2. Volume concentration. Almost all volume of a ball sits near its surface.
+3. Distance concentration. The ratio of the farthest to the nearest distance goes to one.
+
+## Sample sparsity
+
+Split each axis of the unit cube into $m$ bins. The cube then has $m^d$ cells.
+
+To keep one point per cell you need $n = m^d$ points.
+
+For $m=10$ and $d=10$ you need $10^{10}$ points.
+
+A local method such as <a href="/learn/general-ml/k-nearest-neighbours">k-nearest neighbours</a> needs neighbors that are truly close. In high dimensions such neighbors do not exist for a normal sample size.
+
+## Volume near the surface
+
+Take the unit ball in $\mathbb{R}^d$. Compare it with the inner ball of radius $1-\epsilon$.
+
+The fraction of volume in the outer shell is
+
+$$
+1 - (1-\epsilon)^d .
+$$
+
+For $\epsilon = 0.01$ and $d = 500$ this fraction is about $0.993$.
+
+<Proof title="Fraction of ball volume in the outer shell">
+The volume of a ball of radius $r$ in $\mathbb{R}^d$ is
+
+$$
+V_d(r) = C_d r^d ,
+$$
+
+where $C_d$ depends only on the dimension.
+
+The inner ball has volume
+
+$$
+V_d(1-\epsilon) = C_d (1-\epsilon)^d .
+$$
+
+The ratio of inner volume to total volume is
+
+$$
+\frac{C_d(1-\epsilon)^d}{C_d 1^d} = (1-\epsilon)^d .
+$$
+
+So the shell holds the remaining fraction
+
+$$
+1 - (1-\epsilon)^d .
+$$
+
+Because $0 < 1-\epsilon < 1$, the term $(1-\epsilon)^d$ goes to zero as $d$ grows. The shell fraction goes to one.
+</Proof>
+
+## Distance concentration
+
+Draw $n$ independent points from a fixed distribution with independent coordinates. Let $D_{\min}$ and $D_{\max}$ be the smallest and largest distance from a query point.
+
+Under mild conditions,
+
+$$
+\frac{D_{\max} - D_{\min}}{D_{\min}} \to 0
+\quad \text{as } d \to \infty .
+$$
+
+The reason is simple. A squared Euclidean distance is a sum of $d$ per-axis terms. The mean of that sum grows like $d$. The standard deviation grows like $\sqrt{d}$. So the relative spread shrinks like $1/\sqrt{d}$.
+
+Nearest neighbor search then loses meaning, because every point is about equally far away.
+
+## Effect on models
+
+High dimension raises variance for flexible models. See <a href="/learn/general-ml/bias-variance-tradeoff">bias-variance tradeoff</a>.
+
+Distance based methods degrade first. Linear models with strong <a href="/learn/general-ml/regularisation-methods">regularisation</a> degrade last.
+
+Kernel bandwidth selection also becomes hard, because a bandwidth that holds enough points is no longer local.
+
+## Why real data still works
+
+Real data often lies near a low dimensional manifold inside the high dimensional space. This is the manifold hypothesis.
+
+The effective dimension is then much smaller than $d$.
+
+Useful responses to high dimension include:
+
+- feature selection and <a href="/learn/general-ml/dimensionality-reduction">dimensionality reduction</a>,
+- structural priors such as convolution in <a href="/learn/general-ml/cnns">CNNs</a>,
+- strong regularization,
+- more data along the directions that matter.
+
+## Code example
+
+```python
+import numpy as np
+
+rng = np.random.default_rng(0)
+
+for d in [2, 10, 100, 1000]:
+    x = rng.normal(size=(1000, d))
+    q = rng.normal(size=(1, d))
+    dist = np.linalg.norm(x - q, axis=1)
+    ratio = (dist.max() - dist.min()) / dist.min()
+    print(d, round(float(ratio), 3))
+```
+
+The printed ratio shrinks as the dimension grows.
+
+## Common mistakes
+
+Do not assume that adding features always helps. Extra noisy features raise variance.
+
+Do not trust Euclidean distance in very high dimension without a check.
+
+Do not confuse ambient dimension with intrinsic dimension.

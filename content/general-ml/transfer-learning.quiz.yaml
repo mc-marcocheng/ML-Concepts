@@ -1,0 +1,96 @@
+- id: tl-mcq-1
+  type: mcq
+  prompt: "You have 300 labeled target images and a source domain that is very similar. What is the best first step?"
+  difficulty: 2
+  options:
+    - "Fine-tune all layers at the pretraining learning rate"
+    - "Freeze the backbone and train a new head"
+    - "Train from scratch"
+    - "Reinitialize the first layers only"
+  correctIndex: 1
+  explanation: "With little data and a close domain, feature extraction avoids overfitting."
+  anchor: choosing-a-strategy
+- id: tl-short-1
+  type: short
+  prompt: "Why should you train the new head before unfreezing the backbone?"
+  difficulty: 3
+  answer: "A randomly initialized head produces large and meaningless gradients. Backpropagating them into the pretrained weights destroys the learned features before the head becomes useful."
+  rubric:
+    - "Mentions large gradients from the random head."
+    - "Mentions damage to pretrained features."
+  explanation: "This is the standard two stage fine-tuning recipe."
+  anchor: practical-procedure
+- id: tl-mcq-2
+  type: mcq
+  prompt: "Which layers usually transfer best across tasks?"
+  difficulty: 2
+  options:
+    - "The final classification layer"
+    - "The early and middle layers that learn general features"
+    - "The bias terms only"
+    - "The normalization statistics only"
+  correctIndex: 1
+  explanation: "Early layers learn generic edges, textures, or syntax that many tasks share."
+  anchor: why-it-works
+- id: tl-latex-1
+  type: latex
+  prompt: "Write a discriminative learning rate schedule across layers with decay factor $\\gamma$, where layer $L$ is the last."
+  difficulty: 3
+  answer: "\\eta_\\ell = \\eta_L \\gamma^{L-\\ell}"
+  rubric:
+    - "Scales the base rate by a power of gamma."
+    - "Makes earlier layers use smaller rates."
+  explanation: "Earlier layers hold more general features and should change less."
+  anchor: strategies
+- id: tl-short-2
+  type: short
+  prompt: "What is catastrophic forgetting and name two mitigations."
+  difficulty: 3
+  answer: "Catastrophic forgetting is the loss of source knowledge while training on the target. Mitigations include a small learning rate, freezing part of the network, an L2 penalty toward the pretrained weights, and rehearsal on source data."
+  rubric:
+    - "Defines forgetting as overwriting source knowledge."
+    - "Names at least two mitigations."
+  explanation: "Elastic weight consolidation weights the penalty by Fisher information."
+  anchor: catastrophic-forgetting
+- id: tl-short-3
+  type: short
+  prompt: "What is negative transfer and how do you detect it?"
+  difficulty: 3
+  answer: "Negative transfer means the pretrained start hurts target performance because the source and target differ too much. You detect it by comparing against a model trained from scratch on the same target data."
+  rubric:
+    - "Defines negative transfer as transfer that lowers performance."
+    - "Names the from-scratch baseline as the check."
+  explanation: "Always run the baseline before accepting a transfer result."
+  anchor: negative-transfer
+- id: tl-order-1
+  type: order
+  prompt: "Order a standard fine-tuning procedure."
+  difficulty: 2
+  steps:
+    - "Replace the head with one shaped for the target labels"
+    - "Freeze the backbone and train the head to convergence"
+    - "Unfreeze part or all of the backbone"
+    - "Continue training with a much smaller learning rate"
+  explanation: "Stabilize the head first, then adapt the features gently."
+  anchor: practical-procedure
+- id: tl-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the backbone freeze loop and the new head."
+  difficulty: 2
+  scaffold: |
+    for p in backbone.parameters():
+        ___
+    in_features = backbone.fc.in_features
+    backbone.fc = ___
+  blanks:
+    - id: 1
+      answer: "p.requires_grad = False"
+      rubric:
+        - "Disables gradients on the backbone parameters."
+    - id: 2
+      answer: "nn.Linear(in_features, num_classes)"
+      rubric:
+        - "Creates a fresh trainable head with the target class count."
+  explanation: "The replacement head is created after freezing, so it stays trainable."
+  anchor: code-example

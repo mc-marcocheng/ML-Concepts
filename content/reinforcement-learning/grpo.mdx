@@ -1,0 +1,86 @@
+---
+id: reinforcement-learning/grpo
+title: Group Relative Policy Optimization
+category: reinforcement-learning
+summary: GRPO normalizes rewards within groups of sampled responses and optimizes a clipped policy objective without a learned value critic.
+tags:
+  - rl
+  - policy-gradient
+  - preference-optimization
+difficulty: 4
+prereqs:
+  - reinforcement-learning/ppo
+  - reinforcement-learning/policy-gradient-theorem
+related:
+  - reinforcement-learning/dpo
+  - reinforcement-learning/variance-reduction-in-rl
+  - reinforcement-learning/rlhf
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+GRPO samples a group of outputs for the same prompt. It uses group-relative rewards as advantages, so it can avoid a separate value model.
+</TLDR>
+
+## Core idea
+
+Group Relative Policy Optimization, or GRPO, is a policy optimization method for preference or reward-model training.
+
+For each prompt, sample several responses from the policy.
+
+Score each response with a reward model or rule.
+
+Normalize rewards within the group.
+
+Use the normalized reward as an advantage estimate.
+
+## Group-relative advantage
+
+For rewards $r_1,\dots,r_G$ in one group:
+
+$$
+\hat A_i
+=
+\frac{r_i-\operatorname{mean}(r)}
+{\operatorname{std}(r)+\epsilon}.
+$$
+
+This compares each response against other responses for the same prompt.
+
+It removes the need for a learned value baseline in the basic setup.
+
+## Objective
+
+GRPO commonly uses a clipped ratio objective like PPO.
+
+It can also add a KL penalty against a reference policy.
+
+A simplified objective uses:
+
+$$
+r_i(\theta)
+=
+\frac{\pi_\theta(y_i \mid x)}
+{\pi_{\theta_{\mathrm{old}}}(y_i \mid x)}.
+$$
+
+Then it weights the clipped ratio by $\hat A_i$.
+
+## Why it can help
+
+Prompt difficulty can vary greatly.
+
+Group normalization makes rewards more comparable within a prompt.
+
+This can reduce variance from prompt-level reward scale.
+
+See <a href="/learn/reinforcement-learning/variance-reduction-in-rl">Variance Reduction in RL</a>.
+
+## Common mistakes
+
+Do not normalize rewards across unrelated prompts without checking scale.
+
+Do not omit the reference KL when policy drift matters.
+
+Do not confuse GRPO with DPO, which uses a supervised preference loss.

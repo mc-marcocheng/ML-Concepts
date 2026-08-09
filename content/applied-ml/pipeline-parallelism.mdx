@@ -1,0 +1,79 @@
+---
+id: applied-ml/pipeline-parallelism
+title: Pipeline Parallelism
+category: applied-ml
+summary: Pipeline parallelism splits model layers into stages and sends microbatches through the stages.
+tags:
+  - distributed-training
+  - parallelism
+difficulty: 4
+prereqs:
+  - applied-ml/communication-primitives
+  - general-ml/backprop
+related:
+  - applied-ml/tensor-parallelism
+  - applied-ml/ddp
+  - applied-ml/gradient-accumulation
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Pipeline parallelism splits a model by layers. Devices process microbatches in a schedule so multiple stages work at the same time.
+</TLDR>
+
+## Core idea
+
+Pipeline parallelism partitions a model into sequential stages.
+
+Each stage runs on a different device or device group.
+
+Stage 1 sends activations to stage 2.
+
+During backward, stage 2 sends activation gradients back to stage 1.
+
+A large batch is split into microbatches.
+
+Microbatches keep pipeline stages busy.
+
+## Pipeline bubble
+
+At the start and end of a batch, some stages sit idle.
+
+This idle time is the pipeline bubble.
+
+For $p$ stages and $m$ microbatches, a simple bubble fraction is:
+
+$$
+\frac{p - 1}{m + p - 1}.
+$$
+
+More microbatches reduce the bubble.
+
+Too many microbatches can increase overhead.
+
+## Schedules
+
+GPipe runs all forward microbatches before backward microbatches.
+
+A 1F1B schedule alternates one forward and one backward after warmup.
+
+1F1B often reduces activation memory.
+
+## Communication
+
+Pipeline stages communicate activations and gradients.
+
+This uses send and receive operations.
+
+See <a href="/learn/applied-ml/communication-primitives">Communication Primitives</a>.
+
+## Common mistakes
+
+Do not split layers without checking balance.
+
+The slowest stage limits throughput.
+
+Do not ignore activation memory.
+
+Do not use too few microbatches.

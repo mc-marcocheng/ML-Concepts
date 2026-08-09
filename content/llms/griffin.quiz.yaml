@@ -1,0 +1,49 @@
+- id: griffin-mcq-1
+  type: mcq
+  prompt: "Which two mechanisms does Griffin combine?"
+  difficulty: 2
+  options:
+    - "Local attention and gated recurrence"
+    - "Only full attention and beam search"
+    - "Tokenization and dropout"
+    - "Diffusion and convolution only"
+  correctIndex: 0
+  explanation: "Griffin combines local attention with gated recurrent blocks."
+  anchor: core-idea
+
+- id: griffin-short-1
+  type: short
+  prompt: "Why can a recurrent state help long-context inference?"
+  difficulty: 3
+  answer: "A recurrent state carries compressed information from earlier tokens without attending to every previous token."
+  rubric:
+    - "Mentions compressed state or memory."
+    - "Mentions earlier tokens."
+    - "Mentions lower cost than full attention."
+  explanation: "The state gives a path for history at each step."
+  anchor: recurrent-gated-state
+
+- id: griffin-latex-1
+  type: latex
+  prompt: "Write a simple gated recurrence update."
+  difficulty: 3
+  answer: 'a_t\odot h_{t-1}+(1-a_t)\odot\tilde{x}_t'
+  rubric:
+    - "Includes old state h_{t-1}."
+    - "Includes a gate a_t."
+    - "Includes a candidate input term."
+  explanation: "A gate mixes old state with a new candidate."
+  anchor: recurrent-gated-state
+
+- id: griffin-mcq-2
+  type: mcq
+  prompt: "What is a possible weakness of compressed recurrent state?"
+  difficulty: 3
+  options:
+    - "It can forget detailed past information"
+    - "It always stores the full attention matrix"
+    - "It prevents token embeddings"
+    - "It removes the need for training data"
+  correctIndex: 0
+  explanation: "A finite state can lose details from the past."
+  anchor: comparison-to-transformers

@@ -1,0 +1,51 @@
+- id: rank-mcq-1
+  type: mcq
+  prompt: "What does the rank of a matrix measure?"
+  difficulty: 1
+  options:
+    - "The number of entries"
+    - "The dimension of the column span"
+    - "The largest entry"
+    - "The determinant value"
+  correctIndex: 1
+  explanation: "Rank is the dimension of the column space."
+  anchor: core-idea
+
+- id: rank-latex-1
+  type: latex
+  prompt: "Write the rank-nullity theorem for $A \\in \\mathbb{R}^{m \\times n}$."
+  difficulty: 3
+  answer: '\operatorname{rank}(A)+\operatorname{nullity}(A)=n'
+  rubric:
+    - "Includes rank of $A$."
+    - "Includes nullity of $A$."
+    - "Sets the sum equal to the input dimension $n$."
+  explanation: "Rank-nullity splits the input dimension into image and null-space parts."
+  anchor: rank-nullity
+
+- id: rank-numeric-1
+  type: numeric
+  prompt: "What is the rank of a nonzero $2 \\times 3$ matrix whose second row is twice the first row?"
+  difficulty: 2
+  value: 1
+  tolerance: 0
+  explanation: "The two rows contain only one independent row direction."
+  anchor: column-rank-and-row-rank
+
+- id: rank-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the NumPy rank computation."
+  difficulty: 2
+  scaffold: |
+    import numpy as np
+    A = np.array([[1.0, 2.0],
+                  [2.0, 4.0]])
+    rank = ___
+  blanks:
+    - id: 1
+      answer: "np.linalg.matrix_rank(A)"
+      rubric:
+        - "Uses NumPy matrix_rank."
+  explanation: "NumPy computes numerical rank with a tolerance."
+  anchor: code-example

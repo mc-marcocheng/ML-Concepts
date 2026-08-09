@@ -1,0 +1,105 @@
+- id: da-mcq-1
+  type: mcq
+  prompt: "Under covariate shift, what stays the same between source and target?"
+  difficulty: 2
+  options:
+    - "The marginal $p(x)$"
+    - "The conditional $p(y \\mid x)$"
+    - "The class prior $p(y)$"
+    - "Nothing stays the same"
+  correctIndex: 1
+  explanation: "Only the input distribution changes, so the labeling rule is shared."
+  anchor: types-of-shift
+- id: da-latex-1
+  type: latex
+  prompt: "Write the importance weight that corrects the source risk to the target risk under covariate shift."
+  difficulty: 3
+  answer: "\\frac{p_T(x)}{p_S(x)}"
+  rubric:
+    - "Uses the ratio of target density to source density."
+  explanation: "Weighting the source loss by this ratio gives an unbiased target risk estimate."
+  anchor: covariate-shift-and-importance-weighting
+- id: da-mcq-2
+  type: mcq
+  prompt: "A classifier that separates source from target inputs outputs $d(x)$. What is the density ratio with balanced sample sizes?"
+  difficulty: 4
+  options:
+    - "$d(x)$"
+    - "$1-d(x)$"
+    - "$d(x)/(1-d(x))$"
+    - "$\\log d(x)$"
+  correctIndex: 2
+  explanation: "The odds of the domain classifier equal the density ratio when the classes are balanced."
+  anchor: covariate-shift-and-importance-weighting
+- id: da-numeric-1
+  type: numeric
+  prompt: "Four importance weights are 1, 1, 1, and 9. What is the effective sample size?"
+  difficulty: 3
+  value: 1.696969
+  tolerance: 0.001
+  explanation: "$(12)^2 / (1+1+1+81) = 144/84 \\approx 1.697$."
+  anchor: covariate-shift-and-importance-weighting
+- id: da-short-1
+  type: short
+  prompt: "Explain how a gradient reversal layer works in domain adversarial training."
+  difficulty: 4
+  answer: "It is the identity in the forward pass. In the backward pass it multiplies the gradient by a negative constant, so the feature extractor is pushed to make the domain discriminator fail while the discriminator itself still trains to succeed."
+  rubric:
+    - "States forward identity and backward sign flip."
+    - "Explains the resulting minimax behaviour."
+  explanation: "This implements the min-max objective in one backward pass."
+  anchor: feature-alignment
+- id: da-short-2
+  type: short
+  prompt: "Why can no alignment method succeed when the joint optimal error is large?"
+  difficulty: 4
+  answer: "The Ben-David bound adds the error of the best hypothesis that works on both domains. If no single hypothesis does well on both, the target error stays high no matter how well the representations align."
+  rubric:
+    - "References the joint error term in the bound."
+    - "Concludes that alignment alone cannot fix it."
+  explanation: "This case usually indicates concept shift, which needs new labels."
+  anchor: theory
+- id: da-mcq-3
+  type: mcq
+  prompt: "Spam wording changes so the same text now means something different. Which shift is this?"
+  difficulty: 2
+  options:
+    - "Covariate shift"
+    - "Label shift"
+    - "Concept shift"
+    - "No shift"
+  correctIndex: 2
+  explanation: "The conditional $p(y\\mid x)$ changed, so old labels are wrong."
+  anchor: types-of-shift
+- id: da-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the density ratio weight and the effective sample size."
+  difficulty: 3
+  scaffold: |
+    d = clf.predict_proba(X_source)[:, 1]
+    w = ___
+    ess = ___
+  blanks:
+    - id: 1
+      answer: "d / np.clip(1.0 - d, 1e-6, None)"
+      rubric:
+        - "Uses the odds of the domain classifier."
+        - "Guards against division by zero."
+    - id: 2
+      answer: "w.sum() ** 2 / np.sum(w ** 2)"
+      rubric:
+        - "Uses the squared sum over the sum of squares."
+  explanation: "A small effective sample size warns of unstable weighted estimates."
+  anchor: code-example
+- id: da-order-1
+  type: order
+  prompt: "Order a practical response to a suspected distribution shift."
+  difficulty: 3
+  steps:
+    - "Train a domain classifier to measure how separable the inputs are"
+    - "Identify whether the shift is covariate, label, or concept"
+    - "Apply the matching correction such as reweighting or prior adjustment"
+    - "Validate on labeled target data or a proxy metric before deployment"
+  explanation: "Diagnose the shift type before choosing a method."
+  anchor: detection-and-monitoring

@@ -1,0 +1,65 @@
+- id: cod-mcq-1
+  type: mcq
+  prompt: "Which effect best explains why nearest neighbour search degrades in high dimensions?"
+  difficulty: 2
+  options:
+    - "Distances between points concentrate, so all points are about equally far"
+    - "Floating point rounding grows with dimension"
+    - "The Euclidean norm stops being a metric"
+    - "Labels become noisier in high dimensions"
+  correctIndex: 0
+  explanation: "The relative spread of distances shrinks like one over the square root of the dimension."
+  anchor: distance-concentration
+- id: cod-numeric-1
+  type: numeric
+  prompt: "In the unit ball in $\\mathbb{R}^{100}$, what fraction of the volume lies in the outer shell of thickness $\\epsilon=0.05$? Give the value of $1-(1-\\epsilon)^d$."
+  difficulty: 3
+  value: 0.994079
+  tolerance: 0.0001
+  explanation: "$1-0.95^{100}\\approx 0.9941$."
+  anchor: volume-near-the-surface
+- id: cod-latex-1
+  type: latex
+  prompt: "Write the fraction of the unit ball volume that lies within distance $\\epsilon$ of the surface in $d$ dimensions."
+  difficulty: 2
+  answer: "1 - (1-\\epsilon)^d"
+  rubric:
+    - "Uses one minus a power."
+    - "Raises $1-\\epsilon$ to the power $d$."
+  explanation: "Volume scales like radius to the power $d$."
+  anchor: volume-near-the-surface
+- id: cod-numeric-2
+  type: numeric
+  prompt: "You split each axis of the unit cube into 4 bins. In 6 dimensions, how many cells are there?"
+  difficulty: 1
+  value: 4096
+  tolerance: 0.5
+  explanation: "The count is $4^6 = 4096$."
+  anchor: sample-sparsity
+- id: cod-short-1
+  type: short
+  prompt: "Why do many high dimensional datasets still allow good models?"
+  difficulty: 3
+  answer: "Real data often lies near a low dimensional manifold, so the intrinsic dimension is much smaller than the ambient dimension. Structural priors and regularization exploit this."
+  rubric:
+    - "Mentions the manifold hypothesis or low intrinsic dimension."
+    - "Mentions priors, structure, or regularization."
+  explanation: "The effective dimension drives sample complexity, not the raw feature count."
+  anchor: why-real-data-still-works
+- id: cod-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the relative spread of distances used to show distance concentration."
+  difficulty: 2
+  scaffold: |
+    import numpy as np
+    dist = np.linalg.norm(x - q, axis=1)
+    ratio = ___
+  blanks:
+    - id: 1
+      answer: "(dist.max() - dist.min()) / dist.min()"
+      rubric:
+        - "Takes the range of distances."
+        - "Divides by the minimum distance."
+  explanation: "This ratio goes to zero as the dimension grows."
+  anchor: code-example

@@ -1,0 +1,118 @@
+---
+id: reinforcement-learning/markov-decision-process
+title: Markov Decision Process
+category: reinforcement-learning
+summary: An MDP models sequential decisions with states, actions, transitions, rewards, and a discount factor.
+tags:
+  - rl
+  - mdp
+  - control
+difficulty: 2
+prereqs:
+  - general-ml/expectation
+  - general-ml/pdf-pmf
+related:
+  - reinforcement-learning/markov-property
+  - reinforcement-learning/bellman-equations
+  - reinforcement-learning/policy-gradient-theorem
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+A Markov decision process is the standard model for reinforcement learning. It defines states, actions, rewards, transitions, and the objective that an agent tries to maximize.
+</TLDR>
+
+## Core idea
+
+A Markov decision process, or MDP, is a tuple:
+
+$$
+(\mathcal{S}, \mathcal{A}, P, R, \gamma).
+$$
+
+| Term | Meaning |
+|---|---|
+| $\mathcal{S}$ | state space |
+| $\mathcal{A}$ | action space |
+| $P(s' \mid s,a)$ | transition distribution |
+| $R(s,a)$ | reward function |
+| $\gamma$ | discount factor |
+
+At time $t$, the agent sees state $s_t$.
+
+It chooses action $a_t$.
+
+The environment returns reward $r_t$ and next state $s_{t+1}$.
+
+The transition rule is:
+
+$$
+s_{t+1} \sim P(\cdot \mid s_t,a_t).
+$$
+
+## Return and objective
+
+The discounted return from time $t$ is:
+
+$$
+G_t
+=
+\sum_{k=0}^{\infty}\gamma^k r_{t+k}.
+$$
+
+A policy $\pi(a \mid s)$ maps a state to an action distribution.
+
+The goal is to find a policy with high expected return:
+
+$$
+J(\pi)
+=
+\mathbb{E}_{\pi}\left[G_0\right].
+$$
+
+Use <a href="/learn/reinforcement-learning/markov-property">Markov Property</a> to understand why the current state can be sufficient.
+
+## Value functions
+
+The state value function is:
+
+$$
+V^\pi(s)
+=
+\mathbb{E}_{\pi}[G_t \mid s_t=s].
+$$
+
+The action value function is:
+
+$$
+Q^\pi(s,a)
+=
+\mathbb{E}_{\pi}[G_t \mid s_t=s,a_t=a].
+$$
+
+These functions are central to <a href="/learn/reinforcement-learning/bellman-equations">Bellman Equations</a>.
+
+## Code example
+
+```python
+import random
+
+transitions = {
+    ("cold", "heat"): [("warm", 1.0, 1.0)],
+    ("cold", "wait"): [("cold", 0.0, 1.0)],
+}
+
+def step(state, action):
+    choices = transitions[(state, action)]
+    next_state, reward, prob = random.choice(choices)
+    return next_state, reward
+```
+
+## Common mistakes
+
+Do not confuse a state with an observation.
+
+Do not assume rewards must be dense.
+
+Do not use $\gamma=1$ in an infinite task without care.

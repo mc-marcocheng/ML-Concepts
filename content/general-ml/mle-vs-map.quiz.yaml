@@ -1,0 +1,48 @@
+- id: mle-map-mcq-1
+  type: mcq
+  prompt: "What extra term does MAP use compared with MLE?"
+  difficulty: 1
+  options:
+    - "A prior"
+    - "A validation fold"
+    - "A confusion matrix"
+    - "A larger batch"
+  correctIndex: 0
+  explanation: "MAP includes a prior over parameters."
+  anchor: maximum-a-posteriori
+
+- id: mle-map-latex-1
+  type: latex
+  prompt: "Write the MAP objective in log form."
+  difficulty: 3
+  answer: '\arg\max_\theta[\log p(D\mid\theta)+\log p(\theta)]'
+  rubric:
+    - "Includes log likelihood."
+    - "Includes log prior."
+    - "Maximizes over theta."
+  explanation: "MAP maximizes log likelihood plus log prior."
+  anchor: maximum-a-posteriori
+
+- id: mle-map-short-1
+  type: short
+  prompt: "How can a prior act like regularization?"
+  difficulty: 3
+  answer: "The log prior adds a penalty or preference over parameters in the optimization objective."
+  rubric:
+    - "Mentions log prior."
+    - "Mentions penalty or preference."
+  explanation: "For example, a Gaussian prior leads to an L2 penalty."
+  anchor: link-to-regularization
+
+- id: mle-map-mcq-2
+  type: mcq
+  prompt: "A Gaussian prior on weights most directly corresponds to which penalty?"
+  difficulty: 2
+  options:
+    - "L2"
+    - "AUC"
+    - "Hinge"
+    - "Entropy only"
+  correctIndex: 0
+  explanation: "A Gaussian prior gives a squared weight penalty."
+  anchor: link-to-regularization

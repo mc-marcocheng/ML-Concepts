@@ -1,0 +1,166 @@
+---
+id: generative-modeling/score-function
+title: Score Function
+category: generative-modeling
+summary: The score function is the gradient of log density and gives the direction of increasing probability.
+tags:
+  - score-matching
+  - diffusion
+difficulty: 3
+prereqs:
+  - general-ml/gradient-descent-sgd
+  - general-ml/pdf-pmf
+related:
+  - generative-modeling/diffusion-forward-process
+  - generative-modeling/diffusion-sde
+  - general-ml/expectation
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+The score function is $\nabla_x \log p(x)$. Score-based models learn this vector field and use it to move noisy samples toward high-density data regions.
+</TLDR>
+
+## Core idea
+
+For a continuous density $p(x)$, the score function is:
+
+$$
+s(x)=\nabla_x \log p(x).
+$$
+
+It points in the direction where log density increases fastest.
+
+The score does not need the normalizing constant of the density.
+
+If:
+
+$$
+p(x)=\frac{\tilde p(x)}{Z},
+$$
+
+then:
+
+$$
+\nabla_x \log p(x)
+=
+\nabla_x \log \tilde p(x).
+$$
+
+The term $\nabla_x \log Z$ is zero because $Z$ does not depend on $x$.
+
+This property helps when the normalized density is hard to compute.
+
+## Why the score helps
+
+A generative model can use a score to denoise samples.
+
+If a point is in a low-density noisy region, the score points toward higher density.
+
+Diffusion models learn scores at many noise levels.
+
+See <a href="/learn/generative-modeling/diffusion-forward-process">Diffusion Forward Process</a> for the noising process.
+
+See <a href="/learn/generative-modeling/diffusion-sde">Diffusion Forward and Reverse SDE</a> for the continuous-time view.
+
+## Score matching
+
+Score matching trains a model $s_\theta(x)$ to match the data score.
+
+A direct objective is:
+
+$$
+\mathbb{E}_{p_{\text{data}}(x)}
+\left[
+\|s_\theta(x)-\nabla_x \log p_{\text{data}}(x)\|^2
+\right].
+$$
+
+The true data score is unknown.
+
+Hyvarinen score matching rewrites the objective so it avoids the true score.
+
+Denoising score matching gives a more common route for deep models.
+
+## Denoising score matching
+
+Add Gaussian noise to data.
+
+$$
+\tilde x = x + \sigma \epsilon,
+\quad
+\epsilon \sim \mathcal{N}(0,I).
+$$
+
+The conditional score of the corrupted sample is known:
+
+$$
+\nabla_{\tilde x}\log q_\sigma(\tilde x \mid x)
+=
+-\frac{\tilde x-x}{\sigma^2}.
+$$
+
+Train a model to predict this target.
+
+$$
+\mathcal{L}(\theta)
+=
+\mathbb{E}
+\left[
+\left\|
+s_\theta(\tilde x,\sigma)
++
+\frac{\tilde x-x}{\sigma^2}
+\right\|^2
+\right].
+$$
+
+At small noise levels, the model learns detailed structure.
+
+At large noise levels, the model learns global structure.
+
+## Link to diffusion
+
+In DDPM training, the model often predicts noise $\epsilon$.
+
+This is equivalent to a score up to a scale.
+
+If:
+
+$$
+x_t=\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar\alpha_t}\epsilon,
+$$
+
+then the conditional score is:
+
+$$
+\nabla_{x_t}\log q(x_t \mid x_0)
+=
+-\frac{\epsilon}{\sqrt{1-\bar\alpha_t}}.
+$$
+
+Noise prediction and score prediction carry the same information.
+
+## Code example
+
+```python
+import torch
+
+def normal_score(x, mu, sigma):
+    return -(x - mu) / (sigma ** 2)
+
+x = torch.tensor([2.0])
+mu = torch.tensor([0.0])
+sigma = torch.tensor([2.0])
+
+print(normal_score(x, mu, sigma))
+```
+
+## Common mistakes
+
+Do not confuse the score with the probability density.
+
+Do not treat a score model as normalized likelihood model.
+
+Do not ignore the noise level in score-based models.

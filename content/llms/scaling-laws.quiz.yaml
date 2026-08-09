@@ -1,0 +1,53 @@
+- id: scaling-mcq-1
+  type: mcq
+  prompt: "Which quantities do common LLM scaling laws relate to loss?"
+  difficulty: 2
+  options:
+    - "Parameters, data, and compute"
+    - "Only optimizer name"
+    - "Only vocabulary order"
+    - "Only batch labels"
+  correctIndex: 0
+  explanation: "Scaling laws usually relate loss to model size, data size, and compute."
+  anchor: core-idea
+
+- id: scaling-latex-1
+  type: latex
+  prompt: "Write a common two-term scaling law for loss using N and D."
+  difficulty: 4
+  answer: 'L_{\infty}+aN^{-\alpha}+bD^{-\beta}'
+  rubric:
+    - "Includes an irreducible loss term."
+    - "Includes a parameter-count term."
+    - "Includes a data-size term."
+  explanation: "A common fit uses power-law terms for parameters and data."
+  anchor: core-idea
+
+- id: scaling-short-1
+  type: short
+  prompt: "What is the main compute-optimal lesson from Chinchilla-style scaling?"
+  difficulty: 3
+  answer: "For a fixed compute budget, choose model size and token count together, and train with enough tokens for the model size."
+  rubric:
+    - "Mentions fixed compute."
+    - "Mentions model size and token count together."
+    - "Mentions enough data or tokens."
+  explanation: "Compute-optimal training balances parameters and tokens."
+  anchor: compute-optimal-training
+
+- id: scaling-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the rough compute proxy."
+  difficulty: 2
+  scaffold: |
+    n_params = 7e9
+    n_tokens = 1.4e12
+    compute_proxy = ___
+  blanks:
+    - id: 1
+      answer: "n_params * n_tokens"
+      rubric:
+        - "Multiplies parameters by tokens."
+  explanation: "A simple training compute proxy scales with parameters times tokens."
+  anchor: compute-tradeoff

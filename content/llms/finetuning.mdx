@@ -1,0 +1,88 @@
+---
+id: llms/finetuning
+title: Finetuning
+category: llms
+summary: Finetuning adapts a pretrained model to a task, domain, or response format.
+tags:
+  - training
+  - adaptation
+  - supervised-learning
+difficulty: 3
+prereqs:
+  - llms/pretraining
+  - general-ml/regularisation-methods
+related:
+  - llms/lora
+  - llms/rlhf
+  - general-ml/transfer-learning
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Finetuning starts from a pretrained model and trains it on a smaller target dataset. It can change task behavior, style, or domain knowledge.
+</TLDR>
+
+## Core idea
+
+Pretraining learns broad language patterns.
+
+Finetuning adapts the model to a target distribution.
+
+The dataset can contain labeled examples, instructions, conversations, or domain text.
+
+A common supervised objective is token-level cross entropy on target outputs.
+
+## Full finetuning
+
+Full finetuning updates all model parameters.
+
+It can give strong adaptation.
+
+It also needs more memory.
+
+It can overfit small datasets.
+
+It can also overwrite useful base-model behavior.
+
+## Parameter-efficient finetuning
+
+Parameter-efficient methods update only a small set of parameters.
+
+<a href="/learn/llms/lora">LoRA</a> is a common method.
+
+Adapters and prompt tuning are other examples.
+
+These methods reduce trainable parameter count.
+
+They can also make it easier to store task-specific variants.
+
+## Instruction tuning
+
+Instruction tuning trains on prompt-response examples.
+
+It teaches the model to follow task descriptions.
+
+The target is usually a preferred response.
+
+Instruction tuning often comes before preference optimization.
+
+## Common checks
+
+Use a held-out validation set.
+
+Track loss and task metrics.
+
+Inspect generated samples.
+
+Watch for overfitting and data leakage.
+
+## Common mistakes
+
+Do not use test data for training.
+
+Do not finetune with a different tokenizer unless the model supports it.
+
+Do not use too high a learning rate without checks.
+
+Do not assume finetuning adds facts reliably.

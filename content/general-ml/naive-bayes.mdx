@@ -1,0 +1,109 @@
+---
+id: general-ml/naive-bayes
+title: Naive Bayes
+category: general-ml
+summary: Naive Bayes applies Bayes' theorem with a conditional independence assumption over features.
+tags:
+  - probabilistic-models
+  - classification
+difficulty: 3
+prereqs:
+  - general-ml/bayes-theorem
+  - general-ml/pdf-pmf
+related:
+  - general-ml/mle-vs-map
+  - general-ml/precision-recall-f1-auc-roc
+  - general-ml/loss-functions
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Naive Bayes classifies by posterior probability. It assumes features are conditionally independent given the class.
+</TLDR>
+
+## Core idea
+
+Naive Bayes uses Bayes' theorem for classification.
+
+For class $y$ and features $x_1,\dots,x_d$:
+
+$$
+p(y\mid x_1,\dots,x_d)
+\propto
+p(y)p(x_1,\dots,x_d\mid y).
+$$
+
+The naive assumption is conditional independence:
+
+$$
+p(x_1,\dots,x_d\mid y)
+=
+\prod_{j=1}^d p(x_j\mid y).
+$$
+
+Thus:
+
+$$
+p(y\mid x)
+\propto
+p(y)\prod_{j=1}^d p(x_j\mid y).
+$$
+
+See <a href="/learn/general-ml/bayes-theorem">Bayes' Theorem</a>.
+
+## Prediction rule
+
+Choose the class with the largest posterior score.
+
+$$
+\hat y
+=
+\arg\max_y
+\left[
+\log p(y)+\sum_{j=1}^d \log p(x_j\mid y)
+\right].
+$$
+
+Logs avoid numerical underflow.
+
+## Common variants
+
+Gaussian naive Bayes uses Gaussian feature likelihoods.
+
+Multinomial naive Bayes uses count features.
+
+Bernoulli naive Bayes uses binary features.
+
+Text classification often uses multinomial naive Bayes.
+
+## Smoothing
+
+Zero probabilities can make a class score zero.
+
+Laplace smoothing adds pseudo-counts.
+
+For a count $N_{jy}$ and vocabulary size $V$:
+
+$$
+p(x_j\mid y)=\frac{N_{jy}+\alpha}{N_y+\alpha V}.
+$$
+
+## Code example
+
+```python
+from sklearn.naive_bayes import MultinomialNB
+
+model = MultinomialNB(alpha=1.0)
+model.fit(X_train_counts, y_train)
+pred = model.predict(X_test_counts)
+```
+
+## Common mistakes
+
+Do not assume the independence assumption is exactly true.
+
+Do not multiply many small probabilities without logs.
+
+Do not omit smoothing for sparse count data.
+```

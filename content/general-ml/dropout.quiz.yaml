@@ -1,0 +1,51 @@
+- id: dropout-mcq-1
+  type: mcq
+  prompt: "When is dropout usually active?"
+  difficulty: 1
+  options:
+    - "During training"
+    - "During deterministic inference"
+    - "Only after deployment"
+    - "Only before data splitting"
+  correctIndex: 0
+  explanation: "Dropout randomly masks activations during training."
+  anchor: training-and-inference
+
+- id: dropout-latex-1
+  type: latex
+  prompt: "Write inverted dropout for activation $h_i$, mask $m_i$, and dropout probability $p$."
+  difficulty: 3
+  answer: "\\frac{m_i h_i}{1-p}"
+  rubric:
+    - "Multiplies activation by the mask."
+    - "Divides by keep probability."
+  explanation: "Inverted dropout scales by the keep probability during training."
+  anchor: core-idea
+
+- id: dropout-short-1
+  type: short
+  prompt: "Why can dropout reduce overfitting?"
+  difficulty: 3
+  answer: "Dropout adds noise and makes units less dependent on specific other units."
+  rubric:
+    - "Mentions noise or random masking."
+    - "Mentions reduced co-adaptation."
+  explanation: "Random masks discourage fragile feature dependence."
+  anchor: why-it-helps
+
+- id: dropout-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the PyTorch call that disables dropout for inference."
+  difficulty: 2
+  scaffold: |
+    model = MyModel()
+    ___
+  blanks:
+    - id: 1
+      answer: "model.eval()"
+      rubric:
+        - "Uses eval mode."
+        - "Disables training behavior such as dropout."
+  explanation: "PyTorch eval mode disables dropout and uses inference behavior."
+  anchor: code-example

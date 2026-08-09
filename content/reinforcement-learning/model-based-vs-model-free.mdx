@@ -1,0 +1,76 @@
+---
+id: reinforcement-learning/model-based-vs-model-free
+title: Model-Based vs Model-Free
+category: reinforcement-learning
+summary: Model-based RL learns or uses environment dynamics. Model-free RL learns policies or values without an explicit dynamics model.
+tags:
+  - rl
+  - planning
+  - dynamics
+difficulty: 3
+prereqs:
+  - reinforcement-learning/markov-decision-process
+  - reinforcement-learning/bellman-equations
+related:
+  - reinforcement-learning/world-models-dreamer
+  - reinforcement-learning/muzero
+  - reinforcement-learning/soft-actor-critic
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+Model-based methods use a model of environment dynamics for planning or imagined data. Model-free methods learn values or policies directly from experience.
+</TLDR>
+
+## Core idea
+
+A model predicts environment behavior.
+
+It can predict next states, rewards, or latent transitions.
+
+Model-based RL uses this model for planning, control, or data generation.
+
+Model-free RL does not explicitly learn transition dynamics for planning.
+
+It learns a policy, a value function, or both.
+
+## Model-based strengths
+
+Model-based methods can be data efficient.
+
+They can plan before acting.
+
+They can use simulated rollouts from learned models.
+
+World models and MuZero are important examples.
+
+See <a href="/learn/reinforcement-learning/world-models-dreamer">World Models and Dreamer</a> and <a href="/learn/reinforcement-learning/muzero">MuZero</a>.
+
+## Model-based risks
+
+A learned model can be wrong.
+
+Planning can exploit model errors.
+
+Long imagined rollouts can compound errors.
+
+Short rollouts and uncertainty penalties can help.
+
+## Model-free strengths
+
+Model-free methods can be simpler.
+
+They avoid explicit dynamics modeling.
+
+They can work well with enough data.
+
+Q-learning, PPO, and SAC are common model-free methods.
+
+## Common mistakes
+
+Do not call any neural network a world model.
+
+Do not assume model-based always means better performance.
+
+Do not ignore model bias in imagined rollouts.

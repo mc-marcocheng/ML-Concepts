@@ -1,0 +1,117 @@
+---
+id: linear-algebra/dot-product
+title: Dot Product
+category: linear-algebra
+summary: The dot product measures vector alignment and gives lengths, angles, and projections.
+tags:
+  - vectors
+  - geometry
+difficulty: 1
+prereqs: []
+related:
+  - linear-algebra/orthogonality
+  - linear-algebra/positive-semi-definite
+  - linear-algebra/rank-span
+estReadMin: 5
+updated: 2026-01-01
+---
+
+<TLDR>
+The dot product turns two vectors into one scalar. It measures alignment, defines length, and gives projections.
+</TLDR>
+
+## Core idea
+
+For vectors $a,b \in \mathbb{R}^n$, the dot product is:
+
+$$
+a^\top b
+=
+\sum_{i=1}^{n} a_i b_i.
+$$
+
+It is large and positive when vectors point in similar directions.
+
+It is zero when vectors are perpendicular.
+
+It is negative when vectors point in opposite directions.
+
+See <a href="/learn/linear-algebra/orthogonality">Orthogonality</a> for the zero case.
+
+## Length and angle
+
+The dot product defines the Euclidean norm:
+
+$$
+\|a\|
+=
+\sqrt{a^\top a}.
+$$
+
+It also gives the angle $\theta$ between nonzero vectors:
+
+$$
+a^\top b
+=
+\|a\|\|b\|\cos \theta.
+$$
+
+This formula connects algebra to geometry.
+
+## Projection
+
+The projection of $a$ onto a nonzero vector $b$ is:
+
+$$
+\operatorname{proj}_b(a)
+=
+\frac{a^\top b}{b^\top b}b.
+$$
+
+The scalar coefficient is:
+
+$$
+\frac{a^\top b}{b^\top b}.
+$$
+
+Projection removes the part of $a$ that is orthogonal to $b$.
+
+## Matrix view
+
+A matrix-vector product computes many dot products at once.
+
+If $A$ has rows $r_1,\dots,r_m$, then:
+
+$$
+Ax
+=
+\begin{bmatrix}
+r_1^\top x \\
+\vdots \\
+r_m^\top x
+\end{bmatrix}.
+$$
+
+This view helps with <a href="/learn/linear-algebra/jacobian">Jacobian</a> matrices and neural network layers.
+
+## Code example
+
+```python
+import numpy as np
+
+a = np.array([1.0, 2.0, 3.0])
+b = np.array([4.0, 5.0, 6.0])
+
+dot = a @ b
+norm_a = np.sqrt(a @ a)
+
+print(dot, norm_a)
+```
+
+## Common mistakes
+
+Do not confuse a dot product with elementwise multiplication.
+
+Do not use the angle formula with a zero vector.
+
+Do not forget that $a^\top b$ is a scalar.

@@ -1,0 +1,138 @@
+---
+id: reinforcement-learning/importance-sampling
+title: Importance Sampling
+category: reinforcement-learning
+summary: Importance sampling estimates expectations under one distribution with samples from another distribution.
+tags:
+  - rl
+  - off-policy
+  - estimation
+difficulty: 4
+prereqs:
+  - general-ml/expectation
+  - general-ml/pdf-pmf
+related:
+  - reinforcement-learning/on-policy-vs-off-policy
+  - reinforcement-learning/policy-gradient-theorem
+  - reinforcement-learning/variance-reduction-in-rl
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Importance sampling reweights samples from a behavior distribution to estimate an expectation under a target distribution. It enables off-policy evaluation but can add high variance.
+</TLDR>
+
+## Core idea
+
+Suppose samples come from $q(x)$.
+
+You want an expectation under $p(x)$:
+
+$$
+\mathbb{E}_{p}[f(x)].
+$$
+
+Rewrite it as:
+
+$$
+\mathbb{E}_{p}[f(x)]
+=
+\mathbb{E}_{q}
+\left[
+\frac{p(x)}{q(x)}f(x)
+\right].
+$$
+
+The ratio $p(x)/q(x)$ is the importance weight.
+
+## Policy ratios
+
+In reinforcement learning, a trajectory has probability under a policy.
+
+For a trajectory $\tau$:
+
+$$
+w(\tau)
+=
+\frac{p_{\pi}(\tau)}{p_{\mu}(\tau)}.
+$$
+
+If the dynamics match, the ratio reduces to policy probabilities:
+
+$$
+w(\tau)
+=
+\prod_t
+\frac{\pi(a_t \mid s_t)}{\mu(a_t \mid s_t)}.
+$$
+
+Here, $\mu$ is the behavior policy.
+
+The target policy is $\pi$.
+
+## Variance problem
+
+Products of ratios can become very large or very small.
+
+This can cause high variance.
+
+Common fixes include clipping, per-decision weights, and normalized weights.
+
+PPO also uses policy ratios with clipping.
+
+See <a href="/learn/reinforcement-learning/ppo">PPO</a>.
+
+## Proof
+
+<Proof title="Importance sampling identity">
+Start with the target expectation:
+
+$$
+\mathbb{E}_{p}[f(x)]
+=
+\int f(x)p(x)\,dx.
+$$
+
+Multiply and divide by $q(x)$.
+
+This requires $q(x)>0$ wherever $p(x)f(x)$ can be nonzero.
+
+$$
+\int f(x)p(x)\,dx
+=
+\int f(x)\frac{p(x)}{q(x)}q(x)\,dx.
+$$
+
+This is an expectation under $q$:
+
+$$
+=
+\mathbb{E}_{q}
+\left[
+\frac{p(x)}{q(x)}f(x)
+\right].
+$$
+</Proof>
+
+## Code example
+
+```python
+import numpy as np
+
+target_prob = np.array([0.8, 0.2])
+behavior_prob = np.array([0.5, 0.5])
+actions = np.array([0, 1, 0])
+rewards = np.array([1.0, 0.0, 1.0])
+
+weights = target_prob[actions] / behavior_prob[actions]
+estimate = np.mean(weights * rewards)
+```
+
+## Common mistakes
+
+Do not use importance sampling when behavior probability is zero.
+
+Do not ignore the variance of long products.
+
+Do not clip weights without understanding the bias.

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ML Concepts icon">
+  <rect width="512" height="512" rx="112" fill="#fbfcf9"/>
+  <rect x="68" y="68" width="376" height="376" rx="88" fill="#111510"/>
+  <path d="M136 324V188h56l64 104 64-104h56v136h-42v-84l-52 84h-52l-52-84v84z" fill="#a6f16c"/>
+  <circle cx="356" cy="156" r="28" fill="#a6f16c"/>
+</svg>

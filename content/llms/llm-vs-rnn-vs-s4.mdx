@@ -1,0 +1,84 @@
+---
+id: llms/llm-vs-rnn-vs-s4
+title: LLM vs RNN vs S4
+category: llms
+summary: Transformers, RNNs, and S4 models use different ways to process sequence history.
+tags:
+  - sequence-models
+  - transformers
+  - state-space-models
+difficulty: 4
+prereqs:
+  - llms/causal-attention
+  - general-ml/rnns-lstms
+related:
+  - llms/griffin
+  - llms/transformer-xl
+  - general-ml/s4
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+Transformers use attention over tokens. RNNs update a hidden state step by step. S4 uses structured state-space dynamics for long sequences.
+</TLDR>
+
+## Core comparison
+
+| Model family | Main history mechanism | Parallel training | Inference state |
+|---|---|---:|---|
+| Transformer LLM | attention over previous tokens | high | key-value cache |
+| RNN | recurrent hidden state | limited | hidden state |
+| S4 | structured state-space model | high with convolution | state or convolution cache |
+
+Each family has different cost and memory behavior.
+
+## Transformer LLMs
+
+A decoder-only LLM uses causal self-attention.
+
+Each token can directly attend to previous tokens in context.
+
+This gives strong retrieval inside the context window.
+
+The cost is quadratic in sequence length during full attention training.
+
+See <a href="/learn/llms/causal-attention">causal attention</a>.
+
+## RNNs
+
+An RNN updates hidden state with:
+
+$$
+h_t = f(h_{t-1}, x_t).
+$$
+
+The state carries past information.
+
+Training is less parallel than attention because steps depend on earlier steps.
+
+RNNs can struggle with very long dependencies.
+
+LSTMs and GRUs add gates to improve memory.
+
+## S4
+
+S4 is a structured state-space sequence model.
+
+It uses a linear dynamical system with special structure.
+
+The model can compute long convolutions efficiently.
+
+This gives long-range modeling with good parallelism.
+
+See <a href="/learn/general-ml/s4">S4</a> for the detailed state-space view.
+
+## Common mistakes
+
+Do not say attention is always better.
+
+Do not say RNNs cannot model long sequences.
+
+Do not say S4 is just a Transformer.
+
+The best choice depends on data, context length, hardware, and latency.

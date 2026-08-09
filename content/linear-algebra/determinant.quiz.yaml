@@ -1,0 +1,43 @@
+- id: det-latex-1
+  type: latex
+  prompt: "Write the determinant of a $2 \\times 2$ matrix with entries $a,b,c,d$."
+  difficulty: 2
+  answer: 'ad-bc'
+  rubric:
+    - "Includes $ad$."
+    - "Subtracts $bc$."
+  explanation: "For $[[a,b],[c,d]]$, the determinant is $ad-bc$."
+  anchor: two-by-two-formula
+
+- id: det-numeric-1
+  type: numeric
+  prompt: "Compute the determinant of $\\begin{bmatrix}2 & 1 \\\\ 3 & 4\\end{bmatrix}$."
+  difficulty: 1
+  value: 5
+  tolerance: 0.000001
+  explanation: "The determinant is $2\\cdot4 - 1\\cdot3 = 5$."
+  anchor: two-by-two-formula
+
+- id: det-mcq-1
+  type: mcq
+  prompt: "What does $\\det(A)=0$ imply for a square matrix?"
+  difficulty: 2
+  options:
+    - "The matrix is singular"
+    - "The matrix is orthogonal"
+    - "All entries are zero"
+    - "The rank is always one"
+  correctIndex: 0
+  explanation: "A zero determinant means the matrix is singular."
+  anchor: core-idea
+
+- id: det-short-1
+  type: short
+  prompt: "What is the geometric meaning of the determinant?"
+  difficulty: 3
+  answer: "It is the signed volume scale of a square linear map."
+  rubric:
+    - "Mentions signed volume or area."
+    - "Mentions scaling by a linear map."
+  explanation: "The determinant tells how the map scales oriented volume."
+  anchor: core-idea

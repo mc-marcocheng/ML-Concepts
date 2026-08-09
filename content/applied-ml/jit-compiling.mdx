@@ -1,0 +1,88 @@
+---
+id: applied-ml/jit-compiling
+title: JIT Compiling
+category: applied-ml
+summary: JIT compiling converts traced tensor programs into optimized execution plans at run time.
+tags:
+  - performance
+  - compilers
+difficulty: 3
+prereqs:
+  - applied-ml/profiling
+related:
+  - applied-ml/jax-pytorch-tensorflow
+  - applied-ml/mixed-precision-training
+  - applied-ml/profiling
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+JIT compiling captures tensor code and compiles it into faster kernels or graphs. The first call can compile, while later calls reuse the compiled plan.
+</TLDR>
+
+## Core idea
+
+JIT means just-in-time.
+
+A JIT compiler runs during program execution.
+
+It traces or stages tensor operations.
+
+Then it builds an optimized graph or kernel plan.
+
+This can reduce Python overhead and fuse operations.
+
+JAX uses `jax.jit`.
+
+PyTorch uses `torch.compile`.
+
+TensorFlow uses `tf.function`.
+
+See <a href="/learn/applied-ml/jax-pytorch-tensorflow">JAX, PyTorch, TensorFlow</a>.
+
+## Static shapes and recompilation
+
+Compilers often specialize to shapes and data types.
+
+A new shape can trigger a new compilation.
+
+Frequent recompilation can make code slower.
+
+Batch shapes should stay stable when possible.
+
+## Control flow
+
+Python control flow can be hard to trace.
+
+Frameworks provide graph-friendly control flow tools.
+
+In JAX, use `jax.lax` for many compiled control-flow patterns.
+
+In TensorFlow, AutoGraph can convert some Python control flow.
+
+## Code example
+
+```python
+import jax
+import jax.numpy as jnp
+
+@jax.jit
+def step(w, x):
+    return jnp.tanh(x @ w)
+
+w = jnp.ones((128, 128))
+x = jnp.ones((32, 128))
+
+y = step(w, x)
+```
+
+## Common mistakes
+
+Do not benchmark only the first compiled call.
+
+The first call can include compilation time.
+
+Do not change shapes every step.
+
+Do not put side effects inside compiled functions.

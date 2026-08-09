@@ -1,0 +1,44 @@
+- id: grpo-mcq-1
+  type: mcq
+  prompt: "What does GRPO use as an advantage estimate?"
+  difficulty: 3
+  options:
+    - "A group-relative normalized reward"
+    - "Only the action index"
+    - "The next-state observation"
+    - "A fixed constant for all samples"
+  correctIndex: 0
+  explanation: "GRPO compares responses within the same prompt group."
+  anchor: group-relative-advantage
+- id: grpo-latex-1
+  type: latex
+  prompt: "Write a group-normalized reward advantage for response $i$."
+  difficulty: 3
+  answer: "\\frac{r_i-\\operatorname{mean}(r)}{\\operatorname{std}(r)+\\epsilon}"
+  rubric:
+    - "Subtracts the group mean."
+    - "Divides by group standard deviation plus epsilon."
+  explanation: "Group normalization gives a relative reward within one prompt group."
+  anchor: group-relative-advantage
+- id: grpo-short-1
+  type: short
+  prompt: "Why can GRPO avoid a learned value critic?"
+  difficulty: 4
+  answer: "It uses normalized rewards within a group as a baseline and advantage estimate."
+  rubric:
+    - "Mentions group normalization."
+    - "Mentions baseline or advantage."
+  explanation: "The group mean acts like a prompt-specific baseline."
+  anchor: core-idea
+- id: grpo-mcq-2
+  type: mcq
+  prompt: "Which statement best separates GRPO from DPO?"
+  difficulty: 4
+  options:
+    - "GRPO uses sampled rewards in a policy optimization objective, while DPO uses a preference loss"
+    - "GRPO never uses rewards"
+    - "DPO requires environment transitions"
+    - "Both are identical algorithms"
+  correctIndex: 0
+  explanation: "GRPO is closer to PPO-style policy optimization. DPO directly optimizes pairwise preferences."
+  anchor: common-mistakes

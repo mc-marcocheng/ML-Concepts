@@ -1,0 +1,43 @@
+- id: null-mcq-1
+  type: mcq
+  prompt: "What is the null space of a matrix $A$?"
+  difficulty: 2
+  options:
+    - "All outputs $Ax$"
+    - "All inputs $x$ such that $Ax=0$"
+    - "All rows of $A$"
+    - "All eigenvalues of $A$"
+  correctIndex: 1
+  explanation: "The null space contains inputs that map to zero."
+  anchor: core-idea
+
+- id: null-latex-1
+  type: latex
+  prompt: "Write the null space of $A$ in set notation."
+  difficulty: 2
+  answer: '\{x: Ax=0\}'
+  rubric:
+    - "Uses inputs $x$."
+    - "Includes the condition $Ax=0$."
+  explanation: "The null space is the set of all inputs sent to zero."
+  anchor: core-idea
+
+- id: null-numeric-1
+  type: numeric
+  prompt: "If $A \\in \\mathbb{R}^{4 \\times 6}$ has rank 3, what is its nullity?"
+  difficulty: 2
+  value: 3
+  tolerance: 0
+  explanation: "Rank-nullity gives nullity $6 - 3 = 3$."
+  anchor: rank-nullity
+
+- id: null-short-1
+  type: short
+  prompt: "What does it mean if $b$ is not in the image space of $A$?"
+  difficulty: 3
+  answer: "The system Ax equals b has no solution."
+  rubric:
+    - "Mentions the system $Ax=b$."
+    - "States that no solution exists."
+  explanation: "The image space contains exactly the outputs $A$ can produce."
+  anchor: meaning

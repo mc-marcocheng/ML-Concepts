@@ -1,0 +1,88 @@
+---
+id: llms/rlhf
+title: RLHF
+category: llms
+summary: RLHF uses human preference data to train a reward model and optimize a language model.
+tags:
+  - alignment
+  - reinforcement-learning
+  - preferences
+difficulty: 4
+prereqs:
+  - llms/finetuning
+  - llms/decoding-techniques
+related:
+  - reinforcement-learning/ppo
+  - reinforcement-learning/dpo-direct-preference-optimisation
+  - llms/pretraining
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+RLHF uses preference labels to train a reward model. It then optimizes a language model to get high reward while staying near a reference model.
+</TLDR>
+
+## Core idea
+
+RLHF means reinforcement learning from human feedback.
+
+A common pipeline has three stages.
+
+1. Train a base model with pretraining.
+
+2. Supervised finetune it on good responses.
+
+3. Optimize it with a reward model from human preferences.
+
+The final stage often uses a KL penalty.
+
+The penalty keeps the policy close to a reference model.
+
+## Preference data
+
+Annotators compare two or more responses to the same prompt.
+
+The data says which response is preferred.
+
+This gives pairwise preference examples.
+
+A reward model learns to score responses.
+
+## Reward model loss
+
+For a preferred response $y_w$ and a rejected response $y_l$, a common loss is:
+
+$$
+\mathcal{L}
+=
+-\log \sigma(r_\phi(x,y_w)-r_\phi(x,y_l)).
+$$
+
+This trains the reward model to score the preferred response higher.
+
+## Policy optimization
+
+The policy model generates responses.
+
+The reward model scores them.
+
+The training objective often includes:
+
+$$
+\mathbb{E}[r_\phi(x,y)]
+-
+\beta \operatorname{KL}(\pi_\theta(\cdot|x)\|\pi_{\text{ref}}(\cdot|x)).
+$$
+
+The KL term reduces reward hacking and distribution drift.
+
+## Common mistakes
+
+Do not treat the reward model as ground truth.
+
+Do not optimize reward without checking generated samples.
+
+Do not remove the KL penalty without a reason.
+
+Do not confuse RLHF with supervised finetuning.

@@ -1,0 +1,164 @@
+---
+id: general-ml/bias-variance-tradeoff
+title: Bias-Variance Tradeoff
+category: general-ml
+summary: Bias-variance tradeoff splits prediction error into systematic error, sample sensitivity, and noise.
+tags:
+  - generalization
+  - statistics
+difficulty: 3
+prereqs:
+  - general-ml/expectation
+  - general-ml/variance-and-covariance
+related:
+  - general-ml/overfitting-underfitting
+  - general-ml/cross-validation
+  - general-ml/regularization-methods
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Bias is systematic error from a restricted model. Variance is error from sensitivity to the training sample. Noise is irreducible error in the data.
+</TLDR>
+
+## Core idea
+
+Assume the data has this form:
+
+$$
+y = f(x) + \epsilon,
+$$
+
+where:
+
+$$
+\mathbb{E}[\epsilon]=0,
+\quad
+\operatorname{Var}(\epsilon)=\sigma^2.
+$$
+
+For squared loss, expected test error decomposes into:
+
+$$
+\mathbb{E}[(y-\hat f(x))^2]
+=
+\operatorname{Bias}[\hat f(x)]^2
++
+\operatorname{Var}[\hat f(x)]
++
+\sigma^2.
+$$
+
+Use <a href="/learn/general-ml/variance-and-covariance">Variance and Covariance</a> for the variance term.
+
+## Bias
+
+Bias measures systematic error.
+
+$$
+\operatorname{Bias}[\hat f(x)]
+=
+\mathbb{E}[\hat f(x)] - f(x).
+$$
+
+High bias often means underfitting.
+
+A very simple model can have high bias because it cannot represent the true pattern.
+
+## Variance
+
+Variance measures sample sensitivity.
+
+$$
+\operatorname{Var}[\hat f(x)]
+=
+\mathbb{E}\left[
+(\hat f(x)-\mathbb{E}[\hat f(x)])^2
+\right].
+$$
+
+High variance often means overfitting.
+
+A very flexible model can change a lot when the training data changes.
+
+See <a href="/learn/general-ml/overfitting-underfitting">Overfitting and Underfitting</a>.
+
+## Proof
+
+<Proof title="Bias-variance decomposition">
+Start with the prediction error:
+
+$$
+y-\hat f(x)=f(x)+\epsilon-\hat f(x).
+$$
+
+Add and subtract $\mathbb{E}[\hat f(x)]$:
+
+$$
+y-\hat f(x)
+=
+f(x)-\mathbb{E}[\hat f(x)]
++
+\mathbb{E}[\hat f(x)]-\hat f(x)
++
+\epsilon.
+$$
+
+Square and take expectation.
+
+The cross terms vanish under the usual assumptions.
+
+This gives:
+
+$$
+\mathbb{E}[(y-\hat f(x))^2]
+=
+(\mathbb{E}[\hat f(x)]-f(x))^2
++
+\mathbb{E}[(\hat f(x)-\mathbb{E}[\hat f(x)])^2]
++
+\mathbb{E}[\epsilon^2].
+$$
+
+Thus:
+
+$$
+\mathbb{E}[(y-\hat f(x))^2]
+=
+\operatorname{Bias}^2
++
+\operatorname{Var}
++
+\sigma^2.
+$$
+</Proof>
+
+## Common controls
+
+More data usually reduces variance.
+
+Regularization can reduce variance but can increase bias.
+
+Cross-validation helps select a useful tradeoff.
+
+See <a href="/learn/general-ml/regularization-methods">Regularization Methods</a> and <a href="/learn/general-ml/cross-validation">Cross-Validation</a>.
+
+## Code example
+
+```python
+from sklearn.model_selection import cross_val_score
+from sklearn.tree import DecisionTreeRegressor
+
+model = DecisionTreeRegressor(max_depth=3, random_state=0)
+scores = cross_val_score(model, X, y, cv=5, scoring="neg_mean_squared_error")
+mse = -scores.mean()
+```
+
+## Common mistakes
+
+Do not equate training error with test error.
+
+Do not call noise bias or variance.
+
+Do not assume a larger model always improves test error.

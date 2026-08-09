@@ -1,0 +1,172 @@
+---
+id: general-ml/bayes-theorem
+title: Bayes' Theorem
+category: general-ml
+summary: Bayes' theorem updates a prior belief with evidence to get a posterior belief.
+tags:
+  - probability
+  - statistics
+difficulty: 3
+prereqs:
+  - general-ml/pdf-pmf
+  - general-ml/expectation
+related:
+  - general-ml/mle-vs-map
+  - general-ml/naive-bayes
+  - general-ml/confidence-intervals
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Bayes' theorem converts a prior and a likelihood into a posterior. It gives a precise rule for belief updates under uncertainty.
+</TLDR>
+
+## Core idea
+
+Bayes' theorem states:
+
+$$
+p(A \mid B)
+=
+\frac{p(B \mid A)p(A)}{p(B)}.
+$$
+
+The terms have common names.
+
+| Term | Name |
+|---|---|
+| $p(A)$ | prior |
+| $p(B \mid A)$ | likelihood |
+| $p(B)$ | evidence |
+| $p(A \mid B)$ | posterior |
+
+The posterior is proportional to likelihood times prior.
+
+$$
+p(A \mid B) \propto p(B \mid A)p(A).
+$$
+
+## Derivation
+
+Bayes' theorem comes from the product rule.
+
+$$
+p(A,B)=p(A \mid B)p(B)
+$$
+
+and
+
+$$
+p(A,B)=p(B \mid A)p(A).
+$$
+
+Equate the two expressions:
+
+$$
+p(A \mid B)p(B)
+=
+p(B \mid A)p(A).
+$$
+
+Then divide by $p(B)$.
+
+<Proof title="Bayes' theorem from the product rule">
+The product rule gives:
+
+$$
+p(A,B)=p(A \mid B)p(B).
+$$
+
+It also gives:
+
+$$
+p(A,B)=p(B \mid A)p(A).
+$$
+
+Both expressions equal the same joint probability.
+
+Therefore:
+
+$$
+p(A \mid B)p(B)=p(B \mid A)p(A).
+$$
+
+When $p(B)>0$:
+
+$$
+p(A \mid B)=\frac{p(B \mid A)p(A)}{p(B)}.
+$$
+</Proof>
+
+## Evidence as normalization
+
+For a set of mutually exclusive cases $A_1,\dots,A_k$:
+
+$$
+p(B)
+=
+\sum_i p(B \mid A_i)p(A_i).
+$$
+
+This makes the posterior probabilities sum to one.
+
+For continuous parameters $\theta$:
+
+$$
+p(\theta \mid x)
+=
+\frac{p(x \mid \theta)p(\theta)}
+{\int p(x \mid \theta)p(\theta)\,d\theta}.
+$$
+
+Use <a href="/learn/general-ml/pdf-pmf">PDF and PMF</a> to track discrete and continuous cases.
+
+## Base rates
+
+Base rates can strongly affect the posterior.
+
+A rare condition can still have low posterior probability after a positive test.
+
+This happens when false positives are not rare enough.
+
+## MAP estimation
+
+Maximum a posteriori estimation chooses the parameter with largest posterior.
+
+$$
+\theta_{\mathrm{MAP}}
+=
+\arg\max_\theta p(\theta \mid x).
+$$
+
+Since the evidence does not depend on $\theta$:
+
+$$
+\theta_{\mathrm{MAP}}
+=
+\arg\max_\theta p(x \mid \theta)p(\theta).
+$$
+
+See <a href="/learn/general-ml/mle-vs-map">MLE vs MAP</a> for the link to optimization.
+
+## Code example
+
+```python
+prior = 0.01
+sensitivity = 0.99
+false_positive_rate = 0.05
+
+evidence = sensitivity * prior + false_positive_rate * (1 - prior)
+posterior = sensitivity * prior / evidence
+
+print(posterior)
+```
+
+## Common mistakes
+
+Do not ignore the prior.
+
+Do not confuse $p(A \mid B)$ with $p(B \mid A)$.
+
+Do not forget the evidence term.

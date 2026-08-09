@@ -1,0 +1,100 @@
+---
+id: general-ml/adam-adamw-adagrad
+title: Adam, AdamW, and Adagrad
+category: general-ml
+summary: Adam, AdamW, and Adagrad adapt learning rates using gradient statistics.
+tags:
+  - optimization
+  - training
+difficulty: 3
+prereqs:
+  - general-ml/gradient-descent-sgd
+related:
+  - general-ml/regularization-methods
+  - general-ml/numerical-precision-tricks
+  - general-ml/second-order-methods
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Adaptive optimizers scale updates with gradient history. Adam uses first and second moments. AdamW decouples weight decay from Adam.
+</TLDR>
+
+## Adagrad
+
+Adagrad accumulates squared gradients:
+
+$$
+G_t = G_{t-1}+g_t^2.
+$$
+
+The update is:
+
+$$
+\theta_{t+1}
+=
+\theta_t
+-
+\eta \frac{g_t}{\sqrt{G_t}+\epsilon}.
+$$
+
+Parameters with large past gradients get smaller steps.
+
+## Adam
+
+Adam tracks an exponential average of gradients:
+
+$$
+m_t=\beta_1m_{t-1}+(1-\beta_1)g_t.
+$$
+
+It also tracks squared gradients:
+
+$$
+v_t=\beta_2v_{t-1}+(1-\beta_2)g_t^2.
+$$
+
+With bias correction:
+
+$$
+\hat m_t=\frac{m_t}{1-\beta_1^t},
+\quad
+\hat v_t=\frac{v_t}{1-\beta_2^t}.
+$$
+
+The update is:
+
+$$
+\theta_{t+1}
+=
+\theta_t-\eta\frac{\hat m_t}{\sqrt{\hat v_t}+\epsilon}.
+$$
+
+## AdamW
+
+AdamW decouples weight decay from the adaptive gradient step.
+
+This often works better than L2 regularization inside Adam.
+
+See <a href="/learn/general-ml/regularization-methods">Regularization Methods</a>.
+
+## Code example
+
+```python
+m = beta1 * m + (1 - beta1) * g
+v = beta2 * v + (1 - beta2) * (g * g)
+
+m_hat = m / (1 - beta1 ** t)
+v_hat = v / (1 - beta2 ** t)
+
+theta = theta - lr * m_hat / (np.sqrt(v_hat) + eps)
+```
+
+## Common mistakes
+
+Do not omit epsilon in the denominator.
+
+Do not confuse AdamW with Adam plus L2 penalty.
+
+Do not compare optimizers without learning-rate tuning.

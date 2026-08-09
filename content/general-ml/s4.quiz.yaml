@@ -1,0 +1,102 @@
+- id: s4-mcq-1
+  type: mcq
+  prompt: "Why can an S4 layer train in parallel over the sequence?"
+  difficulty: 3
+  options:
+    - "It uses attention over all positions"
+    - "The recurrence is linear and time invariant, so it unrolls into a convolution"
+    - "It processes each token independently"
+    - "It truncates the sequence into short blocks"
+  correctIndex: 1
+  explanation: "A fixed kernel convolution can be computed with an FFT in parallel."
+  anchor: the-convolution-view
+- id: s4-latex-1
+  type: latex
+  prompt: "Write the S4 convolution kernel entry $\\bar{K}_k$ in terms of $C$, $\\bar{A}$, and $\\bar{B}$."
+  difficulty: 3
+  answer: "C\\bar{A}^{k}\\bar{B}"
+  rubric:
+    - "Raises the discretized state matrix to the power k."
+    - "Sandwiches it between the output and input matrices."
+  explanation: "Unrolling the recurrence gives this kernel."
+  anchor: the-convolution-view
+- id: s4-mcq-2
+  type: mcq
+  prompt: "What does HiPPO initialization provide?"
+  difficulty: 4
+  options:
+    - "A sparse state matrix for faster matrix products"
+    - "A state matrix whose state is an optimal online polynomial compression of the input history"
+    - "A learning rate schedule for the state parameters"
+    - "A normalization of the convolution kernel"
+  correctIndex: 1
+  explanation: "HiPPO derives A so the state holds Legendre coefficients of the recent input."
+  anchor: hippo-initialization
+- id: s4-short-1
+  type: short
+  prompt: "Describe the two computational modes of an S4 layer and when each is used."
+  difficulty: 3
+  answer: "Training uses the convolution mode, where the fixed kernel is applied with an FFT in O(T log T) and all positions compute in parallel. Generation uses the recurrent mode, which keeps a constant size state and costs O(N) per step."
+  rubric:
+    - "Names the convolution mode for parallel training."
+    - "Names the recurrent mode for constant memory generation."
+  explanation: "Both modes use the same parameters."
+  anchor: the-convolution-view
+- id: s4-short-2
+  type: short
+  prompt: "Why does S4 need a diagonal plus low rank structure for A?"
+  difficulty: 5
+  answer: "Building the kernel by explicit powers of A costs O(N squared T), which is too slow. The HiPPO matrix is not normal, so it cannot be diagonalized stably. Writing A as diagonal minus a low rank term allows a frequency domain Cauchy kernel computation in nearly linear time."
+  rubric:
+    - "States that naive kernel construction is too expensive."
+    - "Mentions the structure enabling a fast kernel computation."
+  explanation: "S4D later showed a diagonal only version works nearly as well."
+  anchor: diagonal-plus-low-rank
+- id: s4-mcq-3
+  type: mcq
+  prompt: "What does Mamba add over plain S4?"
+  difficulty: 4
+  options:
+    - "Attention over the state"
+    - "Input dependent B, C, and step size, which makes the system selective"
+    - "A larger state dimension only"
+    - "A different activation function"
+  correctIndex: 1
+  explanation: "Selectivity makes the system time varying, so a parallel scan replaces the convolution."
+  anchor: s5-mamba-and-selectivity
+- id: s4-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the kernel accumulation and the recurrent state update."
+  difficulty: 4
+  scaffold: |
+    Ak_B = B_bar.copy()
+    for k in range(L):
+        K[k] = float(C @ Ak_B)
+        Ak_B = ___
+
+    # recurrent mode
+    h = ___
+    out[t] = float(C @ h)
+  blanks:
+    - id: 1
+      answer: "A_bar @ Ak_B"
+      rubric:
+        - "Advances the power of the state matrix by one."
+    - id: 2
+      answer: "A_bar @ h + B_bar.ravel() * xt"
+      rubric:
+        - "Applies the state transition and adds the scaled input."
+  explanation: "The kernel is the impulse response of the same recurrence."
+  anchor: code-example
+- id: s4-order-1
+  type: order
+  prompt: "Order the construction of an S4 layer."
+  difficulty: 3
+  steps:
+    - "Choose a continuous state matrix from the HiPPO family"
+    - "Discretize with a learned step size to get $\\bar{A}$ and $\\bar{B}$"
+    - "Build the convolution kernel using the structured representation"
+    - "Apply the kernel to the sequence with an FFT"
+  explanation: "Continuous design, discretization, kernel, then convolution."
+  anchor: discretization

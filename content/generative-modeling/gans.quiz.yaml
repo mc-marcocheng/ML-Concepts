@@ -1,0 +1,62 @@
+- id: gans-mcq-1
+  type: mcq
+  prompt: "What does the discriminator learn in a GAN?"
+  difficulty: 1
+  options:
+    - "A map from labels to latent codes"
+    - "A probability that a sample is real"
+    - "A diffusion noise schedule"
+    - "A posterior over latent variables"
+  correctIndex: 1
+  explanation: "The discriminator outputs a score for real versus fake samples."
+  anchor: core-idea
+
+- id: gans-latex-1
+  type: latex
+  prompt: "Write the optimal discriminator for a fixed generator."
+  difficulty: 3
+  answer: '\frac{p_{\text{data}}(x)}{p_{\text{data}}(x)+p_g(x)}'
+  rubric:
+    - "Includes the data density in the numerator."
+    - "Includes the sum of data and generator densities in the denominator."
+  explanation: "For a fixed generator, $D^*(x)=p_{\\text{data}}(x)/(p_{\\text{data}}(x)+p_g(x))$."
+  anchor: optimal-discriminator
+
+- id: gans-short-1
+  type: short
+  prompt: "What is mode collapse?"
+  difficulty: 3
+  answer: "Mode collapse happens when the generator produces too few sample types and misses parts of the data distribution."
+  rubric:
+    - "Mentions low diversity."
+    - "Mentions missing modes or parts of the data distribution."
+  explanation: "A collapsed generator can make sharp samples but still cover too little of the data distribution."
+  anchor: stability-problems
+
+- id: gans-numeric-1
+  type: numeric
+  prompt: "For the non-saturating generator loss, if $D(G(z))=0.2$, what is $-\\log D(G(z))$?"
+  difficulty: 2
+  value: 1.609437912
+  tolerance: 0.000001
+  explanation: "The loss is $-\\log(0.2)=1.609437912$."
+  anchor: non-saturating-generator-loss
+
+- id: gans-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the latent noise sample."
+  difficulty: 2
+  scaffold: |
+    batch_size = real.shape[0]
+    device = real.device
+    z = ___
+    fake = generator(z)
+  blanks:
+    - id: 1
+      answer: "torch.randn(batch_size, latent_dim, device=device)"
+      rubric:
+        - "Samples standard normal latent noise."
+        - "Uses the correct batch size and device."
+  explanation: "The generator usually receives a random latent vector as input."
+  anchor: code-example

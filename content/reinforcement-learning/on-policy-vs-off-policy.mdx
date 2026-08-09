@@ -1,0 +1,74 @@
+---
+id: reinforcement-learning/on-policy-vs-off-policy
+title: On-Policy vs Off-Policy
+category: reinforcement-learning
+summary: On-policy methods learn from data collected by the current policy. Off-policy methods can learn about one policy from another policy's data.
+tags:
+  - rl
+  - policy
+  - data
+difficulty: 3
+prereqs:
+  - reinforcement-learning/markov-decision-process
+  - reinforcement-learning/importance-sampling
+related:
+  - reinforcement-learning/q-learning-td-learning
+  - reinforcement-learning/sarsa
+  - reinforcement-learning/ppo
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+On-policy learning uses data from the policy being improved. Off-policy learning can use data from a different behavior policy.
+</TLDR>
+
+## Core idea
+
+A behavior policy collects data.
+
+A target policy is the policy being evaluated or improved.
+
+In on-policy learning, the behavior policy and target policy are the same.
+
+In off-policy learning, they can differ.
+
+## Examples
+
+SARSA is on-policy in its basic form.
+
+Q-learning is off-policy because it learns a greedy target while behavior can explore.
+
+PPO is usually on-policy because it reuses recent data only within a small policy change.
+
+See <a href="/learn/reinforcement-learning/sarsa">SARSA</a> and <a href="/learn/reinforcement-learning/q-learning-td-learning">Q-Learning and TD Learning</a>.
+
+## Why off-policy learning helps
+
+Off-policy learning can use replay buffers.
+
+It can learn from old data.
+
+It can learn from demonstrations.
+
+It usually needs corrections when the data policy differs from the target policy.
+
+<a href="/learn/reinforcement-learning/importance-sampling">Importance Sampling</a> gives one correction method.
+
+## Main tradeoffs
+
+On-policy methods are simple and stable.
+
+They often use data less efficiently.
+
+Off-policy methods can use data better.
+
+They can suffer from distribution mismatch and unstable targets.
+
+## Common mistakes
+
+Do not call any replay-buffer method off-policy without checking the update.
+
+Do not ignore how old data differs from current policy data.
+
+Do not use importance weights without variance control.

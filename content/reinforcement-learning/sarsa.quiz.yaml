@@ -1,0 +1,50 @@
+- id: sarsa-mcq-1
+  type: mcq
+  prompt: "Which next value does SARSA use?"
+  difficulty: 2
+  options:
+    - "$\\max_{a'}Q(s',a')$"
+    - "$Q(s',a')$ for the sampled next action"
+    - "The full episode return only"
+    - "The average reward only"
+  correctIndex: 1
+  explanation: "SARSA uses the next action sampled by the current policy."
+  anchor: core-idea
+- id: sarsa-latex-1
+  type: latex
+  prompt: "Write the SARSA TD target."
+  difficulty: 2
+  answer: "r_t+\\gamma Q(s_{t+1},a_{t+1})"
+  rubric:
+    - "Includes the reward."
+    - "Uses the sampled next action value."
+  explanation: "SARSA backs up the value of the next sampled action."
+  anchor: core-idea
+- id: sarsa-short-1
+  type: short
+  prompt: "Why can SARSA be more cautious than Q-learning under exploration?"
+  difficulty: 4
+  answer: "SARSA values include future exploratory actions, so risky states can receive lower value when exploration may cause bad actions."
+  rubric:
+    - "Mentions future exploratory actions."
+    - "Mentions lower value for risky states."
+  explanation: "Q-learning uses a greedy target. SARSA follows the behavior policy."
+  anchor: on-policy-control
+- id: sarsa-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the SARSA target."
+  difficulty: 3
+  scaffold: |
+    r = 1.0
+    gamma = 0.99
+    q_next_action = 2.5
+    target = ___
+  blanks:
+    - id: 1
+      answer: "r + gamma * q_next_action"
+      rubric:
+        - "Adds reward."
+        - "Discounts the sampled next action value."
+  explanation: "SARSA uses the value of the next action chosen by the policy."
+  anchor: code-example

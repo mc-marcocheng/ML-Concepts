@@ -1,0 +1,49 @@
+- id: ft-mcq-1
+  type: mcq
+  prompt: "What does finetuning usually start from?"
+  difficulty: 1
+  options:
+    - "A pretrained model"
+    - "Only a random tokenizer"
+    - "Only a reward scalar"
+    - "A finished beam search"
+  correctIndex: 0
+  explanation: "Finetuning adapts a pretrained model."
+  anchor: core-idea
+
+- id: ft-short-1
+  type: short
+  prompt: "What is one risk of full finetuning on a small dataset?"
+  difficulty: 2
+  answer: "Full finetuning can overfit the small dataset or overwrite useful base-model behavior."
+  rubric:
+    - "Mentions overfitting."
+    - "Mentions small data or narrow data."
+    - "Mentions possible loss of base behavior."
+  explanation: "Updating all parameters gives flexibility but increases overfitting risk."
+  anchor: full-finetuning
+
+- id: ft-mcq-2
+  type: mcq
+  prompt: "Which method is parameter-efficient?"
+  difficulty: 1
+  options:
+    - "LoRA"
+    - "Greedy decoding"
+    - "Beam search"
+    - "Token counting"
+  correctIndex: 0
+  explanation: "LoRA trains low-rank adapter parameters."
+  anchor: parameter-efficient-finetuning
+
+- id: ft-order-1
+  type: order
+  prompt: "Put a common LLM adaptation pipeline in order."
+  difficulty: 2
+  steps:
+    - "Pretrain a base model"
+    - "Supervised finetune on target examples"
+    - "Evaluate on held-out data"
+    - "Optionally apply preference optimization"
+  explanation: "Finetuning comes after pretraining and before optional preference optimization."
+  anchor: core-idea

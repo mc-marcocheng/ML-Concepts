@@ -1,0 +1,92 @@
+---
+id: llms/tokenization
+title: Tokenization
+category: llms
+summary: Tokenization maps text to token IDs that a language model can process.
+tags:
+  - data
+  - preprocessing
+  - vocabulary
+difficulty: 3
+prereqs:
+  - general-ml/pdf-pmf
+related:
+  - llms/pretraining
+  - llms/decoding-techniques
+  - llms/finetuning
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Tokenization converts text into token IDs. The tokenizer defines the model vocabulary and affects compression, unknown text, and generation behavior.
+</TLDR>
+
+## Core idea
+
+LLMs operate on token IDs, not raw strings.
+
+A tokenizer maps text to a sequence of IDs.
+
+It also maps IDs back to text.
+
+Common tokenizer families include:
+
+- byte pair encoding
+- WordPiece
+- unigram language model tokenization
+- byte-level tokenization
+
+## Subword tokens
+
+A word can split into multiple subword tokens.
+
+A common word can be one token.
+
+A rare word can split into many tokens.
+
+This keeps vocabulary size manageable.
+
+It also lets the model represent new words.
+
+## Byte pair encoding
+
+Byte pair encoding starts with small units.
+
+It repeatedly merges frequent adjacent pairs.
+
+After training, the merge list defines the tokenizer.
+
+Encoding applies merges in the learned order.
+
+## Vocabulary tradeoffs
+
+A larger vocabulary can reduce sequence length.
+
+It also increases embedding and output projection size.
+
+A smaller vocabulary can handle text more uniformly.
+
+It can make sequences longer.
+
+## Tokenization and generation
+
+Decoding produces token IDs.
+
+The tokenizer converts these IDs back to text.
+
+Some token boundaries can create surprising behavior.
+
+For example, a leading space can be part of a token.
+
+Use <a href="/learn/llms/decoding-techniques">decoding techniques</a> for sampling from token probabilities.
+
+## Common mistakes
+
+Do not assume tokens equal words.
+
+Do not change the tokenizer without updating embeddings.
+
+Do not compare token counts across different tokenizers without care.
+
+Do not ignore byte fallback for unusual text.

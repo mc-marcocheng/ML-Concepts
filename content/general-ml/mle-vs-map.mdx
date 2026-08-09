@@ -1,0 +1,90 @@
+---
+id: general-ml/mle-vs-map
+title: MLE vs MAP
+category: general-ml
+summary: MLE maximizes likelihood, while MAP maximizes posterior probability with a prior.
+tags:
+  - statistics
+  - estimation
+difficulty: 3
+prereqs:
+  - general-ml/bayes-theorem
+  - general-ml/loss-functions
+related:
+  - general-ml/linear-regression
+  - general-ml/regularization-methods
+  - general-ml/pdf-pmf
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+MLE finds parameters that make the data most likely. MAP also includes a prior over parameters.
+</TLDR>
+
+## Maximum likelihood
+
+Given data $D$, maximum likelihood estimation solves:
+
+$$
+\theta_{\text{MLE}}
+=
+\arg\max_\theta p(D\mid \theta).
+$$
+
+It often uses the log likelihood:
+
+$$
+\theta_{\text{MLE}}
+=
+\arg\max_\theta \log p(D\mid \theta).
+$$
+
+Equivalently, minimize negative log likelihood.
+
+## Maximum a posteriori
+
+MAP estimation uses Bayes' theorem:
+
+$$
+p(\theta\mid D)
+\propto
+p(D\mid \theta)p(\theta).
+$$
+
+It solves:
+
+$$
+\theta_{\text{MAP}}
+=
+\arg\max_\theta
+\left[
+\log p(D\mid \theta)+\log p(\theta)
+\right].
+$$
+
+See <a href="/learn/general-ml/bayes-theorem">Bayes' Theorem</a>.
+
+## Link to regularization
+
+The prior acts like a regularizer.
+
+A Gaussian prior on weights gives an L2 penalty.
+
+A Laplace prior gives an L1 penalty.
+
+See <a href="/learn/general-ml/regularization-methods">Regularization Methods</a>.
+
+## Example
+
+Linear regression with Gaussian noise gives squared loss.
+
+With a Gaussian prior on weights, MAP gives ridge regression.
+
+## Common mistakes
+
+Do not forget that MLE has no explicit prior.
+
+Do not confuse MAP with full Bayesian inference.
+
+Do not compare likelihood values across datasets of different size without care.

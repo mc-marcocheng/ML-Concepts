@@ -1,0 +1,60 @@
+- id: diff-reverse-mcq-1
+  type: mcq
+  prompt: "What does a standard DDPM denoising network often predict?"
+  difficulty: 2
+  options:
+    - "The original class label"
+    - "The noise added to the clean sample"
+    - "The discriminator probability"
+    - "The learning rate schedule"
+  correctIndex: 1
+  explanation: "Many DDPMs train the network to predict the noise $\\epsilon$."
+  anchor: core-idea
+
+- id: diff-reverse-latex-1
+  type: latex
+  prompt: "Write the estimate of $x_0$ from $x_t$ and predicted noise."
+  difficulty: 3
+  answer: '\frac{x_t-\sqrt{1-\bar\alpha_t}\epsilon_\theta(x_t,t)}{\sqrt{\bar\alpha_t}}'
+  rubric:
+    - "Subtracts the predicted noise term."
+    - "Uses $\\sqrt{1-\\bar\\alpha_t}$ for the noise scale."
+    - "Divides by $\\sqrt{\\bar\\alpha_t}$."
+  explanation: "Solve the forward equation for $x_0$ and replace true noise with predicted noise."
+  anchor: estimate-of-x0
+
+- id: diff-reverse-numeric-1
+  type: numeric
+  prompt: "If $x_t=1$, $\\bar\\alpha_t=0.25$, and $\\epsilon_\\theta=0$, what is $\\hat x_0$?"
+  difficulty: 2
+  value: 2
+  tolerance: 0.000001
+  explanation: "$\\hat x_0=1/\\sqrt{0.25}=2$."
+  anchor: estimate-of-x0
+
+- id: diff-reverse-short-1
+  type: short
+  prompt: "What is a key difference between DDPM and deterministic DDIM sampling?"
+  difficulty: 3
+  answer: "DDPM sampling adds stochastic noise at reverse steps, while deterministic DDIM uses no added reverse noise."
+  rubric:
+    - "Mentions stochastic noise in DDPM."
+    - "Mentions deterministic DDIM when the noise scale is zero."
+  explanation: "DDIM can set $\\sigma_t=0$, which removes sampling noise."
+  anchor: ddim-update
+
+- id: diff-reverse-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the clean sample estimate."
+  difficulty: 3
+  scaffold: |
+    x0_hat = ___
+  blanks:
+    - id: 1
+      answer: "(x_t - torch.sqrt(1 - alpha_bar_t) * eps_theta) / torch.sqrt(alpha_bar_t)"
+      rubric:
+        - "Subtracts the scaled predicted noise."
+        - "Divides by square root alpha bar."
+  explanation: "The estimate comes from solving the forward equation for $x_0$."
+  anchor: code-example

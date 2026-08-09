@@ -1,0 +1,98 @@
+---
+id: llms/transformer-xl
+title: Transformer-XL
+category: llms
+summary: Transformer-XL adds segment recurrence and relative positions to improve long-context modeling.
+tags:
+  - attention
+  - recurrence
+  - long-context
+difficulty: 4
+prereqs:
+  - llms/causal-attention
+  - llms/relative-positional-embeddings
+related:
+  - llms/llm-vs-rnn-vs-s4
+  - llms/rope
+  - llms/decoding-techniques
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+Transformer-XL extends Transformer context with cached hidden states from earlier segments. It also uses relative position information.
+</TLDR>
+
+## Core idea
+
+A standard Transformer processes a fixed context window.
+
+This can cause context fragmentation.
+
+Transformer-XL splits a long sequence into segments.
+
+For the current segment, it reuses hidden states from previous segments.
+
+These cached states act as memory.
+
+The model can attend beyond the current segment length.
+
+## Segment recurrence
+
+Let $h_{\tau}^{n}$ be layer $n$ hidden states for segment $\tau$.
+
+Transformer-XL builds the key and value memory from:
+
+$$
+\tilde{h}_{\tau}^{n-1}
+=
+[\operatorname{SG}(h_{\tau-1}^{n-1}); h_{\tau}^{n-1}].
+$$
+
+Here $\operatorname{SG}$ means stop-gradient.
+
+The current segment can attend to old hidden states.
+
+The old hidden states do not get gradients from the current segment.
+
+<Proof title="Why stop-gradient limits memory cost">
+Without stop-gradient, the current loss would backpropagate through all previous cached segments.
+
+That would make the computation graph grow with sequence history.
+
+Transformer-XL treats cached hidden states as constants.
+
+Thus the current segment only stores gradients for the current computation.
+
+This gives a longer effective context without full backpropagation through time.
+</Proof>
+
+## Relative positions
+
+Absolute positions do not transfer well across segments.
+
+Transformer-XL uses relative position information.
+
+This lets attention depend on distance between tokens.
+
+See <a href="/learn/llms/relative-positional-embeddings">relative positional embeddings</a> for common forms.
+
+## Why it helps generation
+
+During generation, the model can cache prior states.
+
+This lowers repeated computation.
+
+It also gives tokens access to more history.
+
+The idea relates to key-value caches in modern decoders.
+
+## Common mistakes
+
+Do not confuse segment recurrence with training an RNN.
+
+Transformer-XL still uses attention inside each segment.
+
+Do not backpropagate through an unlimited memory cache.
+
+Do not use absolute positions alone across reused segments.

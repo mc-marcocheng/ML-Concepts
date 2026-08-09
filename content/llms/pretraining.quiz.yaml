@@ -1,0 +1,52 @@
+- id: pretrain-mcq-1
+  type: mcq
+  prompt: "What objective do decoder-only LLMs commonly use during pretraining?"
+  difficulty: 1
+  options:
+    - "Next-token prediction"
+    - "K-means assignment only"
+    - "Image denoising only"
+    - "Reward maximization only"
+  correctIndex: 0
+  explanation: "Decoder-only LLMs commonly train to predict the next token."
+  anchor: core-idea
+
+- id: pretrain-latex-1
+  type: latex
+  prompt: "Write the next-token negative log likelihood objective."
+  difficulty: 3
+  answer: '-\sum_{t=1}^{T-1}\log p_\theta(x_{t+1}\mid x_{\le t})'
+  rubric:
+    - "Includes a negative sum."
+    - "Includes log probability."
+    - "Predicts x_{t+1} from previous tokens."
+  explanation: "Language modeling minimizes negative log probability of next tokens."
+  anchor: core-idea
+
+- id: pretrain-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the labels for next-token prediction."
+  difficulty: 2
+  scaffold: |
+    logits = model(token_ids[:, :-1])
+    labels = ___
+  blanks:
+    - id: 1
+      answer: "token_ids[:, 1:]"
+      rubric:
+        - "Shifts labels one token to the right."
+  explanation: "Inputs exclude the last token, and labels exclude the first token."
+  anchor: training-loop
+
+- id: pretrain-short-1
+  type: short
+  prompt: "Why does data quality matter during pretraining?"
+  difficulty: 3
+  answer: "The model learns patterns from the pretraining corpus, so low-quality or duplicated data can harm behavior and evaluation."
+  rubric:
+    - "Mentions learning from the corpus."
+    - "Mentions low-quality data."
+    - "Mentions duplicated data or memorization."
+  explanation: "The pretraining corpus strongly shapes the base model."
+  anchor: data-mixture

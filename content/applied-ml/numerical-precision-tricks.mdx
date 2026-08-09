@@ -1,0 +1,112 @@
+---
+id: applied-ml/numerical-precision-tricks
+title: Numerical Precision Tricks
+category: applied-ml
+summary: Numerical precision tricks make computations stable under finite floating point arithmetic.
+tags:
+  - numerical-precision
+  - stability
+difficulty: 4
+prereqs:
+  - applied-ml/floating-point-representation
+  - general-ml/loss-functions
+related:
+  - applied-ml/mixed-precision-training
+  - applied-ml/gradient-clipping
+  - general-ml/kl-divergence
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+Numerical precision tricks avoid overflow, underflow, and cancellation. Common tricks include log-sum-exp, stable softmax, epsilons, and fp32 accumulation.
+</TLDR>
+
+## Core idea
+
+Floating point arithmetic has finite range and finite precision.
+
+Naive formulas can overflow, underflow, or lose small differences.
+
+Stable formulas compute the same mathematical value in a safer way.
+
+See <a href="/learn/applied-ml/floating-point-representation">Floating Point Representation</a>.
+
+## Stable softmax
+
+Naive softmax computes:
+
+$$
+\operatorname{softmax}(x_i)
+=
+\frac{\exp(x_i)}{\sum_j \exp(x_j)}.
+$$
+
+Large $x_i$ can make $\exp(x_i)$ overflow.
+
+Subtract the maximum logit $m=\max_j x_j$:
+
+$$
+\operatorname{softmax}(x_i)
+=
+\frac{\exp(x_i-m)}{\sum_j \exp(x_j-m)}.
+$$
+
+This gives the same result and avoids large exponentials.
+
+<Proof title="Softmax is unchanged by subtracting a constant">
+Let $c$ be any constant.
+
+$$
+\frac{\exp(x_i-c)}{\sum_j \exp(x_j-c)}
+=
+\frac{\exp(x_i)\exp(-c)}
+{\sum_j \exp(x_j)\exp(-c)}.
+$$
+
+The factor $\exp(-c)$ appears in the numerator and denominator.
+
+It cancels out.
+
+Thus, subtracting $c$ does not change softmax.
+</Proof>
+
+## Log-sum-exp
+
+Use:
+
+$$
+\log \sum_i \exp(x_i)
+=
+m + \log \sum_i \exp(x_i-m).
+$$
+
+This is stable when $m=\max_i x_i$.
+
+## Other tricks
+
+Add a small $\epsilon$ before division or logarithms.
+
+Use `log1p(x)` for $\log(1+x)$ when $x$ is small.
+
+Use `expm1(x)` for $\exp(x)-1$ when $x$ is small.
+
+Accumulate reductions in fp32 during <a href="/learn/applied-ml/mixed-precision-training">Mixed Precision Training</a>.
+
+## Code example
+
+```python
+import torch
+
+def stable_softmax(x, dim=-1):
+    z = x - x.max(dim=dim, keepdim=True).values
+    return torch.exp(z) / torch.exp(z).sum(dim=dim, keepdim=True)
+```
+
+## Common mistakes
+
+Do not compute softmax before cross entropy if the library expects logits.
+
+Do not take `log(softmax(x))` manually.
+
+Use a fused stable cross-entropy function when possible.

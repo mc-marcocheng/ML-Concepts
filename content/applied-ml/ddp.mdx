@@ -1,0 +1,95 @@
+---
+id: applied-ml/ddp
+title: Distributed Data Parallel
+category: applied-ml
+summary: DDP trains model replicas on different batch shards and synchronizes gradients across ranks.
+tags:
+  - distributed-training
+  - parallelism
+difficulty: 3
+prereqs:
+  - general-ml/gradient-descent-sgd
+  - applied-ml/communication-primitives
+related:
+  - applied-ml/fsdp
+  - applied-ml/gradient-accumulation
+  - applied-ml/tensor-parallelism
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+DDP copies the full model to each rank. Each rank trains on a different batch shard, then ranks all-reduce gradients before the optimizer step.
+</TLDR>
+
+## Core idea
+
+Distributed Data Parallel is the standard data-parallel training method.
+
+Each rank has a full model replica.
+
+Each rank receives a different part of the batch.
+
+The forward and backward pass run locally.
+
+Then DDP averages gradients across ranks with all-reduce.
+
+After that, each rank applies the same optimizer update.
+
+This keeps all model replicas equal.
+
+## Global batch size
+
+The global batch size is:
+
+$$
+B_{\text{global}}
+=
+B_{\text{per rank}}
+\times
+N_{\text{ranks}}
+\times
+N_{\text{accumulation}}.
+$$
+
+See <a href="/learn/applied-ml/gradient-accumulation">Gradient Accumulation</a> for accumulation steps.
+
+Large global batches can need learning-rate tuning.
+
+## Data sharding
+
+Each rank must see a different data shard.
+
+In PyTorch, `DistributedSampler` handles this for map-style datasets.
+
+If all ranks read the same samples, training wastes compute.
+
+## Code example
+
+```python
+import torch
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data.distributed import DistributedSampler
+
+model = MyModel().cuda()
+model = DDP(model, device_ids=[local_rank])
+
+sampler = DistributedSampler(dataset)
+loader = DataLoader(dataset, sampler=sampler, batch_size=32)
+
+for x, y in loader:
+    loss = loss_fn(model(x.cuda()), y.cuda())
+    loss.backward()
+    optimizer.step()
+    optimizer.zero_grad()
+```
+
+## Common mistakes
+
+Do not forget to shard data.
+
+Do not call the optimizer step before gradients synchronize.
+
+Do not compare DDP speed without communication time.
+
+Use <a href="/learn/applied-ml/profiling">Profiling</a> to find the bottleneck.

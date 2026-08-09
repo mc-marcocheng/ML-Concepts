@@ -1,0 +1,48 @@
+- id: imb-mcq-1
+  type: mcq
+  prompt: "Why can accuracy be misleading with imbalanced data?"
+  difficulty: 2
+  options:
+    - "A majority-class classifier can get high accuracy"
+    - "Accuracy always equals recall"
+    - "Accuracy cannot be computed"
+    - "All classes have equal frequency"
+  correctIndex: 0
+  explanation: "A classifier can ignore the rare class and still get high accuracy."
+  anchor: core-idea
+
+- id: imb-short-1
+  type: short
+  prompt: "Why should oversampling occur inside each training fold?"
+  difficulty: 3
+  answer: "Oversampling before splitting data can copy information from training data into validation data."
+  rubric:
+    - "Mentions data leakage."
+    - "Mentions validation data or folds."
+  explanation: "Resampling must not let duplicated examples cross split boundaries."
+  anchor: common-mistakes
+
+- id: imb-mcq-2
+  type: mcq
+  prompt: "Which curve is often useful when positives are rare?"
+  difficulty: 2
+  options:
+    - "Precision-recall curve"
+    - "Training loss only"
+    - "Feature histogram only"
+    - "Learning-rate schedule"
+  correctIndex: 0
+  explanation: "Precision-recall curves focus on positive-class performance."
+  anchor: metrics
+
+- id: imb-short-2
+  type: short
+  prompt: "Why should a classification threshold be chosen on validation data?"
+  difficulty: 3
+  answer: "Validation data estimates how a threshold affects the task metric without using the test set."
+  rubric:
+    - "Mentions threshold selection."
+    - "Mentions validation data."
+    - "Avoids test set tuning."
+  explanation: "The test set should remain for final evaluation."
+  anchor: thresholds

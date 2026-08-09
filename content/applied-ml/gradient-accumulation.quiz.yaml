@@ -1,0 +1,48 @@
+- id: ga-mcq-1
+  type: mcq
+  prompt: "When should the optimizer step happen with gradient accumulation?"
+  difficulty: 2
+  options:
+    - "After each microbatch"
+    - "After the configured accumulation steps"
+    - "Before backward"
+    - "Only before validation"
+  correctIndex: 1
+  explanation: "The optimizer step happens after gradients accumulate across microbatches."
+  anchor: core-idea
+
+- id: ga-latex-1
+  type: latex
+  prompt: "Write the scaled loss for loss $\\ell$ and accumulation steps $A$."
+  difficulty: 2
+  answer: "\\frac{\\ell}{A}"
+  rubric:
+    - "Divides the loss by accumulation steps."
+  explanation: "Dividing by $A$ keeps the gradient scale close to a large-batch mean."
+  anchor: loss-scaling-across-microbatches
+
+- id: ga-numeric-1
+  type: numeric
+  prompt: "Microbatch size is 8, accumulation steps are 4, and ranks are 2. What is the global batch size?"
+  difficulty: 1
+  value: 64
+  tolerance: 0.000001
+  explanation: "The global batch size is 8 times 4 times 2."
+  anchor: global-batch-size
+
+- id: ga-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the loss scaling line."
+  difficulty: 2
+  scaffold: |
+    accum_steps = 4
+    loss = loss_fn(pred, y) ___ accum_steps
+    loss.backward()
+  blanks:
+    - id: 1
+      answer: "/"
+      rubric:
+        - "Divides the loss by accumulation steps."
+  explanation: "The loss should be divided when the microbatch loss is a mean."
+  anchor: code-example

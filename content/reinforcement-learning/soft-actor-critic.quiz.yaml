@@ -1,0 +1,44 @@
+- id: sac-mcq-1
+  type: mcq
+  prompt: "What extra term does SAC add to reward maximization?"
+  difficulty: 2
+  options:
+    - "Policy entropy"
+    - "Token length only"
+    - "A hard max over rewards"
+    - "A supervised label loss only"
+  correctIndex: 0
+  explanation: "SAC maximizes reward plus entropy."
+  anchor: core-idea
+- id: sac-latex-1
+  type: latex
+  prompt: "Write the entropy-adjusted actor loss term inside the expectation."
+  difficulty: 4
+  answer: "\\alpha \\log \\pi_\\theta(a \\mid s)-Q_\\phi(s,a)"
+  rubric:
+    - "Includes the temperature times log probability."
+    - "Subtracts the Q-value."
+  explanation: "Minimizing this term increases Q and favors entropy."
+  anchor: actor-update
+- id: sac-short-1
+  type: short
+  prompt: "Why is SAC data efficient compared with many on-policy methods?"
+  difficulty: 3
+  answer: "SAC is off-policy and can reuse replay-buffer data for critic and actor updates."
+  rubric:
+    - "Mentions off-policy learning."
+    - "Mentions replay-buffer reuse."
+  explanation: "Replay improves data use."
+  anchor: why-sac-works-well
+- id: sac-mcq-2
+  type: mcq
+  prompt: "What does the temperature $\\alpha$ control?"
+  difficulty: 3
+  options:
+    - "The strength of the entropy reward"
+    - "The number of states"
+    - "The discount factor only"
+    - "The replay-buffer size only"
+  correctIndex: 0
+  explanation: "$\\alpha$ scales the entropy term."
+  anchor: core-idea

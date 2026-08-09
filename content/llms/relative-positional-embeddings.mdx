@@ -1,0 +1,94 @@
+---
+id: llms/relative-positional-embeddings
+title: Relative Positional Embeddings
+category: llms
+summary: Relative positional embeddings make attention depend on distances between tokens.
+tags:
+  - positional-encoding
+  - attention
+  - transformers
+difficulty: 4
+prereqs:
+  - llms/causal-attention
+  - llms/sinusoidal-embeddings
+related:
+  - llms/rope
+  - llms/transformer-xl
+  - llms/llm-scaling-factor
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Relative positional embeddings encode the offset between two tokens. They let attention depend on distance, not only absolute position.
+</TLDR>
+
+## Core idea
+
+Absolute position embeddings attach a position to each token.
+
+Relative positional embeddings attach a distance to each pair of tokens.
+
+For positions $i$ and $j$, the relative offset is:
+
+$$
+r = i - j.
+$$
+
+The attention score can include a bias for this offset:
+
+$$
+s_{ij}
+=
+\frac{q_i^\top k_j}{\sqrt{d_k}}
++
+b_{i-j}.
+$$
+
+## Relative bias
+
+Many models use a learned relative bias table.
+
+The table maps each offset or offset bucket to a scalar.
+
+The scalar adds to the attention logit.
+
+This is simple and efficient.
+
+T5 uses relative position bias with buckets.
+
+## Relative key embeddings
+
+Some methods use an embedding vector for each relative offset.
+
+Then attention can include:
+
+$$
+q_i^\top a_{i-j}.
+$$
+
+This lets the query interact with relative position features.
+
+Transformer-XL uses a more detailed relative attention form.
+
+See <a href="/learn/llms/transformer-xl">Transformer-XL</a>.
+
+## ALiBi
+
+ALiBi adds a linear distance bias.
+
+It penalizes far tokens by distance.
+
+It does not require learned position embeddings.
+
+It can help length extrapolation in some settings.
+
+## Common mistakes
+
+Do not confuse relative positions with absolute positions.
+
+Do not forget that causal masks still apply.
+
+Do not assume all relative methods use the same formula.
+
+Do not ignore offset clipping or bucketing.

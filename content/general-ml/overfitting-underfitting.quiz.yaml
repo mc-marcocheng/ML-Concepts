@@ -1,0 +1,47 @@
+- id: overfit-mcq-1
+  type: mcq
+  prompt: "Which pattern suggests overfitting?"
+  difficulty: 1
+  options:
+    - "High training error and high validation error"
+    - "Low training error and high validation error"
+    - "Low training error and low validation error"
+    - "No training data"
+  correctIndex: 1
+  explanation: "Overfitting often has low training error but poor validation error."
+  anchor: error-patterns
+
+- id: overfit-short-1
+  type: short
+  prompt: "Name two ways to reduce overfitting."
+  difficulty: 2
+  answer: "Use more data and stronger regularization."
+  rubric:
+    - "Gives two valid controls."
+    - "Controls target generalization."
+  explanation: "Regularization, more data, data augmentation, and early stopping can help."
+  anchor: controls
+
+- id: overfit-mcq-2
+  type: mcq
+  prompt: "Which pattern suggests underfitting?"
+  difficulty: 1
+  options:
+    - "High training error and high validation error"
+    - "Low training error and high validation error"
+    - "Zero training error"
+    - "Validation error lower than possible noise"
+  correctIndex: 0
+  explanation: "Underfitting means the model fails even on the training data."
+  anchor: error-patterns
+
+- id: overfit-short-2
+  type: short
+  prompt: "Why is the test set not for repeated tuning?"
+  difficulty: 3
+  answer: "Repeated tuning on the test set leaks information and makes the test estimate optimistic."
+  rubric:
+    - "Mentions leakage."
+    - "Mentions biased or optimistic evaluation."
+  explanation: "The test set should estimate final performance once."
+  anchor: common-mistakes

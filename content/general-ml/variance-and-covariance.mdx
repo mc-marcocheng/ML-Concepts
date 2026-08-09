@@ -1,0 +1,196 @@
+---
+id: general-ml/variance-and-covariance
+title: Variance and Covariance
+category: general-ml
+summary: Variance measures spread, and covariance measures how two variables move together.
+tags:
+  - probability
+  - statistics
+difficulty: 3
+prereqs:
+  - general-ml/expectation
+related:
+  - general-ml/bias-variance-tradeoff
+  - general-ml/data-whitening
+  - linear-algebra/positive-semi-definite
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Variance measures average squared distance from the mean. Covariance measures joint variation between two random variables.
+</TLDR>
+
+## Core idea
+
+Variance measures how far a random variable is from its expectation.
+
+$$
+\operatorname{Var}(X)
+=
+\mathbb{E}[(X - \mathbb{E}[X])^2].
+$$
+
+Covariance measures how two variables vary together.
+
+$$
+\operatorname{Cov}(X,Y)
+=
+\mathbb{E}[(X-\mathbb{E}[X])(Y-\mathbb{E}[Y])].
+$$
+
+Use <a href="/learn/general-ml/expectation">Expectation</a> before these definitions.
+
+## Useful variance identity
+
+A common identity is:
+
+$$
+\operatorname{Var}(X)
+=
+\mathbb{E}[X^2] - \mathbb{E}[X]^2.
+$$
+
+<Proof title="Variance identity">
+Start with the definition:
+
+$$
+\operatorname{Var}(X)
+=
+\mathbb{E}[(X-\mu)^2],
+\quad
+\mu=\mathbb{E}[X].
+$$
+
+Expand the square:
+
+$$
+(X-\mu)^2 = X^2 - 2\mu X + \mu^2.
+$$
+
+Take expectation:
+
+$$
+\mathbb{E}[X^2 - 2\mu X + \mu^2]
+=
+\mathbb{E}[X^2] - 2\mu\mathbb{E}[X] + \mu^2.
+$$
+
+Since $\mu=\mathbb{E}[X]$:
+
+$$
+\operatorname{Var}(X)
+=
+\mathbb{E}[X^2] - 2\mu^2 + \mu^2
+=
+\mathbb{E}[X^2] - \mu^2.
+$$
+</Proof>
+
+## Covariance signs
+
+Positive covariance means the variables tend to move in the same direction.
+
+Negative covariance means the variables tend to move in opposite directions.
+
+Zero covariance means no linear association. It does not always mean independence.
+
+## Correlation
+
+Correlation is normalized covariance.
+
+$$
+\rho_{X,Y}
+=
+\frac{\operatorname{Cov}(X,Y)}
+{\sqrt{\operatorname{Var}(X)\operatorname{Var}(Y)}}.
+$$
+
+It lies between $-1$ and $1$ when both variances are non-zero.
+
+## Covariance matrix
+
+For a random vector $X \in \mathbb{R}^d$:
+
+$$
+\Sigma
+=
+\mathbb{E}[(X-\mu)(X-\mu)^\top].
+$$
+
+The diagonal entries are variances. The off-diagonal entries are covariances.
+
+A covariance matrix is positive semi-definite.
+
+<Proof title="A covariance matrix is positive semi-definite">
+For any vector $a$:
+
+$$
+a^\top \Sigma a
+=
+a^\top \mathbb{E}[(X-\mu)(X-\mu)^\top]a.
+$$
+
+Move $a$ inside:
+
+$$
+=
+\mathbb{E}[a^\top(X-\mu)(X-\mu)^\top a].
+$$
+
+The scalar product becomes a square:
+
+$$
+=
+\mathbb{E}[((X-\mu)^\top a)^2].
+$$
+
+A square is non-negative. Its expectation is also non-negative.
+
+Therefore:
+
+$$
+a^\top \Sigma a \ge 0.
+$$
+</Proof>
+
+See <a href="/learn/linear-algebra/positive-semi-definite">Positive Semi-Definite</a> for the matrix view.
+
+## Sample estimates
+
+For data $x_1,\dots,x_n$, the sample mean is:
+
+$$
+\bar{x} = \frac{1}{n}\sum_{i=1}^n x_i.
+$$
+
+The unbiased sample variance is:
+
+$$
+s^2
+=
+\frac{1}{n-1}\sum_{i=1}^n (x_i-\bar{x})^2.
+$$
+
+The factor $n-1$ corrects bias from estimating the mean.
+
+## Code example
+
+```python
+import numpy as np
+
+X = np.array([[1.0, 2.0], [2.0, 1.0], [3.0, 4.0]])
+mean = X.mean(axis=0)
+centered = X - mean
+cov = centered.T @ centered / (len(X) - 1)
+
+print(cov)
+```
+
+## Common mistakes
+
+Do not confuse covariance with causation.
+
+Do not assume zero covariance always implies independence.
+
+Do not forget to center data before computing covariance.

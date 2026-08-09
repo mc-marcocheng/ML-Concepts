@@ -1,0 +1,51 @@
+- id: adam-mcq-1
+  type: mcq
+  prompt: "What does Adam track?"
+  difficulty: 2
+  options:
+    - "Only raw parameters"
+    - "First and second moments of gradients"
+    - "Only validation accuracy"
+    - "Only Hessian eigenvectors"
+  correctIndex: 1
+  explanation: "Adam tracks moving averages of gradients and squared gradients."
+  anchor: adam
+
+- id: adam-latex-1
+  type: latex
+  prompt: "Write the Adam second-moment update."
+  difficulty: 3
+  answer: 'v_t=\beta_2v_{t-1}+(1-\beta_2)g_t^2'
+  rubric:
+    - "Uses previous second moment."
+    - "Uses squared gradient."
+    - "Uses beta two."
+  explanation: "Adam updates the squared-gradient average with beta two."
+  anchor: adam
+
+- id: adam-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the Adam denominator."
+  difficulty: 2
+  scaffold: |
+    theta = theta - lr * m_hat / ___
+  blanks:
+    - id: 1
+      answer: "(np.sqrt(v_hat) + eps)"
+      rubric:
+        - "Uses the square root of v_hat."
+        - "Adds epsilon."
+  explanation: "Adam scales by the RMS gradient estimate plus epsilon."
+  anchor: code-example
+
+- id: adam-short-1
+  type: short
+  prompt: "What is the key idea of AdamW?"
+  difficulty: 3
+  answer: "AdamW decouples weight decay from the adaptive gradient update."
+  rubric:
+    - "Mentions decoupled weight decay."
+    - "Mentions Adam or adaptive update."
+  explanation: "AdamW applies weight decay separately from the Adam gradient step."
+  anchor: adamw

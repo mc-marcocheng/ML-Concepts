@@ -1,0 +1,124 @@
+---
+id: general-ml/backprop
+title: Backpropagation
+category: general-ml
+summary: Backpropagation applies the chain rule to compute gradients through a computation graph.
+tags:
+  - optimization
+  - neural-networks
+difficulty: 3
+prereqs:
+  - general-ml/gradient-descent-sgd
+  - linear-algebra/jacobian
+related:
+  - general-ml/activation-functions
+  - general-ml/loss-functions
+  - general-ml/exploding-vanishing-gradients
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+Backpropagation computes gradients from outputs back to inputs. It reuses intermediate derivatives with the chain rule.
+</TLDR>
+
+## Core idea
+
+A neural network is a composition of functions.
+
+$$
+y = f_3(f_2(f_1(x))).
+$$
+
+Backpropagation computes:
+
+$$
+\frac{\partial L}{\partial \theta}
+$$
+
+for each parameter $\theta$.
+
+It does this from the loss backward through the graph.
+
+## Chain rule
+
+For scalar functions:
+
+$$
+\frac{dL}{dx}
+=
+\frac{dL}{dz}\frac{dz}{dx}.
+$$
+
+For vector functions, use Jacobians.
+
+$$
+\frac{\partial L}{\partial x}
+=
+\frac{\partial L}{\partial z}
+\frac{\partial z}{\partial x}.
+$$
+
+See <a href="/learn/linear-algebra/jacobian">Jacobian</a>.
+
+## Linear layer
+
+For a linear layer:
+
+$$
+z = xW + b.
+$$
+
+Given upstream gradient $g_z=\frac{\partial L}{\partial z}$:
+
+$$
+\frac{\partial L}{\partial W}=x^\top g_z,
+$$
+
+$$
+\frac{\partial L}{\partial b}=g_z,
+$$
+
+$$
+\frac{\partial L}{\partial x}=g_z W^\top.
+$$
+
+## Activation layer
+
+For an elementwise activation:
+
+$$
+a=\phi(z).
+$$
+
+The backward rule is:
+
+$$
+g_z = g_a \odot \phi'(z).
+$$
+
+Use <a href="/learn/general-ml/activation-functions">Activation Functions</a> for common derivatives.
+
+## Code example
+
+```python
+# Forward
+z = x @ W + b
+a = np.maximum(z, 0.0)
+loss = np.mean((a - y) ** 2)
+
+# Backward for ReLU and MSE
+g_a = 2 * (a - y) / y.size
+g_z = g_a * (z > 0)
+g_W = x.T @ g_z
+g_b = g_z.sum(axis=0)
+```
+
+## Common mistakes
+
+Do not recompute all derivatives independently.
+
+Do not forget matrix shapes.
+
+Do not update parameters before all gradients are computed.
+```

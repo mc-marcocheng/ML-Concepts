@@ -1,0 +1,206 @@
+---
+id: general-ml/clustering-algorithms
+title: Clustering Algorithms
+category: general-ml
+summary: Clustering groups unlabeled points, with k-means, GMM, DBSCAN, hierarchical, and spectral as the main families.
+tags:
+  - unsupervised
+  - clustering
+difficulty: 3
+prereqs:
+  - general-ml/unsupervised-vs-supervised
+  - general-ml/variance-and-covariance
+related:
+  - general-ml/k-nearest-neighbours
+  - general-ml/dimensionality-reduction
+  - general-ml/curse-of-dimensionality
+estReadMin: 10
+updated: 2026-01-01
+---
+
+<TLDR>
+k-means minimizes within cluster squared distance with an alternating assign and update loop. It assumes round, equal sized clusters. GMM adds soft assignment and covariance, DBSCAN finds density based clusters of any shape, and spectral clustering works on a similarity graph.
+</TLDR>
+
+## k-means objective
+
+Given points $x_1,\dots,x_n \in \mathbb{R}^d$ and $K$ clusters, minimize
+
+$$
+J(\{c_i\},\{\mu_k\})
+=
+\sum_{i=1}^{n}\big\|x_i - \mu_{c_i}\big\|^2 ,
+$$
+
+over assignments $c_i \in \{1,\dots,K\}$ and centroids $\mu_k$.
+
+This problem is NP-hard in general. Lloyd's algorithm finds a local minimum.
+
+## Lloyd's algorithm
+
+1. Initialize $K$ centroids.
+2. Assignment step. Set $c_i = \arg\min_k \|x_i - \mu_k\|^2$.
+3. Update step. Set $\mu_k$ to the mean of the points assigned to cluster $k$.
+4. Repeat steps 2 and 3 until the assignments stop changing.
+
+<Proof title="Lloyd's algorithm never increases the objective">
+Write the objective as $J(c, \mu)$.
+
+Assignment step. Fix $\mu$. For each $i$ the term $\|x_i-\mu_{c_i}\|^2$ depends only on $c_i$. Choosing the nearest centroid minimizes that term. So
+
+$$
+J(c^{t+1}, \mu^t) \le J(c^t, \mu^t).
+$$
+
+Update step. Fix $c$. For cluster $k$ with index set $S_k$, minimize
+
+$$
+\sum_{i \in S_k}\|x_i - \mu_k\|^2 .
+$$
+
+Take the gradient with respect to $\mu_k$:
+
+$$
+-2\sum_{i \in S_k}(x_i - \mu_k) = 0 .
+$$
+
+So
+
+$$
+\mu_k = \frac{1}{|S_k|}\sum_{i\in S_k} x_i ,
+$$
+
+which is the mean. Therefore
+
+$$
+J(c^{t+1}, \mu^{t+1}) \le J(c^{t+1}, \mu^t).
+$$
+
+Combining both steps, $J$ never increases. The objective is bounded below by zero and the number of distinct assignments is finite. So the algorithm terminates at a local minimum.
+</Proof>
+
+Cost per iteration is $O(nKd)$.
+
+## k-means++ initialization
+
+Random initialization can give poor local minima. k-means++ spreads the seeds.
+
+1. Pick the first center uniformly at random.
+2. For each point compute $D(x)$, the distance to the nearest chosen center.
+3. Pick the next center with probability proportional to $D(x)^2$.
+4. Repeat until $K$ centers exist.
+
+This gives an expected objective within $O(\log K)$ of the optimum.
+
+## Assumptions and failure cases
+
+k-means assumes:
+
+- clusters are roughly spherical in Euclidean distance,
+- clusters have similar size and spread,
+- the number $K$ is known.
+
+It fails on elongated clusters, nested rings, and very unbalanced sizes. Feature scaling matters, because the distance mixes units.
+
+## Gaussian mixture models
+
+A GMM models the density as
+
+$$
+p(x) = \sum_{k=1}^{K}\pi_k\,\mathcal{N}(x \mid \mu_k, \Sigma_k).
+$$
+
+The EM algorithm alternates two steps.
+
+E step. Compute the responsibility
+
+$$
+\gamma_{ik}
+=
+\frac{\pi_k \mathcal{N}(x_i \mid \mu_k,\Sigma_k)}
+{\sum_j \pi_j \mathcal{N}(x_i\mid\mu_j,\Sigma_j)} .
+$$
+
+M step. Update
+
+$$
+\mu_k = \frac{\sum_i \gamma_{ik}x_i}{\sum_i \gamma_{ik}},
+\qquad
+\pi_k = \frac{1}{n}\sum_i \gamma_{ik},
+$$
+
+and the corresponding weighted covariance.
+
+k-means is the limit of a GMM with shared spherical covariance $\sigma^2 I$ as $\sigma^2 \to 0$. Responsibilities then become hard assignments.
+
+## DBSCAN
+
+DBSCAN uses two parameters, a radius $\epsilon$ and a minimum count `minPts`.
+
+- A core point has at least `minPts` neighbors within $\epsilon$.
+- Points that are density reachable from a core point join the same cluster.
+- Points that reach no core point become noise.
+
+Strengths: it finds clusters of any shape, needs no $K$, and labels outliers.
+
+Weaknesses: it struggles with varying density and it is sensitive to $\epsilon$ in high dimensions. See <a href="/learn/general-ml/curse-of-dimensionality">curse of dimensionality</a>.
+
+## Hierarchical and spectral clustering
+
+Agglomerative clustering starts with one cluster per point and merges the closest pair. The linkage rule sets the meaning of closest.
+
+| Linkage | Distance between clusters |
+|---|---|
+| Single | Minimum pairwise distance |
+| Complete | Maximum pairwise distance |
+| Average | Mean pairwise distance |
+| Ward | Increase in within cluster variance |
+
+Spectral clustering builds a similarity graph, computes the graph Laplacian, takes the eigenvectors with the smallest eigenvalues, and runs k-means in that embedding. It handles non-convex shapes because it clusters in a space where the shape becomes simple. See <a href="/learn/linear-algebra/eigenvectors-eigenvalues">eigenvectors and eigenvalues</a>.
+
+## Choosing K
+
+- Elbow method. Plot $J$ against $K$ and look for a bend.
+- Silhouette score. For point $i$ with mean intra-cluster distance $a_i$ and mean nearest-cluster distance $b_i$,
+
+$$
+s_i = \frac{b_i - a_i}{\max(a_i, b_i)} \in [-1, 1].
+$$
+
+- Gap statistic. Compare $\log J$ against a uniform reference.
+- BIC or AIC for a GMM, because a GMM has a likelihood.
+
+## Code example
+
+```python
+import numpy as np
+
+def kmeans(X, k, iters=100, seed=0):
+    rng = np.random.default_rng(seed)
+    centers = X[rng.choice(len(X), size=k, replace=False)]
+    for _ in range(iters):
+        d = ((X[:, None, :] - centers[None, :, :]) ** 2).sum(-1)
+        labels = d.argmin(1)
+        new = np.stack([
+            X[labels == j].mean(0) if np.any(labels == j) else centers[j]
+            for j in range(k)
+        ])
+        if np.allclose(new, centers):
+            break
+        centers = new
+    inertia = ((X - centers[labels]) ** 2).sum()
+    return labels, centers, inertia
+
+rng = np.random.default_rng(0)
+X = np.vstack([rng.normal(0, 1, (100, 2)), rng.normal(5, 1, (100, 2))])
+labels, centers, inertia = kmeans(X, 2)
+print(centers, round(float(inertia), 2))
+```
+
+## Common mistakes
+
+Do not run k-means without scaling features to comparable ranges.
+
+Do not use the inertia value to compare different values of $K$ directly. Inertia always falls as $K$ grows.
+
+Do not treat cluster ids as class labels. They carry no order or meaning.

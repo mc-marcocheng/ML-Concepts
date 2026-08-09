@@ -1,0 +1,52 @@
+- id: eig-mcq-1
+  type: mcq
+  prompt: "What defines an eigenvector of a square matrix $A$?"
+  difficulty: 2
+  options:
+    - "A nonzero vector $v$ such that $Av=\\lambda v$"
+    - "Any vector in the null space"
+    - "Any vector with norm one"
+    - "A row of the matrix"
+  correctIndex: 0
+  explanation: "An eigenvector keeps its direction under the matrix."
+  anchor: core-idea
+
+- id: eig-latex-1
+  type: latex
+  prompt: "Write the characteristic equation for eigenvalues of $A$."
+  difficulty: 3
+  answer: '\det(A-\lambda I)=0'
+  rubric:
+    - "Uses $A-\\lambda I$."
+    - "Sets the determinant equal to zero."
+  explanation: "Eigenvalues make $A-\\lambda I$ singular."
+  anchor: characteristic-equation
+
+- id: eig-numeric-1
+  type: numeric
+  prompt: "For $D=\\operatorname{diag}(2,5)$, what is the largest eigenvalue?"
+  difficulty: 1
+  value: 5
+  tolerance: 0.000001
+  explanation: "The eigenvalues of a diagonal matrix are its diagonal entries."
+  anchor: diagonal-matrices
+
+- id: eig-code-1
+  type: code
+  lang: python
+  prompt: "Fill in one power-iteration update before normalization."
+  difficulty: 3
+  scaffold: |
+    import numpy as np
+    A = np.array([[2.0, 1.0],
+                  [1.0, 2.0]])
+    v = np.array([1.0, 0.0])
+    v = ___
+    v = v / np.linalg.norm(v)
+  blanks:
+    - id: 1
+      answer: "A @ v"
+      rubric:
+        - "Multiplies the matrix by the current vector."
+  explanation: "Power iteration repeatedly applies the matrix and normalizes."
+  anchor: power-iteration

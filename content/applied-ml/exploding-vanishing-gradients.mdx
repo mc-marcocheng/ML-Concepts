@@ -1,0 +1,94 @@
+---
+id: applied-ml/exploding-vanishing-gradients
+title: Exploding and Vanishing Gradients
+category: applied-ml
+summary: Exploding and vanishing gradients occur when repeated Jacobian products grow or shrink too much.
+tags:
+  - optimization
+  - stability
+difficulty: 4
+prereqs:
+  - general-ml/backprop
+  - linear-algebra/jacobian
+related:
+  - applied-ml/gradient-clipping
+  - general-ml/weight-initialisation
+  - general-ml/activation-functions
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+Gradients can explode or vanish when backpropagation multiplies many Jacobians. Products with large singular values grow, while products with small singular values shrink.
+</TLDR>
+
+## Core idea
+
+Backpropagation applies the chain rule through many layers or time steps.
+
+For hidden states:
+
+$$
+h_t = f(h_{t-1}, x_t),
+$$
+
+a gradient can contain products like:
+
+$$
+\frac{\partial h_T}{\partial h_t}
+=
+\prod_{k=t+1}^{T}
+\frac{\partial h_k}{\partial h_{k-1}}.
+$$
+
+If the Jacobian norms are usually greater than one, gradients can explode.
+
+If they are usually less than one, gradients can vanish.
+
+This problem is common in deep networks and RNNs.
+
+## Effects
+
+Exploding gradients can cause unstable loss and `NaN` values.
+
+Vanishing gradients can make early layers learn very slowly.
+
+Saturating activation functions can make vanishing gradients worse.
+
+See <a href="/learn/general-ml/activation-functions">Activation Functions</a>.
+
+## Fixes
+
+Use careful <a href="/learn/general-ml/weight-initialisation">Weight Initialization</a>.
+
+Use residual connections and normalization layers.
+
+Use gated architectures such as LSTMs.
+
+Use <a href="/learn/applied-ml/gradient-clipping">Gradient Clipping</a> for exploding gradients.
+
+Use non-saturating activations when suitable.
+
+<Proof title="Why repeated factors shrink or grow">
+Assume each scalar derivative has magnitude $a$.
+
+A chain of $T$ such factors has magnitude:
+
+$$
+|a|^T.
+$$
+
+If $|a| < 1$, then $|a|^T$ moves toward zero as $T$ grows.
+
+If $|a| > 1$, then $|a|^T$ grows as $T$ grows.
+
+Matrix Jacobian products behave similarly through singular values.
+</Proof>
+
+## Common mistakes
+
+Do not treat exploding and vanishing gradients as the same failure.
+
+Do not assume clipping fixes vanishing gradients.
+
+Do not ignore initialization and normalization.

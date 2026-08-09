@@ -1,0 +1,54 @@
+- id: rope-mcq-1
+  type: mcq
+  prompt: "Which tensors does RoPE usually rotate?"
+  difficulty: 2
+  options:
+    - "Queries and keys"
+    - "Only values"
+    - "Only logits"
+    - "Only token IDs"
+  correctIndex: 0
+  explanation: "RoPE usually rotates queries and keys before attention."
+  anchor: core-idea
+
+- id: rope-latex-1
+  type: latex
+  prompt: "Write the relative-position dot-product property of RoPE."
+  difficulty: 4
+  answer: 'q^\top R_{n-m}k'
+  rubric:
+    - "Includes q transpose."
+    - "Includes a rotation by n minus m."
+    - "Includes k."
+  explanation: "The rotated dot product can be written with a relative rotation."
+  anchor: relative-position-property
+
+- id: rope-short-1
+  type: short
+  prompt: "Why does RoPE encode relative position information?"
+  difficulty: 3
+  answer: "Rotating queries and keys by their positions makes their dot product depend on the relative offset between positions."
+  rubric:
+    - "Mentions rotating queries and keys."
+    - "Mentions dot products."
+    - "Mentions relative offset."
+  explanation: "The rotation identity converts absolute rotations into a relative rotation."
+  anchor: relative-position-property
+
+- id: rope-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the first rotated coordinate."
+  difficulty: 3
+  scaffold: |
+    x1 = x[..., 0::2]
+    x2 = x[..., 1::2]
+    y1 = ___
+  blanks:
+    - id: 1
+      answer: "x1 * cos - x2 * sin"
+      rubric:
+        - "Uses x1 times cosine."
+        - "Subtracts x2 times sine."
+  explanation: "A two-dimensional rotation maps the first coordinate to x1 cos minus x2 sin."
+  anchor: code-example

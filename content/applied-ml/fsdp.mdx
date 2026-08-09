@@ -1,0 +1,92 @@
+---
+id: applied-ml/fsdp
+title: Fully Sharded Data Parallel
+category: applied-ml
+summary: FSDP shards parameters, gradients, and optimizer state across data-parallel ranks.
+tags:
+  - distributed-training
+  - memory
+difficulty: 4
+prereqs:
+  - applied-ml/ddp
+  - applied-ml/communication-primitives
+related:
+  - applied-ml/tensor-parallelism
+  - applied-ml/gradient-checkpointing
+  - applied-ml/mixed-precision-training
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+FSDP is data parallel training with sharded model state. Each rank stores only a shard of parameters, gradients, and optimizer state most of the time.
+</TLDR>
+
+## Core idea
+
+Fully Sharded Data Parallel is a memory-saving form of data parallelism.
+
+Each rank processes a different batch shard.
+
+Unlike <a href="/learn/applied-ml/ddp">DDP</a>, each rank does not keep a full model copy.
+
+FSDP shards three large states:
+
+| State | What FSDP does |
+|---|---|
+| parameters | shards across ranks |
+| gradients | shards after backward |
+| optimizer state | shards across ranks |
+
+For a layer, FSDP all-gathers parameter shards before compute.
+
+After backward, FSDP reduce-scatters gradients.
+
+This keeps only local shards between layer computations.
+
+## Memory benefit
+
+Adam training can store several values per parameter.
+
+It can store parameters, gradients, first moments, and second moments.
+
+FSDP divides much of this state by the number of ranks.
+
+This helps train large models with limited device memory.
+
+## Communication pattern
+
+FSDP uses <a href="/learn/applied-ml/communication-primitives">Communication Primitives</a> heavily.
+
+It all-gathers parameters before a layer runs.
+
+It reduce-scatters gradients after backward.
+
+Overlap between compute and communication is important.
+
+## Code example
+
+```python
+import torch
+from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+
+model = MyModel().cuda()
+model = FSDP(model)
+
+for x, y in loader:
+    out = model(x.cuda())
+    loss = loss_fn(out, y.cuda())
+    loss.backward()
+    optimizer.step()
+    optimizer.zero_grad()
+```
+
+## Common mistakes
+
+Do not assume FSDP removes all memory cost.
+
+A layer can still need full parameters during its compute.
+
+Do not use too small shard groups without testing.
+
+Extra communication can erase memory gains.

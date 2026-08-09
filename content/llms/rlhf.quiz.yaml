@@ -1,0 +1,48 @@
+- id: rlhf-mcq-1
+  type: mcq
+  prompt: "What does RLHF use to train a reward model?"
+  difficulty: 1
+  options:
+    - "Human preference comparisons"
+    - "Only random labels"
+    - "Only tokenizer merges"
+    - "Only beam widths"
+  correctIndex: 0
+  explanation: "RLHF trains a reward model from preference comparisons."
+  anchor: preference-data
+
+- id: rlhf-order-1
+  type: order
+  prompt: "Put a common RLHF pipeline in order."
+  difficulty: 2
+  steps:
+    - "Pretrain a base model"
+    - "Supervised finetune on good responses"
+    - "Train a reward model from preferences"
+    - "Optimize the policy with a KL penalty"
+  explanation: "RLHF usually starts from a pretrained and supervised-finetuned model."
+  anchor: core-idea
+
+- id: rlhf-latex-1
+  type: latex
+  prompt: "Write the pairwise reward model loss for preferred y_w and rejected y_l."
+  difficulty: 4
+  answer: '-\log\sigma(r_\phi(x,y_w)-r_\phi(x,y_l))'
+  rubric:
+    - "Includes negative log sigmoid."
+    - "Scores the preferred response higher."
+    - "Subtracts the rejected score from the preferred score."
+  explanation: "The loss rewards a higher score for the preferred response."
+  anchor: reward-model-loss
+
+- id: rlhf-short-1
+  type: short
+  prompt: "Why does RLHF often include a KL penalty to a reference model?"
+  difficulty: 3
+  answer: "The KL penalty keeps the optimized policy near the reference model and reduces reward hacking or distribution drift."
+  rubric:
+    - "Mentions staying near a reference model."
+    - "Mentions reward hacking or drift."
+    - "Mentions policy optimization."
+  explanation: "The KL term constrains the policy update."
+  anchor: policy-optimization

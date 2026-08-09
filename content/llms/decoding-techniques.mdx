@@ -1,0 +1,108 @@
+---
+id: llms/decoding-techniques
+title: Decoding Techniques
+category: llms
+summary: Decoding techniques choose output tokens from a language model probability distribution.
+tags:
+  - generation
+  - sampling
+  - inference
+difficulty: 3
+prereqs:
+  - llms/tokenization
+  - general-ml/entropy
+related:
+  - llms/pretraining
+  - llms/rlhf
+  - llms/causal-attention
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+Decoding turns next-token probabilities into text. Greedy decoding, beam search, temperature, top-k, and top-p sampling make different tradeoffs.
+</TLDR>
+
+## Core idea
+
+An LLM outputs logits for the next token.
+
+Softmax converts logits into probabilities.
+
+A decoding method chooses the next token.
+
+Then the model repeats this process.
+
+The choice of decoding method affects diversity and reliability.
+
+## Greedy decoding
+
+Greedy decoding picks the most likely token at each step.
+
+It is simple and deterministic.
+
+It can get stuck in repetitive or locally optimal text.
+
+## Sampling and temperature
+
+Sampling draws from the probability distribution.
+
+Temperature changes the sharpness of the distribution:
+
+$$
+p_i
+=
+\operatorname{softmax}\left(\frac{z_i}{T}\right).
+$$
+
+A lower $T$ makes probabilities sharper.
+
+A higher $T$ makes probabilities flatter.
+
+## Top-k and top-p
+
+Top-k sampling keeps only the $k$ most likely tokens.
+
+Top-p sampling keeps the smallest set of tokens whose total probability reaches $p$.
+
+Top-p is also called nucleus sampling.
+
+Both methods remove low-probability tail tokens.
+
+## Beam search
+
+Beam search keeps several partial sequences.
+
+It expands them and keeps the best beams.
+
+It can help tasks with short structured outputs.
+
+It can produce bland text for open-ended generation.
+
+## Code example
+
+```python
+import torch
+import torch.nn.functional as F
+
+def sample_next(logits, temperature=1.0, top_k=None):
+    logits = logits / temperature
+
+    if top_k is not None:
+        values, _ = torch.topk(logits, top_k)
+        cutoff = values[..., -1, None]
+        logits = logits.masked_fill(logits < cutoff, float("-inf"))
+
+    probs = F.softmax(logits, dim=-1)
+    return torch.multinomial(probs, num_samples=1)
+```
+
+## Common mistakes
+
+Do not use high temperature to fix a bad model.
+
+Do not compare decoding settings without the same prompt.
+
+Do not use beam search for all open-ended tasks.
+
+Do not forget to stop at an end token.

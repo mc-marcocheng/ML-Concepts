@@ -1,0 +1,202 @@
+---
+id: general-ml/cnns
+title: Convolutional Neural Networks
+category: general-ml
+summary: CNNs use shared local filters to get translation equivariance and far fewer parameters than dense layers.
+tags:
+  - deep-learning
+  - vision
+  - architectures
+difficulty: 3
+prereqs:
+  - general-ml/backprop
+  - general-ml/activation-functions
+related:
+  - general-ml/rnns-lstms
+  - general-ml/batchnorm-layernorm-rmsnorm
+  - general-ml/transfer-learning
+estReadMin: 11
+updated: 2026-01-01
+---
+
+<TLDR>
+A convolution slides a small learned kernel over the input and shares its weights across all positions. This gives translation equivariance, local connectivity, and a parameter count that does not depend on the input size.
+</TLDR>
+
+## The convolution operation
+
+For a 2D input $x$ and kernel $w$ of size $k \times k$, the output at position $(i,j)$ for output channel $o$ is
+
+$$
+y_{o,i,j}
+=
+b_o + \sum_{c=1}^{C_{\text{in}}}\sum_{u=0}^{k-1}\sum_{v=0}^{k-1}
+w_{o,c,u,v}\, x_{c,\, i+u,\, j+v}.
+$$
+
+Deep learning libraries implement cross correlation, not true convolution. True convolution flips the kernel. The difference does not matter because the kernel is learned.
+
+## Three properties
+
+1. **Local connectivity.** Each output depends on a small input patch. This encodes the prior that nearby pixels are related.
+2. **Weight sharing.** The same kernel applies at every position. A feature detector learned in one place works everywhere.
+3. **Translation equivariance.** Shifting the input shifts the output by the same amount:
+
+$$
+\text{conv}(\text{shift}(x)) = \text{shift}(\text{conv}(x)).
+$$
+
+Pooling and a global average add approximate translation invariance on top of equivariance.
+
+## Output size
+
+For input size $H$, kernel $k$, padding $p$, stride $s$, and dilation $d$:
+
+$$
+H_{\text{out}}
+=
+\left\lfloor \frac{H + 2p - d(k-1) - 1}{s}\right\rfloor + 1 .
+$$
+
+With $d=1$ this reduces to
+
+$$
+H_{\text{out}} = \left\lfloor\frac{H + 2p - k}{s}\right\rfloor + 1 .
+$$
+
+"Same" padding with $s=1$ uses $p = (k-1)/2$ for odd $k$.
+
+## Parameter and compute count
+
+A conv layer with $C_{\text{in}}$ input channels, $C_{\text{out}}$ output channels, and a $k\times k$ kernel has
+
+$$
+\text{params} = C_{\text{out}}\big(C_{\text{in}}k^2 + 1\big).
+$$
+
+The count does not depend on the spatial size. A dense layer on a $224\times224\times3$ image with 1000 outputs needs about $1.5\times 10^8$ weights. A $3\times3$ conv with 64 channels needs about 1792.
+
+The multiply-accumulate count is
+
+$$
+\text{MACs} = H_{\text{out}}\, W_{\text{out}}\, C_{\text{out}}\, C_{\text{in}}\, k^2 .
+$$
+
+## Receptive field
+
+The receptive field is the input region that affects one output unit.
+
+For a stack of layers with kernel sizes $k_\ell$ and strides $s_\ell$, the receptive field grows as
+
+$$
+r_L = r_{L-1} + (k_L - 1)\prod_{\ell=1}^{L-1}s_\ell .
+$$
+
+<Proof title="Receptive field recursion">
+Let $r_\ell$ be the receptive field of one unit at layer $\ell$, measured in input pixels. Let $j_\ell$ be the jump, which is the input distance between two neighboring units at layer $\ell$.
+
+The jump multiplies by the stride at each layer:
+
+$$
+j_\ell = j_{\ell-1} s_\ell ,
+\qquad j_0 = 1 .
+$$
+
+One unit at layer $\ell$ reads $k_\ell$ neighboring units of layer $\ell-1$. Those units span
+
+$$
+r_{\ell-1} + (k_\ell - 1) j_{\ell-1}
+$$
+
+input pixels, because each extra unit adds one jump of coverage.
+
+Therefore
+
+$$
+r_\ell = r_{\ell-1} + (k_\ell-1)j_{\ell-1},
+\qquad
+j_{\ell-1} = \prod_{m=1}^{\ell-1}s_m .
+$$
+</Proof>
+
+Two stacked $3\times3$ convs give a $5\times5$ receptive field with fewer parameters than one $5\times5$ conv, and they add a nonlinearity. This is the VGG design rule.
+
+Dilation increases the receptive field without extra parameters. A dilated conv with rate $d$ acts like a kernel of effective size $d(k-1)+1$.
+
+## Common layer types
+
+| Layer | Purpose |
+|---|---|
+| $3\times3$ conv | Standard feature extractor |
+| $1\times1$ conv | Mixes channels, changes channel count, cheap |
+| Depthwise conv | One filter per input channel |
+| Depthwise separable | Depthwise then $1\times1$, about $1/k^2$ of the cost |
+| Max pool | Downsample, small translation invariance |
+| Average pool | Downsample, smoother |
+| Global average pool | Replaces the flatten and dense head |
+| Transposed conv | Upsamples for segmentation and generation |
+
+Depthwise separable convolution reduces cost from $C_{\text{in}}C_{\text{out}}k^2$ to $C_{\text{in}}k^2 + C_{\text{in}}C_{\text{out}}$ per position.
+
+## Architectural patterns
+
+- **LeNet and AlexNet.** Conv, pool, then dense.
+- **VGG.** Only $3\times3$ convs, stacked deep.
+- **ResNet.** Residual connections $y = x + F(x)$ let gradients flow directly and allow very deep stacks. See <a href="/learn/general-ml/exploding-vanishing-gradients">exploding and vanishing gradients</a>.
+- **Inception.** Parallel branches with different kernel sizes.
+- **U-Net.** Encoder plus decoder with skip connections for segmentation.
+- **ConvNeXt.** Modern conv design tuned with transformer style choices.
+
+<a href="/learn/general-ml/batchnorm-layernorm-rmsnorm">Batch normalization</a> after the conv and before the activation is a standard block.
+
+## Backward pass
+
+The gradient with respect to the input of a convolution is a convolution of the output gradient with the flipped kernel. This is a full correlation, sometimes called a transposed convolution.
+
+The gradient with respect to the kernel is a correlation between the input and the output gradient:
+
+$$
+\frac{\partial L}{\partial w_{o,c,u,v}}
+=
+\sum_{i,j}\frac{\partial L}{\partial y_{o,i,j}}\, x_{c,i+u,j+v}.
+$$
+
+Weight sharing means every position contributes to the same gradient. That sum is the reason CNNs are data efficient.
+
+## Code example
+
+```python
+import numpy as np
+
+def conv2d_naive(x, w, b, stride=1, pad=0):
+    """x: (C_in, H, W), w: (C_out, C_in, k, k), b: (C_out,)"""
+    C_in, H, W = x.shape
+    C_out, _, k, _ = w.shape
+    xp = np.pad(x, ((0, 0), (pad, pad), (pad, pad)))
+    H_out = (H + 2 * pad - k) // stride + 1
+    W_out = (W + 2 * pad - k) // stride + 1
+    out = np.zeros((C_out, H_out, W_out))
+    for o in range(C_out):
+        for i in range(H_out):
+            for j in range(W_out):
+                patch = xp[:, i * stride:i * stride + k, j * stride:j * stride + k]
+                out[o, i, j] = np.sum(patch * w[o]) + b[o]
+    return out
+
+x = np.random.default_rng(0).normal(size=(3, 8, 8))
+w = np.random.default_rng(1).normal(size=(4, 3, 3, 3)) * 0.1
+b = np.zeros(4)
+print(conv2d_naive(x, w, b, stride=1, pad=1).shape)
+```
+
+Real implementations use im2col plus a matrix multiply, or a direct kernel such as Winograd or FFT convolution.
+
+## Common mistakes
+
+Do not confuse equivariance with invariance. Convolution is equivariant. Pooling adds partial invariance.
+
+Do not forget that the parameter count is independent of the input resolution, while the compute cost is not.
+
+Do not use a large dense head after the last conv when a global average pool works. The dense head holds most of the parameters.
+
+Do not set padding by guessing. Use the output size formula.

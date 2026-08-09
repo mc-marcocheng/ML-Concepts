@@ -1,0 +1,97 @@
+- id: gs-mcq-1
+  type: mcq
+  prompt: "What does the Gumbel-max trick produce?"
+  difficulty: 2
+  options:
+    - "A Gaussian sample with the same mean as the logits"
+    - "An exact categorical sample using an argmax over logits plus Gumbel noise"
+    - "A deterministic argmax of the logits"
+    - "An unbiased gradient estimator"
+  correctIndex: 1
+  explanation: "The argmax of logits plus independent standard Gumbel noise follows the softmax distribution."
+  anchor: the-gumbel-max-trick
+- id: gs-latex-1
+  type: latex
+  prompt: "Write the Gumbel-Softmax sample component $y_k$ with temperature $\\tau$."
+  difficulty: 3
+  answer: "\\frac{\\exp((\\alpha_k + g_k)/\\tau)}{\\sum_j \\exp((\\alpha_j + g_j)/\\tau)}"
+  rubric:
+    - "Adds Gumbel noise to the logits."
+    - "Divides by the temperature inside a softmax."
+  explanation: "This replaces the argmax with a smooth softmax."
+  anchor: the-relaxation
+- id: gs-latex-2
+  type: latex
+  prompt: "Write how to transform a uniform sample $u$ into a standard Gumbel sample."
+  difficulty: 2
+  answer: "-\\log(-\\log u)"
+  rubric:
+    - "Uses a double logarithm."
+    - "Includes both negative signs."
+  explanation: "This is the inverse CDF of the standard Gumbel."
+  anchor: the-gumbel-max-trick
+- id: gs-mcq-2
+  type: mcq
+  prompt: "What happens as the temperature approaches zero?"
+  difficulty: 3
+  options:
+    - "Samples become uniform and gradients vanish"
+    - "Samples become nearly one-hot and gradient variance rises"
+    - "Samples become deterministic and unbiased"
+    - "The distribution stops matching the logits"
+  correctIndex: 1
+  explanation: "Low temperature approaches the discrete argmax but sharpens the softmax gradient."
+  anchor: temperature
+- id: gs-short-1
+  type: short
+  prompt: "Compare Gumbel-Softmax with the REINFORCE score function estimator."
+  difficulty: 4
+  answer: "REINFORCE is unbiased but has high variance because it uses only the loss value and the log probability gradient. Gumbel-Softmax reparameterizes the sample so gradients flow through the sample, which gives much lower variance at the cost of bias from the relaxation."
+  rubric:
+    - "States REINFORCE is unbiased with high variance."
+    - "States Gumbel-Softmax is biased with low variance."
+  explanation: "The relaxation is the source of the bias."
+  anchor: the-problem
+- id: gs-short-2
+  type: short
+  prompt: "Explain the straight-through trick and why the code expression works."
+  difficulty: 4
+  answer: "The forward pass uses a hard one-hot vector while the backward pass uses the soft sample gradient. Writing y_hard minus y detached plus y makes the value equal y_hard but the gradient equal the gradient of y, because the detached difference has no gradient."
+  rubric:
+    - "Describes hard forward and soft backward."
+    - "Explains that the detached term contributes no gradient."
+  explanation: "VQ-VAE uses the same pattern for codebook lookups."
+  anchor: straight-through-estimator
+- id: gs-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the Gumbel sampler and the relaxed logits."
+  difficulty: 3
+  scaffold: |
+    u = rng.random(shape)
+    g = ___
+    z = ___
+    y = np.exp(z - z.max(-1, keepdims=True))
+    y = y / y.sum(-1, keepdims=True)
+  blanks:
+    - id: 1
+      answer: "-np.log(-np.log(u + eps) + eps)"
+      rubric:
+        - "Applies the inverse Gumbel CDF with numerical guards."
+    - id: 2
+      answer: "(logits + g) / tau"
+      rubric:
+        - "Adds the noise to the logits and divides by the temperature."
+  explanation: "Noise plus logits, scaled by temperature, then softmax."
+  anchor: code-example
+- id: gs-order-1
+  type: order
+  prompt: "Order the steps of a hard Gumbel-Softmax sample."
+  difficulty: 2
+  steps:
+    - "Draw independent standard Gumbel noise"
+    - "Add the noise to the logits and divide by the temperature"
+    - "Apply a softmax to get a point on the simplex"
+    - "Take the argmax for the forward value and keep the soft gradient"
+  explanation: "The straight-through step keeps the forward value discrete."
+  anchor: straight-through-estimator

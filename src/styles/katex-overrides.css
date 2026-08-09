@@ -1,0 +1,11 @@
+.katex { font-size: 1.05em; }
+.katex-display { margin: 22px 0; padding: 4px 2px; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+.katex-display > .katex { text-align: center; }
+.eq-wrap { position: relative; }
+.eq-wrap::after {
+  content: ""; position: absolute; inset-block: 0; right: 0; width: 28px;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--color-canvas));
+}
+.eq-wrap[data-scrolled-end="true"]::after { opacity: 0; }
+::selection { background: var(--color-primary); color: var(--color-on-primary); }

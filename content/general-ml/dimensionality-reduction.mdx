@@ -1,0 +1,198 @@
+---
+id: general-ml/dimensionality-reduction
+title: Dimensionality Reduction
+category: general-ml
+summary: Methods that map high dimensional data to a lower dimensional space while keeping the structure that matters.
+tags:
+  - unsupervised
+  - representation
+difficulty: 3
+prereqs:
+  - linear-algebra/eigenvectors-eigenvalues
+  - general-ml/variance-and-covariance
+related:
+  - general-ml/curse-of-dimensionality
+  - general-ml/data-whitening
+  - general-ml/autoencoders
+estReadMin: 11
+updated: 2026-01-01
+---
+
+<TLDR>
+PCA finds the orthogonal directions of maximum variance and equals the top singular vectors of the centered data. Random projection preserves distances with high probability. t-SNE and UMAP are visualization tools, not general feature extractors.
+</TLDR>
+
+## Why reduce dimension
+
+- Fight the <a href="/learn/general-ml/curse-of-dimensionality">curse of dimensionality</a>.
+- Remove correlated or noisy features.
+- Cut storage and compute cost.
+- Enable two dimensional visualization.
+- Decorrelate inputs before a linear model.
+
+## PCA
+
+Center the data so that $\sum_i x_i = 0$. Let $\Sigma = \frac{1}{n}X^\top X$ be the covariance.
+
+PCA finds orthonormal directions $w_1, w_2, \dots$ that maximize the projected variance.
+
+<Proof title="The first principal component is the top eigenvector">
+Maximize the projected variance subject to a unit norm constraint:
+
+$$
+\max_{w}\ w^\top \Sigma w
+\quad\text{subject to}\quad
+w^\top w = 1 .
+$$
+
+Form the Lagrangian:
+
+$$
+\mathcal{L}(w,\lambda) = w^\top \Sigma w - \lambda(w^\top w - 1).
+$$
+
+Take the gradient with respect to $w$:
+
+$$
+\nabla_w \mathcal{L} = 2\Sigma w - 2\lambda w = 0 .
+$$
+
+So
+
+$$
+\Sigma w = \lambda w .
+$$
+
+The solution is an eigenvector of $\Sigma$. Substituting back gives the objective value
+
+$$
+w^\top \Sigma w = \lambda .
+$$
+
+To maximize, pick the eigenvector with the largest eigenvalue.
+
+For the second component, add the constraint $w_2^\top w_1 = 0$. The same argument gives the eigenvector with the second largest eigenvalue. Induction gives the full ordered set.
+</Proof>
+
+### Equivalent views
+
+PCA has three equivalent characterizations.
+
+1. Maximum variance projection.
+2. Minimum squared reconstruction error over rank $k$ linear subspaces.
+3. Truncated singular value decomposition of the centered data matrix.
+
+For the SVD view, write $X = U S V^\top$. The principal directions are the columns of $V$, and the projected coordinates are $US$. Computing the SVD directly is more stable than forming $X^\top X$.
+
+### Explained variance
+
+The fraction of variance kept by $k$ components is
+
+$$
+\frac{\sum_{j=1}^{k}\lambda_j}{\sum_{j=1}^{d}\lambda_j}.
+$$
+
+Choose $k$ from a scree plot or from a target such as 95 percent.
+
+### Limits
+
+- PCA is linear. It cannot unfold a curved manifold.
+- PCA is scale sensitive. Standardize features with different units.
+- Directions of large variance are not always directions of large class separation.
+- The components are dense combinations of all features, so they are hard to read.
+
+## Linear discriminant analysis
+
+LDA is supervised. It maximizes the ratio of between class scatter to within class scatter:
+
+$$
+\max_W \frac{|W^\top S_B W|}{|W^\top S_W W|}.
+$$
+
+The solution comes from the eigenvectors of $S_W^{-1}S_B$. LDA gives at most $K-1$ components for $K$ classes.
+
+Use LDA when you want a projection tuned for class separation, and PCA when you want a projection that keeps variance.
+
+## Random projection
+
+The Johnson-Lindenstrauss lemma says the following. For $n$ points and any $\epsilon \in (0,1)$, a random linear map into
+
+$$
+k = O\!\left(\frac{\log n}{\epsilon^2}\right)
+$$
+
+dimensions preserves all pairwise distances within a factor $1 \pm \epsilon$ with high probability.
+
+The target dimension depends on the number of points, not on the original dimension. The map needs no training, which makes it very cheap for streaming data.
+
+## Nonlinear methods
+
+| Method | Idea | Note |
+|---|---|---|
+| Kernel PCA | PCA in a kernel feature space | Needs an $n \times n$ matrix |
+| MDS | Preserve pairwise distances | Classical MDS equals PCA for Euclidean distances |
+| Isomap | MDS on geodesic graph distances | Unfolds curved manifolds |
+| LLE | Preserve local linear reconstructions | Sensitive to neighborhood size |
+| t-SNE | Match neighbor distributions with a heavy tailed target | Visualization only |
+| UMAP | Fuzzy topological structure | Faster, better global structure than t-SNE |
+| <a href="/learn/general-ml/autoencoders">Autoencoder</a> | Learn a nonlinear bottleneck | Scales to large data, parametric |
+
+### t-SNE cautions
+
+t-SNE optimizes a <a href="/learn/general-ml/kl-divergence">KL divergence</a> between neighbor distributions. Consequences follow.
+
+- Cluster sizes carry no meaning.
+- Distances between clusters carry little meaning.
+- The perplexity setting changes the picture a great deal.
+- There is no natural way to map new points, because the embedding is not parametric.
+
+Use t-SNE and UMAP for looking at data. Do not feed their output into a downstream model without care.
+
+## Choosing a method
+
+1. Need a linear, invertible, fast map. Use PCA.
+2. Need class separation. Use LDA.
+3. Need a cheap map with distance guarantees. Use random projection.
+4. Need a picture. Use UMAP or t-SNE.
+5. Need a learned nonlinear map that applies to new data. Use an autoencoder.
+
+## Code example
+
+```python
+import numpy as np
+
+def pca_fit(X, k):
+    mu = X.mean(axis=0)
+    Xc = X - mu
+    U, S, Vt = np.linalg.svd(Xc, full_matrices=False)
+    components = Vt[:k]
+    explained = (S ** 2) / (S ** 2).sum()
+    return mu, components, explained[:k]
+
+def pca_transform(X, mu, components):
+    return (X - mu) @ components.T
+
+def pca_inverse(Z, mu, components):
+    return Z @ components + mu
+
+rng = np.random.default_rng(0)
+base = rng.normal(size=(200, 2))
+X = base @ rng.normal(size=(2, 10)) + 0.01 * rng.normal(size=(200, 10))
+
+mu, comps, ev = pca_fit(X, k=2)
+Z = pca_transform(X, mu, comps)
+Xr = pca_inverse(Z, mu, comps)
+print(ev.sum(), np.mean((X - Xr) ** 2))
+```
+
+Two components should explain almost all the variance, because the data has rank two plus noise.
+
+## Common mistakes
+
+Do not run PCA without centering. The first component then points at the mean.
+
+Do not fit PCA on the training and test sets together.
+
+Do not read cluster distances in a t-SNE plot as real distances.
+
+Do not assume high variance means high predictive value.

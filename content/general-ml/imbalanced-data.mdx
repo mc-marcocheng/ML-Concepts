@@ -1,0 +1,87 @@
+---
+id: general-ml/imbalanced-data
+title: Imbalanced Data
+category: general-ml
+summary: Imbalanced data has uneven class frequencies, which can make accuracy and training misleading.
+tags:
+  - classification
+  - evaluation
+difficulty: 3
+prereqs:
+  - general-ml/precision-recall-f1-auc-roc
+related:
+  - general-ml/loss-functions
+  - general-ml/cross-validation
+  - general-ml/bayes-theorem
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Imbalanced data has rare and common classes. Accuracy can look high even when the model misses the rare class.
+</TLDR>
+
+## Core idea
+
+Class imbalance means class frequencies differ strongly.
+
+For example, positives can be one percent of the data.
+
+A classifier that always predicts negative can get high accuracy.
+
+It can still be useless for the positive class.
+
+Use <a href="/learn/general-ml/precision-recall-f1-auc-roc">Precision, Recall, F1, and AUC-ROC</a>.
+
+## Metrics
+
+Accuracy is often not enough.
+
+Useful metrics include:
+
+- precision
+- recall
+- F1
+- precision-recall AUC
+- ROC AUC
+- balanced accuracy
+
+Precision-recall curves are often informative when positives are rare.
+
+## Training methods
+
+Common controls include:
+
+- class weights
+- oversampling rare classes
+- undersampling common classes
+- focal loss
+- threshold tuning
+- more rare-class data
+
+Do all resampling inside training folds.
+
+## Thresholds
+
+A probabilistic classifier gives scores.
+
+The default threshold is not always best.
+
+Choose the threshold with validation data and a task metric.
+
+## Calibration
+
+Class imbalance can affect probability calibration.
+
+Calibration methods need validation data.
+
+Do not calibrate on the test set.
+
+## Common mistakes
+
+Do not use accuracy alone.
+
+Do not oversample before splitting data.
+
+Do not choose a threshold on the test set.
+```

@@ -1,0 +1,61 @@
+- id: vae-mcq-1
+  type: mcq
+  prompt: "Which two terms appear in the standard VAE ELBO?"
+  difficulty: 2
+  options:
+    - "A reconstruction term and a KL term"
+    - "A discriminator loss and a generator loss"
+    - "A hinge loss and a margin term"
+    - "A Bellman target and a policy entropy term"
+  correctIndex: 0
+  explanation: "The ELBO has an expected log likelihood term and a KL penalty."
+  anchor: elbo
+
+- id: vae-latex-1
+  type: latex
+  prompt: "Write the VAE ELBO for one data point."
+  difficulty: 3
+  answer: '\mathbb{E}_{q_\phi(z \mid x)}[\log p_\theta(x \mid z)] - D_{\mathrm{KL}}(q_\phi(z \mid x)\Vert p(z))'
+  rubric:
+    - "Includes the expected reconstruction log likelihood."
+    - "Subtracts the KL divergence to the prior."
+  explanation: "The ELBO balances reconstruction quality and closeness to the prior."
+  anchor: elbo
+
+- id: vae-numeric-1
+  type: numeric
+  prompt: "For one latent dimension with $\\mu=1$ and $\\sigma=1$, what is the KL to a standard normal?"
+  difficulty: 2
+  value: 0.5
+  tolerance: 0.000001
+  explanation: "The KL is $0.5(1^2+1^2-\\log 1^2-1)=0.5$."
+  anchor: gaussian-kl-term
+
+- id: vae-short-1
+  type: short
+  prompt: "Why does the reparameterization trick help VAE training?"
+  difficulty: 3
+  answer: "It writes the latent sample as a deterministic function of encoder outputs and external noise, so gradients can pass through the encoder."
+  rubric:
+    - "Mentions moving randomness to an external noise variable."
+    - "Mentions that gradients can pass through encoder outputs."
+  explanation: "The trick uses $z=\\mu+\\sigma\\odot\\epsilon$ with $\\epsilon$ independent of the encoder."
+  anchor: reparameterization-trick
+
+- id: vae-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the VAE reparameterization step."
+  difficulty: 3
+  scaffold: |
+    eps = torch.randn_like(mu)
+    z = ___
+  blanks:
+    - id: 1
+      answer: "mu + torch.exp(0.5 * logvar) * eps"
+      rubric:
+        - "Uses the mean."
+        - "Converts log variance to standard deviation."
+        - "Multiplies the standard deviation by noise."
+  explanation: "The standard deviation is $\\exp(0.5\\cdot\\text{logvar})$."
+  anchor: code-example

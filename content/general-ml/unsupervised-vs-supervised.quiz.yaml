@@ -1,0 +1,65 @@
+- id: uvs-mcq-1
+  type: mcq
+  prompt: "Which task is unsupervised?"
+  difficulty: 1
+  options:
+    - "Predicting house price from area"
+    - "Grouping customers by purchase pattern without labels"
+    - "Classifying email as spam using labeled mail"
+    - "Predicting the next word using a labeled sentiment dataset"
+  correctIndex: 1
+  explanation: "Clustering uses inputs only."
+  anchor: unsupervised-learning
+- id: uvs-latex-1
+  type: latex
+  prompt: "Write the empirical risk over $n$ labeled examples for a loss $\\ell$ and predictor $f$."
+  difficulty: 2
+  answer: "\\frac{1}{n}\\sum_{i=1}^{n} \\ell(f(x_i), y_i)"
+  rubric:
+    - "Averages over the $n$ examples."
+    - "Applies the loss to the prediction and the label."
+  explanation: "Empirical risk replaces the unknown expectation with a sample average."
+  anchor: supervised-learning
+- id: uvs-short-1
+  type: short
+  prompt: "How does self-supervised learning differ from supervised learning?"
+  difficulty: 2
+  answer: "Self-supervised learning builds the target from the input itself, such as masked or next token prediction, so it needs no human labels. Supervised learning needs given labels."
+  rubric:
+    - "States that the target comes from the data itself."
+    - "States that no human labels are required."
+  explanation: "The training loop is supervised, but the labels are free."
+  anchor: self-supervised-learning
+- id: uvs-mcq-2
+  type: mcq
+  prompt: "Which assumption underlies most semi-supervised methods?"
+  difficulty: 3
+  options:
+    - "Labels are missing at random"
+    - "The decision boundary lies in a low density region"
+    - "The unlabeled set is larger than the labeled set"
+    - "The classes have equal prior probability"
+  correctIndex: 1
+  explanation: "Consistency and entropy based methods push boundaries away from dense regions."
+  anchor: semi-supervised-learning
+- id: uvs-short-2
+  type: short
+  prompt: "Why is evaluation harder for unsupervised learning?"
+  difficulty: 2
+  answer: "There is no ground truth target, so you must use proxy measures such as log likelihood, reconstruction error, or cluster quality scores."
+  rubric:
+    - "States that no ground truth target exists."
+    - "Names at least one proxy metric."
+  explanation: "Proxy metrics can disagree with downstream usefulness."
+  anchor: unsupervised-learning
+- id: uvs-order-1
+  type: order
+  prompt: "Order a typical self-supervised pipeline."
+  difficulty: 2
+  steps:
+    - "Collect a large unlabeled corpus"
+    - "Define a pretext task such as masked prediction"
+    - "Pretrain the encoder on the pretext task"
+    - "Attach a small head and fine-tune on labeled data"
+  explanation: "Pretraining creates a representation that a small labeled set can adapt."
+  anchor: self-supervised-learning

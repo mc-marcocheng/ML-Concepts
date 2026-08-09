@@ -1,0 +1,94 @@
+---
+id: general-ml/regularization-methods
+title: Regularization Methods
+category: general-ml
+summary: Regularization controls model complexity to reduce overfitting and improve generalization.
+tags:
+  - generalization
+  - optimization
+difficulty: 3
+prereqs:
+  - general-ml/overfitting-underfitting
+  - general-ml/loss-functions
+related:
+  - general-ml/bias-variance-tradeoff
+  - general-ml/early-stopping
+  - general-ml/dropout
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Regularization adds constraints, penalties, or training rules that reduce overfitting. It often lowers variance at the cost of more bias.
+</TLDR>
+
+## Core idea
+
+Regularization changes training so the model does not only fit the training set.
+
+A common objective is:
+
+$$
+L_{\text{total}}(\theta)
+=
+L_{\text{data}}(\theta)
++
+\lambda R(\theta).
+$$
+
+The parameter $\lambda$ controls regularization strength.
+
+## L2 regularization
+
+L2 regularization penalizes squared weights:
+
+$$
+R(\theta)=\|\theta\|_2^2.
+$$
+
+It discourages large weights.
+
+In linear models, it gives ridge regression.
+
+## L1 regularization
+
+L1 regularization penalizes absolute weights:
+
+$$
+R(\theta)=\|\theta\|_1.
+$$
+
+It can make weights exactly zero.
+
+This helps with feature selection.
+
+## Other methods
+
+Common regularization methods include:
+
+- early stopping
+- dropout
+- data augmentation
+- weight decay
+- label smoothing
+- model averaging
+
+See <a href="/learn/general-ml/early-stopping">Early Stopping</a>.
+
+## Weight decay
+
+Weight decay updates parameters toward zero during optimization.
+
+For SGD, L2 regularization and weight decay can match.
+
+For Adam, decoupled weight decay gives AdamW.
+
+See <a href="/learn/general-ml/adam-adamw-adagrad">Adam, AdamW, and Adagrad</a>.
+
+## Common mistakes
+
+Do not tune regularization on the test set.
+
+Do not assume all regularization reduces bias.
+
+Do not confuse dropout at training with dropout at inference.

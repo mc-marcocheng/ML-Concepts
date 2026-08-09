@@ -1,0 +1,52 @@
+- id: rf-mcq-1
+  type: mcq
+  prompt: "What two sources of randomness does a random forest usually use?"
+  difficulty: 3
+  options:
+    - "Bootstrap samples and random feature subsets"
+    - "Random labels and random targets"
+    - "Only random learning rates"
+    - "Only random test sets"
+  correctIndex: 0
+  explanation: "Random forests use bootstrap samples and random feature subsets at splits."
+  anchor: core-idea
+
+- id: rf-latex-1
+  type: latex
+  prompt: "Write the average prediction for $M$ regression trees $T_m(x)$."
+  difficulty: 2
+  answer: "\\frac{1}{M}\\sum_{m=1}^M T_m(x)"
+  rubric:
+    - "Averages over M trees."
+    - "Includes tree predictions."
+  explanation: "Random forest regression averages tree outputs."
+  anchor: core-idea
+
+- id: rf-short-1
+  type: short
+  prompt: "Why does feature sampling help a random forest?"
+  difficulty: 3
+  answer: "Feature sampling reduces correlation between trees, which makes averaging more effective."
+  rubric:
+    - "Mentions lower tree correlation."
+    - "Mentions better averaging or variance reduction."
+  explanation: "Averaging helps more when base models make different errors."
+  anchor: why-randomness-helps
+
+- id: rf-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the random forest constructor."
+  difficulty: 2
+  scaffold: |
+    from sklearn.ensemble import RandomForestClassifier
+    model = ___
+  blanks:
+    - id: 1
+      answer: "RandomForestClassifier(n_estimators=200, max_features=\"sqrt\", random_state=0)"
+      rubric:
+        - "Uses RandomForestClassifier."
+        - "Sets multiple trees."
+        - "Uses feature sampling."
+  explanation: "A random forest uses many trees and feature sampling."
+  anchor: code-example

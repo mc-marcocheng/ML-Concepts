@@ -1,0 +1,116 @@
+---
+id: linear-algebra/linear-independence
+title: Linear Independence
+category: linear-algebra
+summary: Linear independence means no vector in a set can be made from the others.
+tags:
+  - vectors
+  - bases
+difficulty: 2
+prereqs: []
+related:
+  - linear-algebra/rank-span
+  - linear-algebra/determinant
+  - linear-algebra/singular-matrices
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+A set of vectors is linearly independent when the only linear combination that gives zero uses all-zero coefficients.
+</TLDR>
+
+## Core idea
+
+Vectors $v_1,\dots,v_k$ are linearly independent if:
+
+$$
+c_1v_1+\cdots+c_kv_k=0
+$$
+
+implies:
+
+$$
+c_1=\cdots=c_k=0.
+$$
+
+If a nonzero set of coefficients gives zero, the vectors are dependent.
+
+## Matrix view
+
+Put the vectors as columns of a matrix:
+
+$$
+A =
+\begin{bmatrix}
+| & & | \\
+v_1 & \cdots & v_k \\
+| & & |
+\end{bmatrix}.
+$$
+
+The columns are independent if $Ax=0$ has only the zero solution.
+
+This connects independence to the <a href="/learn/linear-algebra/null-space-image-space">Null Space and Image Space</a>.
+
+## Basis
+
+A basis is a linearly independent set that spans a space.
+
+Every vector in the space has one unique coordinate vector in that basis.
+
+<Proof title="Independence gives unique coordinates">
+Assume a vector $x$ has two coordinate representations:
+
+$$
+x=\sum_i a_i v_i
+$$
+
+and
+
+$$
+x=\sum_i b_i v_i.
+$$
+
+Subtract the equations:
+
+$$
+0=\sum_i (a_i-b_i)v_i.
+$$
+
+If the vectors are independent, all coefficients must be zero.
+
+Thus, $a_i-b_i=0$ for all $i$.
+
+Therefore, $a_i=b_i$ for all $i$.
+</Proof>
+
+## Tests
+
+For a square matrix, independent columns imply a nonzero determinant.
+
+For a general matrix, use rank or row reduction.
+
+See <a href="/learn/linear-algebra/rank-span">Rank and Span</a>.
+
+## Code example
+
+```python
+import numpy as np
+
+A = np.array([[1.0, 2.0],
+              [0.0, 1.0]])
+
+rank = np.linalg.matrix_rank(A)
+independent_columns = rank == A.shape[1]
+
+print(independent_columns)
+```
+
+## Common mistakes
+
+Do not confuse independence with orthogonality.
+
+Do not say more than $n$ vectors in $\mathbb{R}^n$ are independent.
+
+Do not use determinant tests for non-square matrices.

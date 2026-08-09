@@ -1,0 +1,76 @@
+---
+id: applied-ml/communication-primitives
+title: Communication Primitives
+category: applied-ml
+summary: Communication primitives move tensors between ranks during distributed training.
+tags:
+  - distributed-training
+  - systems
+difficulty: 3
+prereqs:
+  - applied-ml/floating-point-representation
+related:
+  - applied-ml/ddp
+  - applied-ml/fsdp
+  - applied-ml/tensor-parallelism
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Communication primitives are the tensor movement operations used by distributed training. Common primitives include broadcast, all-reduce, all-gather, and reduce-scatter.
+</TLDR>
+
+## Core idea
+
+Distributed training uses ranks.
+
+A rank is one process in a communication group.
+
+Ranks exchange tensors with communication primitives.
+
+These operations define how tensors move and combine.
+
+## Common primitives
+
+| Primitive | Result |
+|---|---|
+| broadcast | one rank sends the same tensor to all ranks |
+| reduce | many ranks combine tensors on one rank |
+| all-reduce | many ranks combine tensors on all ranks |
+| scatter | one rank splits a tensor across ranks |
+| gather | many ranks send tensors to one rank |
+| all-gather | many ranks send tensors to all ranks |
+| reduce-scatter | ranks reduce tensors, then scatter shards |
+| send and receive | one rank sends to another rank |
+| barrier | ranks wait until all ranks arrive |
+
+## All-reduce
+
+All-reduce often sums or averages tensors.
+
+If ranks hold $x_1,\dots,x_n$, sum all-reduce gives every rank:
+
+$$
+\sum_{i=1}^{n} x_i.
+$$
+
+<a href="/learn/applied-ml/ddp">DDP</a> uses all-reduce for gradients.
+
+## Reduce-scatter
+
+Reduce-scatter combines reduction and sharding.
+
+<a href="/learn/applied-ml/fsdp">FSDP</a> uses reduce-scatter for gradients.
+
+This avoids storing the full reduced tensor on every rank.
+
+## Performance notes
+
+Communication cost depends on tensor size, rank count, topology, and bandwidth.
+
+Small messages can suffer from latency.
+
+Large messages can saturate bandwidth.
+
+Good training code overlaps communication with compute when possible.

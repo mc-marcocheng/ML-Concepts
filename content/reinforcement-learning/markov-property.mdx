@@ -1,0 +1,86 @@
+---
+id: reinforcement-learning/markov-property
+title: Markov Property
+category: reinforcement-learning
+summary: The Markov property says the current state contains all information needed to predict the next state distribution.
+tags:
+  - rl
+  - mdp
+  - state
+difficulty: 2
+prereqs:
+  - general-ml/probability
+  - general-ml/pdf-pmf
+related:
+  - reinforcement-learning/markov-decision-process
+  - reinforcement-learning/bellman-equations
+  - reinforcement-learning/world-models-dreamer
+estReadMin: 5
+updated: 2026-01-01
+---
+
+<TLDR>
+The Markov property says the future depends on the past only through the current state. This property lets value functions use $s_t$ instead of the full history.
+</TLDR>
+
+## Core idea
+
+A process has the Markov property when:
+
+$$
+p(s_{t+1} \mid s_t,a_t,s_{t-1},a_{t-1},\dots)
+=
+p(s_{t+1} \mid s_t,a_t).
+$$
+
+The current state must contain all needed history.
+
+If it does not, the problem is partially observable.
+
+An observation can fail to be Markov.
+
+A state can include memory, filtered estimates, or stacked frames.
+
+## Why it matters
+
+The Markov property makes dynamic programming possible.
+
+It gives recursive value equations.
+
+For a policy $\pi$:
+
+$$
+V^\pi(s)
+=
+\mathbb{E}[r_t+\gamma V^\pi(s_{t+1}) \mid s_t=s].
+$$
+
+This recursion supports <a href="/learn/reinforcement-learning/bellman-equations">Bellman Equations</a>.
+
+## State versus observation
+
+The environment can have a hidden state.
+
+The agent may see only an observation.
+
+For example, one video frame may not show velocity.
+
+Stacked frames can help recover velocity.
+
+Recurrent policies can also store useful history.
+
+## Practical test
+
+Ask whether two histories with the same state give the same next-state distribution.
+
+If they do, the state is Markov.
+
+If they do not, add more information to the state.
+
+## Common mistakes
+
+Do not assume each observation is Markov.
+
+Do not ignore hidden variables.
+
+Do not use a value function over a non-Markov state without care.

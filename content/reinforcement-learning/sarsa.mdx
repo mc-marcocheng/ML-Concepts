@@ -1,0 +1,87 @@
+---
+id: reinforcement-learning/sarsa
+title: SARSA
+category: reinforcement-learning
+summary: SARSA is an on-policy TD control method that updates from the sampled state, action, reward, next state, and next action.
+tags:
+  - rl
+  - td-learning
+  - on-policy
+difficulty: 3
+prereqs:
+  - reinforcement-learning/bellman-equations
+  - reinforcement-learning/q-learning-td-learning
+related:
+  - reinforcement-learning/on-policy-vs-off-policy
+  - reinforcement-learning/exploration-vs-exploitation
+  - reinforcement-learning/monte-carlo-vs-td
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+SARSA updates action values with the next action actually sampled by the behavior policy. It learns the value of the policy that it follows.
+</TLDR>
+
+## Core idea
+
+SARSA stands for state, action, reward, next state, next action.
+
+The update uses the tuple:
+
+$$
+(s_t,a_t,r_t,s_{t+1},a_{t+1}).
+$$
+
+The update is:
+
+$$
+Q(s_t,a_t)
+\leftarrow
+Q(s_t,a_t)+\alpha
+\left[
+r_t+\gamma Q(s_{t+1},a_{t+1})-Q(s_t,a_t)
+\right].
+$$
+
+## On-policy control
+
+SARSA is on-policy.
+
+It evaluates and improves the same policy that collects data.
+
+With an $\epsilon$-greedy policy, SARSA accounts for future exploratory actions.
+
+Q-learning instead uses $\max_{a'}Q(s',a')$.
+
+That difference can make SARSA more cautious in risky tasks.
+
+See <a href="/learn/reinforcement-learning/q-learning-td-learning">Q-Learning and TD Learning</a>.
+
+## Algorithm
+
+1. Choose action $a_t$ from the current policy.
+
+2. Take the action.
+
+3. Observe reward and next state.
+
+4. Choose next action $a_{t+1}$ from the current policy.
+
+5. Apply the SARSA update.
+
+## Code example
+
+```python
+def sarsa_update(q, s, a, r, s_next, a_next, alpha, gamma):
+    target = r + gamma * q[s_next, a_next]
+    q[s, a] += alpha * (target - q[s, a])
+```
+
+## Common mistakes
+
+Do not replace the sampled next action with a max action.
+
+Do not call SARSA off-policy in its basic form.
+
+Do not forget that exploration affects the learned values.

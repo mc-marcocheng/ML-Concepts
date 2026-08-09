@@ -1,0 +1,159 @@
+---
+id: general-ml/transfer-learning
+title: Transfer Learning
+category: general-ml
+summary: Transfer learning reuses a model trained on a large source task to improve a smaller target task.
+tags:
+  - representation
+  - training
+difficulty: 3
+prereqs:
+  - general-ml/unsupervised-vs-supervised
+  - general-ml/gradient-descent-sgd
+related:
+  - general-ml/domain-adaptation
+  - general-ml/few-shot-zero-shot-learning
+  - general-ml/regularisation-methods
+estReadMin: 9
+updated: 2026-01-01
+---
+
+<TLDR>
+Transfer learning starts from weights trained on a large source dataset instead of a random initialization. Feature extraction freezes the backbone, and fine-tuning updates it with a small learning rate. Gains are largest when the target set is small and the domains are related.
+</TLDR>
+
+## Setting
+
+A source task has distribution $\mathcal{D}_S$ and task $\mathcal{T}_S$. A target task has $\mathcal{D}_T$ and $\mathcal{T}_T$. Transfer learning uses knowledge from the source to improve the target.
+
+| Case | Domains | Tasks | Name |
+|---|---|---|---|
+| Same | Same | Same | Standard learning |
+| Different | Same | Same | <a href="/learn/general-ml/domain-adaptation">Domain adaptation</a> |
+| Same or different | Different | Different | Inductive transfer |
+| Target labels absent | Different | Different | Unsupervised transfer |
+
+## Why it works
+
+Early layers learn general features. In vision these are edges, corners, and textures. In language these are token statistics and syntax.
+
+Later layers learn task specific features. So the useful prior is mostly in the early and middle layers.
+
+Pretraining also gives a better starting point in the loss landscape. The optimizer starts inside a basin that generalizes, which acts as a strong <a href="/learn/general-ml/regularisation-methods">regularizer</a> when target data is scarce.
+
+## Strategies
+
+### Feature extraction
+
+Freeze the backbone and train only a new head.
+
+- Fast, because the backward pass covers only the head.
+- Needs very little data.
+- Cannot adapt if the target domain differs a lot.
+- You can cache the frozen features once and train the head on them repeatedly.
+
+### Fine-tuning
+
+Update all weights with a small learning rate, often 10 to 100 times smaller than for training from scratch.
+
+- Higher ceiling in accuracy.
+- Needs more data and more compute.
+- Risks catastrophic forgetting and overfitting.
+
+### Partial fine-tuning
+
+Freeze the first $k$ blocks and train the rest. This trades the two extremes.
+
+### Discriminative learning rates
+
+Give earlier layers a smaller learning rate:
+
+$$
+\eta_\ell = \eta_L \cdot \gamma^{\,L-\ell},
+\qquad \gamma \in (0,1).
+$$
+
+Earlier layers hold general features and should move less.
+
+### Parameter efficient methods
+
+| Method | Trained parameters |
+|---|---|
+| Linear probe | Only the head |
+| BitFit | Only the bias terms |
+| Adapters | Small bottleneck modules inserted per block |
+| LoRA | Low rank updates to weight matrices |
+| Prefix or prompt tuning | A small set of virtual tokens |
+
+These methods keep the pretrained weights fixed. They cut memory a great deal and allow one backbone to serve many tasks.
+
+## Choosing a strategy
+
+| Target data | Domain similarity | Recommendation |
+|---|---|---|
+| Small | High | Freeze backbone, train head |
+| Small | Low | Train head, then fine-tune the last blocks |
+| Large | High | Fine-tune everything |
+| Large | Low | Fine-tune everything, or train from scratch |
+
+## Practical procedure
+
+1. Replace the head with one shaped for the target labels.
+2. Freeze the backbone and train the head to convergence. A random head produces large gradients that would damage the backbone.
+3. Unfreeze some or all of the backbone.
+4. Lower the learning rate and continue training.
+5. Use warmup and a short schedule. Fine-tuning needs far fewer epochs than pretraining.
+
+## Catastrophic forgetting
+
+Training on the target can erase source knowledge. Mitigations include:
+
+- a small learning rate,
+- freezing a portion of the network,
+- L2 regularization toward the pretrained weights, sometimes called L2-SP,
+- elastic weight consolidation, which weights the penalty by the Fisher information,
+- rehearsal on a small amount of source data.
+
+## Negative transfer
+
+Transfer can hurt when the source and target differ strongly. Signs include a fine-tuned model that trails a model trained from scratch on the same target data.
+
+Always compare against a from-scratch baseline before you accept the transfer result.
+
+## Code example
+
+```python
+import torch
+import torch.nn as nn
+
+def build_transfer_model(backbone, num_classes, freeze=True):
+    if freeze:
+        for p in backbone.parameters():
+            p.requires_grad = False
+    in_features = backbone.fc.in_features
+    backbone.fc = nn.Linear(in_features, num_classes)   # new head is trainable
+    return backbone
+
+def unfreeze_last_blocks(model, n_blocks=1):
+    blocks = [model.layer4, model.layer3, model.layer2, model.layer1]
+    for block in blocks[:n_blocks]:
+        for p in block.parameters():
+            p.requires_grad = True
+
+def param_groups(model, head_lr=1e-3, backbone_lr=1e-5):
+    head = [p for n, p in model.named_parameters() if n.startswith("fc")]
+    body = [p for n, p in model.named_parameters()
+            if not n.startswith("fc") and p.requires_grad]
+    return [{"params": head, "lr": head_lr},
+            {"params": body, "lr": backbone_lr}]
+```
+
+## Common mistakes
+
+Do not unfreeze the backbone while the head is still random. The large head gradients corrupt the pretrained features.
+
+Do not reuse the source normalization statistics blindly. Match the preprocessing that the pretrained model expects.
+
+Do not use the same learning rate as pretraining. Fine-tuning needs a much smaller one.
+
+Do not skip the from-scratch baseline.

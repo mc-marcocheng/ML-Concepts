@@ -1,0 +1,59 @@
+- id: flow-mcq-1
+  type: mcq
+  prompt: "What does flow matching learn?"
+  difficulty: 2
+  options:
+    - "A discriminator that detects fake samples"
+    - "A vector field for an ODE"
+    - "A token vocabulary"
+    - "A fixed Gaussian noise schedule only"
+  correctIndex: 1
+  explanation: "Flow matching trains a time-dependent velocity field."
+  anchor: core-idea
+
+- id: flow-latex-1
+  type: latex
+  prompt: "For $x_t=(1-t)z+tx_1$, write the target velocity."
+  difficulty: 2
+  answer: 'x_1-z'
+  rubric:
+    - "Differentiates the linear path with respect to time."
+    - "Gives $x_1-z$."
+  explanation: "The derivative of $(1-t)z+tx_1$ is $x_1-z$."
+  anchor: conditional-flow-matching
+
+- id: flow-numeric-1
+  type: numeric
+  prompt: "If $z=0$, $x_1=4$, and $t=0.25$, what is $x_t$ for the linear path?"
+  difficulty: 1
+  value: 1
+  tolerance: 0.000001
+  explanation: "$x_t=(1-0.25)0+0.25\\cdot4=1$."
+  anchor: conditional-flow-matching
+
+- id: flow-short-1
+  type: short
+  prompt: "How is flow matching sampling different from stochastic diffusion sampling?"
+  difficulty: 3
+  answer: "Flow matching usually solves a deterministic ODE, while stochastic diffusion sampling adds noise during reverse steps."
+  rubric:
+    - "Mentions deterministic ODE sampling."
+    - "Mentions noise in stochastic diffusion sampling."
+  explanation: "Flow matching uses a learned velocity field inside an ODE solver."
+  anchor: relation-to-diffusion
+
+- id: flow-code-1
+  type: code
+  lang: python
+  prompt: "Fill in one Euler step for an ODE sample."
+  difficulty: 2
+  scaffold: |
+    v = velocity_model(x, t)
+    x_next = ___
+  blanks:
+    - id: 1
+      answer: "x + dt * v"
+      rubric:
+        - "Adds the velocity times the step size."
+  explanation: "Euler integration updates the state with $x+\\Delta t\\,v$."
+  anchor: code-example

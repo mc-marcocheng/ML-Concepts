@@ -1,0 +1,229 @@
+---
+id: generative-modeling/diffusion-forward-process
+title: Diffusion Forward Process
+category: generative-modeling
+summary: The diffusion forward process gradually corrupts data with Gaussian noise using a fixed Markov chain.
+tags:
+  - diffusion
+  - generative-models
+difficulty: 3
+prereqs:
+  - general-ml/pdf-pmf
+  - general-ml/variance-and-covariance
+related:
+  - generative-modeling/score-function
+  - generative-modeling/diffusion-reverse-process
+  - generative-modeling/diffusion-sde
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+The diffusion forward process adds Gaussian noise to data over many steps. A useful closed form lets us sample any noisy time step directly from clean data.
+</TLDR>
+
+## Core idea
+
+A diffusion model defines a noising process from data to noise.
+
+The forward process is fixed and does not learn parameters.
+
+It produces a sequence:
+
+$$
+x_0, x_1, \dots, x_T.
+$$
+
+Here, $x_0$ is data and $x_T$ is close to standard Gaussian noise.
+
+The learned model later reverses this process.
+
+See <a href="/learn/generative-modeling/diffusion-reverse-process">Diffusion Reverse Process</a> for the sampling step.
+
+## Markov noising chain
+
+In DDPMs, each forward step adds Gaussian noise.
+
+$$
+q(x_t \mid x_{t-1})
+=
+\mathcal{N}
+\left(
+\sqrt{1-\beta_t}x_{t-1},
+\beta_t I
+\right).
+$$
+
+Define:
+
+$$
+\alpha_t = 1-\beta_t.
+$$
+
+Then:
+
+$$
+q(x_t \mid x_{t-1})
+=
+\mathcal{N}
+\left(
+\sqrt{\alpha_t}x_{t-1},
+(1-\alpha_t)I
+\right).
+$$
+
+The values $\beta_t$ form the noise schedule.
+
+Small $\beta_t$ values make each step only slightly noisier.
+
+## Closed form sampling
+
+Define:
+
+$$
+\bar\alpha_t = \prod_{s=1}^{t}\alpha_s.
+$$
+
+Then:
+
+$$
+q(x_t \mid x_0)
+=
+\mathcal{N}
+\left(
+\sqrt{\bar\alpha_t}x_0,
+(1-\bar\alpha_t)I
+\right).
+$$
+
+Thus, we can sample $x_t$ directly:
+
+$$
+x_t
+=
+\sqrt{\bar\alpha_t}x_0
++
+\sqrt{1-\bar\alpha_t}\epsilon,
+\quad
+\epsilon \sim \mathcal{N}(0,I).
+$$
+
+This avoids running all previous noising steps during training.
+
+<Proof title="Closed form by induction">
+For $t=1$, the formula matches the forward transition.
+
+Assume:
+
+$$
+x_{t-1}
+=
+\sqrt{\bar\alpha_{t-1}}x_0
++
+\sqrt{1-\bar\alpha_{t-1}}\epsilon_1.
+$$
+
+The next step is:
+
+$$
+x_t
+=
+\sqrt{\alpha_t}x_{t-1}
++
+\sqrt{1-\alpha_t}\epsilon_2.
+$$
+
+Substitute the induction assumption:
+
+$$
+x_t
+=
+\sqrt{\alpha_t\bar\alpha_{t-1}}x_0
++
+\sqrt{\alpha_t(1-\bar\alpha_{t-1})}\epsilon_1
++
+\sqrt{1-\alpha_t}\epsilon_2.
+$$
+
+The two noise terms are independent Gaussians.
+
+Their combined variance is:
+
+$$
+\alpha_t(1-\bar\alpha_{t-1}) + (1-\alpha_t)
+=
+1-\alpha_t\bar\alpha_{t-1}.
+$$
+
+Since $\bar\alpha_t=\alpha_t\bar\alpha_{t-1}$:
+
+$$
+x_t
+=
+\sqrt{\bar\alpha_t}x_0
++
+\sqrt{1-\bar\alpha_t}\epsilon.
+$$
+</Proof>
+
+## Noise prediction target
+
+Training often samples a random time $t$.
+
+Then it creates $x_t$ from $x_0$ and noise $\epsilon$.
+
+A neural network learns to predict $\epsilon$.
+
+$$
+\mathcal{L}
+=
+\mathbb{E}_{x_0,t,\epsilon}
+\left[
+\|\epsilon-\epsilon_\theta(x_t,t)\|^2
+\right].
+$$
+
+This target also defines a score estimate.
+
+See <a href="/learn/generative-modeling/score-function">Score Function</a> for the score view.
+
+## Signal-to-noise ratio
+
+The signal scale is $\bar\alpha_t$.
+
+The noise scale is $1-\bar\alpha_t$.
+
+A common signal-to-noise ratio is:
+
+$$
+\operatorname{SNR}(t)
+=
+\frac{\bar\alpha_t}{1-\bar\alpha_t}.
+$$
+
+Early time steps have high SNR.
+
+Late time steps have low SNR.
+
+## Code example
+
+```python
+import torch
+
+def q_sample(x0, alpha_bar_t, noise=None):
+    if noise is None:
+        noise = torch.randn_like(x0)
+
+    return (
+        torch.sqrt(alpha_bar_t) * x0
+        + torch.sqrt(1 - alpha_bar_t) * noise
+    )
+```
+
+## Common mistakes
+
+Do not learn the forward process in a standard DDPM.
+
+Do not confuse $\alpha_t$ with $\bar\alpha_t`.
+
+Do not sample all earlier steps when the closed form is available.

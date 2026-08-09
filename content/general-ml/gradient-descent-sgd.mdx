@@ -1,0 +1,96 @@
+---
+id: general-ml/gradient-descent-sgd
+title: Gradient Descent and SGD
+category: general-ml
+summary: Gradient descent updates parameters in the negative gradient direction to reduce loss.
+tags:
+  - optimization
+  - training
+difficulty: 2
+prereqs:
+  - general-ml/loss-functions
+  - linear-algebra/dot-product
+related:
+  - general-ml/adam-adamw-adagrad
+  - general-ml/backprop
+  - general-ml/convex-functions
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Gradient descent moves parameters opposite the gradient. SGD estimates the gradient from a mini-batch.
+</TLDR>
+
+## Core idea
+
+Let $L(\theta)$ be a loss function.
+
+Gradient descent updates parameters as:
+
+$$
+\theta_{t+1}
+=
+\theta_t-\eta\nabla_\theta L(\theta_t).
+$$
+
+The learning rate $\eta$ controls the step size.
+
+## SGD
+
+Full gradient descent uses all training examples per update.
+
+Stochastic gradient descent uses one example or a mini-batch.
+
+For a mini-batch $B$:
+
+$$
+g_t=\frac{1}{|B|}\sum_{i \in B}\nabla_\theta \ell_i(\theta_t).
+$$
+
+Then:
+
+$$
+\theta_{t+1}=\theta_t-\eta g_t.
+$$
+
+The mini-batch gradient is noisy but cheaper.
+
+## Learning rate
+
+A learning rate that is too large can make training diverge.
+
+A learning rate that is too small can make training slow.
+
+Schedules reduce the learning rate during training.
+
+## Convex case
+
+For a convex smooth loss, gradient descent can reach a global minimum.
+
+For neural networks, the loss is usually non-convex.
+
+See <a href="/learn/general-ml/convex-functions">Convex Functions</a>.
+
+## Code example
+
+```python
+theta = theta - lr * grad
+```
+
+A simple linear regression loop is:
+
+```python
+for _ in range(1000):
+    pred = X @ w
+    grad = X.T @ (pred - y) / len(y)
+    w = w - lr * grad
+```
+
+## Common mistakes
+
+Do not use the gradient direction for minimization.
+
+Do not ignore gradient scale.
+
+Do not compare learning rates without the optimizer and batch size.

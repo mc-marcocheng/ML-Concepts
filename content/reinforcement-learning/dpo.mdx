@@ -1,0 +1,89 @@
+---
+id: reinforcement-learning/dpo
+title: Direct Preference Optimization
+category: reinforcement-learning
+summary: DPO trains a policy from preference pairs with a supervised loss derived from a KL-regularized reward objective.
+tags:
+  - rl
+  - preferences
+  - alignment
+difficulty: 4
+prereqs:
+  - general-ml/logistic-regression
+  - reinforcement-learning/policy-gradient-theorem
+related:
+  - reinforcement-learning/grpo
+  - reinforcement-learning/ppo
+  - reinforcement-learning/rlhf
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+DPO uses preference pairs directly. It avoids an explicit reward model and a separate RL loop by optimizing a pairwise logistic objective.
+</TLDR>
+
+## Core idea
+
+DPO trains on pairs $(x,y_w,y_l)$.
+
+Here, $x$ is the prompt.
+
+$y_w$ is the preferred response.
+
+$y_l$ is the less preferred response.
+
+DPO increases the relative log probability of $y_w$ over $y_l$.
+
+It does this relative to a reference policy.
+
+## Loss
+
+A common DPO loss is:
+
+$$
+L_{\mathrm{DPO}}
+=
+-\log \sigma
+\left(
+\beta
+\left[
+\log \frac{\pi_\theta(y_w \mid x)}{\pi_{\mathrm{ref}}(y_w \mid x)}
+-
+\log \frac{\pi_\theta(y_l \mid x)}{\pi_{\mathrm{ref}}(y_l \mid x)}
+\right]
+\right).
+$$
+
+The parameter $\beta$ controls the strength of the preference update.
+
+The reference policy limits drift from the starting model.
+
+## Connection to RL
+
+DPO comes from a KL-regularized RL objective.
+
+The derivation maps rewards to log policy ratios.
+
+This removes the need to train a separate reward model.
+
+It also removes online rollout optimization in the basic method.
+
+## Code example
+
+```python
+import torch.nn.functional as F
+
+chosen = logp_policy_w - logp_ref_w
+rejected = logp_policy_l - logp_ref_l
+logits = beta * (chosen - rejected)
+loss = -F.logsigmoid(logits).mean()
+```
+
+## Common mistakes
+
+Do not train DPO on unordered samples.
+
+Do not ignore the reference policy terms.
+
+Do not treat DPO as value-based RL.

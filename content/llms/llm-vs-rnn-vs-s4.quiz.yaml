@@ -1,0 +1,47 @@
+- id: seq-mcq-1
+  type: mcq
+  prompt: "What mechanism does a decoder-only Transformer LLM use for token history?"
+  difficulty: 1
+  options:
+    - "Causal self-attention"
+    - "Only a single hidden scalar"
+    - "Only k-means clustering"
+    - "Only a reward model"
+  correctIndex: 0
+  explanation: "Decoder-only LLMs use causal self-attention."
+  anchor: transformer-llms
+
+- id: seq-latex-1
+  type: latex
+  prompt: "Write a generic RNN hidden-state update."
+  difficulty: 2
+  answer: 'h_t=f(h_{t-1},x_t)'
+  rubric:
+    - "Includes current hidden state."
+    - "Depends on previous hidden state."
+    - "Depends on current input."
+  explanation: "An RNN updates state from previous state and current input."
+  anchor: rnns
+
+- id: seq-short-1
+  type: short
+  prompt: "Why is full-attention training costly for long sequences?"
+  difficulty: 3
+  answer: "Full attention compares each token with many other tokens, so the attention matrix grows quadratically with sequence length."
+  rubric:
+    - "Mentions pairwise token comparisons."
+    - "Mentions quadratic growth."
+    - "Mentions sequence length."
+  explanation: "The attention score matrix has length times length entries."
+  anchor: transformer-llms
+
+- id: seq-order-1
+  type: order
+  prompt: "Order these history mechanisms from most direct token lookup to most compressed state."
+  difficulty: 4
+  steps:
+    - "Transformer attention over previous tokens"
+    - "S4 structured sequence state"
+    - "RNN recurrent hidden state"
+  explanation: "Attention keeps direct access to tokens, while recurrent models compress history into state."
+  anchor: core-comparison

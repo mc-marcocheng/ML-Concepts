@@ -1,0 +1,79 @@
+---
+id: general-ml/cross-validation
+title: Cross-Validation
+category: general-ml
+summary: Cross-validation estimates generalization by training and validating across data splits.
+tags:
+  - evaluation
+  - generalization
+difficulty: 2
+prereqs:
+  - general-ml/overfitting-underfitting
+related:
+  - general-ml/bias-variance-tradeoff
+  - general-ml/confidence-intervals
+  - general-ml/early-stopping
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+Cross-validation splits data into folds. Each fold serves as validation once, and the scores are averaged.
+</TLDR>
+
+## Core idea
+
+Cross-validation estimates performance on unseen data.
+
+In $k$-fold cross-validation, split data into $k$ folds.
+
+For each fold:
+
+1. Train on the other folds.
+2. Validate on the held-out fold.
+3. Store the score.
+
+Then average the scores.
+
+## Why use it
+
+A single train-validation split can be noisy.
+
+Cross-validation uses more of the data for both training and validation.
+
+It is useful when data is limited.
+
+## Stratification
+
+For classification, stratified folds preserve class proportions.
+
+This reduces fold-to-fold variation for imbalanced classes.
+
+## Nested cross-validation
+
+Nested cross-validation separates model selection from performance estimation.
+
+The inner loop selects hyperparameters.
+
+The outer loop estimates generalization.
+
+This reduces selection bias.
+
+## Code example
+
+```python
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression(max_iter=1000)
+scores = cross_val_score(model, X, y, cv=5, scoring="accuracy")
+mean_score = scores.mean()
+```
+
+## Common mistakes
+
+Do not preprocess the full dataset before splitting.
+
+Do not tune hyperparameters on the outer validation fold.
+
+Do not use random folds for time-series data.

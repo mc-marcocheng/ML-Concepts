@@ -1,0 +1,48 @@
+- id: varrl-mcq-1
+  type: mcq
+  prompt: "Which baseline is commonly used in policy gradients?"
+  difficulty: 2
+  options:
+    - "$V(s)$"
+    - "$r^2$"
+    - "$\\gamma^{-1}$"
+    - "The action index"
+  correctIndex: 0
+  explanation: "The state value gives an action-independent baseline."
+  anchor: baselines
+- id: varrl-latex-1
+  type: latex
+  prompt: "Write the standard advantage from $Q$ and $V$."
+  difficulty: 2
+  answer: "Q(s,a)-V(s)"
+  rubric:
+    - "Includes action value."
+    - "Subtracts state value."
+  explanation: "The advantage measures how much better an action is than the state baseline."
+  anchor: baselines
+- id: varrl-short-1
+  type: short
+  prompt: "What is the tradeoff when clipping importance weights?"
+  difficulty: 4
+  answer: "Clipping reduces variance but introduces bias because it changes the original estimator."
+  rubric:
+    - "Mentions reduced variance."
+    - "Mentions added bias."
+  explanation: "Clipped ratios no longer match the exact importance-sampling estimator."
+  anchor: importance-weight-control
+- id: varrl-code-1
+  type: code
+  lang: python
+  prompt: "Fill in batch advantage normalization."
+  difficulty: 3
+  scaffold: |
+    eps = 1e-8
+    adv = ___
+  blanks:
+    - id: 1
+      answer: "(adv - adv.mean()) / (adv.std() + eps)"
+      rubric:
+        - "Subtracts the batch mean."
+        - "Divides by the batch standard deviation plus epsilon."
+  explanation: "Advantage normalization standardizes scale within the batch."
+  anchor: reward-and-advantage-normalization

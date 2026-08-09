@@ -1,0 +1,215 @@
+---
+id: generative-modeling/gans
+title: GANs
+category: generative-modeling
+summary: GANs train a generator and a discriminator in a two-player game to match a data distribution.
+tags:
+  - generative-models
+  - adversarial-training
+difficulty: 3
+prereqs:
+  - general-ml/loss-functions
+  - general-ml/gradient-descent-sgd
+related:
+  - generative-modeling/vae-elbo
+  - generative-modeling/diffusion-forward-process
+  - general-ml/jensen-shannon-divergence
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+A GAN trains a generator to make fake samples and a discriminator to detect fake samples. At equilibrium, the generator distribution matches the data distribution.
+</TLDR>
+
+## Core idea
+
+A Generative Adversarial Network has two networks.
+
+The generator $G_\theta$ maps noise $z$ to a sample.
+
+$$
+x_{\text{fake}} = G_\theta(z), \quad z \sim p_z.
+$$
+
+The discriminator $D_\phi$ outputs the probability that a sample is real.
+
+$$
+D_\phi(x) \in (0,1).
+$$
+
+The generator defines a model distribution $p_g$.
+
+Training tries to make $p_g$ close to the data distribution $p_{\text{data}}$.
+
+GANs differ from <a href="/learn/generative-modeling/vae-elbo">VAEs</a> because they do not need an explicit likelihood.
+
+They also differ from <a href="/learn/generative-modeling/diffusion-forward-process">diffusion models</a> because they generate in one forward pass.
+
+## Minimax objective
+
+The original GAN objective is:
+
+$$
+\min_G \max_D
+\mathbb{E}_{x \sim p_{\text{data}}}[\log D(x)]
++
+\mathbb{E}_{z \sim p_z}[\log(1-D(G(z)))].
+$$
+
+The discriminator maximizes correct classification.
+
+The generator minimizes the discriminator's ability to detect fake samples.
+
+This objective defines a two-player zero-sum game.
+
+## Optimal discriminator
+
+For a fixed generator, the best discriminator is:
+
+$$
+D^*(x)
+=
+\frac{p_{\text{data}}(x)}
+{p_{\text{data}}(x)+p_g(x)}.
+$$
+
+If $p_g(x)=p_{\text{data}}(x)$, then:
+
+$$
+D^*(x)=\frac{1}{2}.
+$$
+
+The discriminator cannot do better than random guessing.
+
+<Proof title="Optimal discriminator for a fixed generator">
+For each value of $x$, the discriminator maximizes:
+
+$$
+p_{\text{data}}(x)\log D(x)
++
+p_g(x)\log(1-D(x)).
+$$
+
+Let $a=p_{\text{data}}(x)$ and $b=p_g(x)$.
+
+The objective for this $x$ is:
+
+$$
+a\log D + b\log(1-D).
+$$
+
+Differentiate with respect to $D$:
+
+$$
+\frac{a}{D} - \frac{b}{1-D}.
+$$
+
+Set the derivative to zero:
+
+$$
+\frac{a}{D}=\frac{b}{1-D}.
+$$
+
+Solve for $D$:
+
+$$
+a(1-D)=bD.
+$$
+
+Thus:
+
+$$
+a = (a+b)D.
+$$
+
+Therefore:
+
+$$
+D^*(x)=\frac{a}{a+b}
+=
+\frac{p_{\text{data}}(x)}
+{p_{\text{data}}(x)+p_g(x)}.
+$$
+</Proof>
+
+With this discriminator, the GAN objective relates to the Jensen-Shannon divergence.
+
+The generator reaches its optimum when $p_g=p_{\text{data}}$.
+
+See <a href="/learn/general-ml/jensen-shannon-divergence">Jensen-Shannon Divergence</a> for the divergence view.
+
+## Non-saturating generator loss
+
+The minimax generator loss can give small gradients early in training.
+
+A common replacement is the non-saturating loss:
+
+$$
+\mathcal{L}_G
+=
+-\mathbb{E}_{z \sim p_z}[\log D(G(z))].
+$$
+
+This loss asks the generator to make fake samples look real.
+
+It gives stronger gradients when the discriminator is confident.
+
+## Stability problems
+
+GAN training can fail in several ways.
+
+Mode collapse happens when the generator produces too few sample types.
+
+Discriminator overpower happens when the discriminator becomes too accurate.
+
+Oscillation can happen because each model changes the other's objective.
+
+Common fixes include better architectures, spectral normalization, gradient penalties, and slower discriminator updates.
+
+## Code example
+
+```python
+import torch
+import torch.nn.functional as F
+
+def gan_losses(discriminator, generator, real, latent_dim):
+    batch_size = real.shape[0]
+    device = real.device
+
+    z = torch.randn(batch_size, latent_dim, device=device)
+    fake = generator(z)
+
+    real_logits = discriminator(real)
+    fake_logits = discriminator(fake.detach())
+
+    d_loss_real = F.binary_cross_entropy_with_logits(
+        real_logits,
+        torch.ones_like(real_logits),
+    )
+    d_loss_fake = F.binary_cross_entropy_with_logits(
+        fake_logits,
+        torch.zeros_like(fake_logits),
+    )
+    d_loss = d_loss_real + d_loss_fake
+
+    fake_logits_for_g = discriminator(fake)
+    g_loss = F.binary_cross_entropy_with_logits(
+        fake_logits_for_g,
+        torch.ones_like(fake_logits_for_g),
+    )
+
+    return d_loss, g_loss
+```
+
+Use `detach()` for fake samples in the discriminator loss.
+
+This prevents discriminator updates from changing generator parameters.
+
+## Common mistakes
+
+Do not treat the discriminator as a fixed classifier.
+
+Do not maximize the generator's original minimax loss when gradients saturate.
+
+Do not ignore mode collapse when samples look sharp but lack diversity.

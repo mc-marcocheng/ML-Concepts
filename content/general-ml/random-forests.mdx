@@ -1,0 +1,92 @@
+---
+id: general-ml/random-forests
+title: Random Forests
+category: general-ml
+summary: Random forests average many randomized decision trees to reduce variance.
+tags:
+  - ensembles
+  - trees
+difficulty: 3
+prereqs:
+  - general-ml/decision-trees
+  - general-ml/bagging
+related:
+  - general-ml/ensembles
+  - general-ml/boosting
+  - general-ml/bias-variance-tradeoff
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+A random forest trains many decision trees on bootstrap samples. It also samples features to reduce tree correlation.
+</TLDR>
+
+## Core idea
+
+A random forest is an ensemble of decision trees.
+
+Each tree trains on a bootstrap sample.
+
+At each split, the tree considers only a random subset of features.
+
+Predictions combine across trees.
+
+For regression:
+
+$$
+\hat y=\frac{1}{M}\sum_{m=1}^M T_m(x).
+$$
+
+For classification, use majority vote or averaged class probabilities.
+
+## Why randomness helps
+
+Deep trees often have high variance.
+
+Bagging averages trees to reduce variance.
+
+Feature sampling makes trees less correlated.
+
+Less correlated trees give a better average.
+
+See <a href="/learn/general-ml/bagging">Bagging</a>.
+
+## Out-of-bag score
+
+Each bootstrap sample omits some training examples.
+
+A tree can evaluate omitted examples.
+
+The out-of-bag score uses these omitted examples to estimate performance.
+
+## Feature importance
+
+Random forests can estimate feature importance.
+
+Impurity-based importance can be biased toward high-cardinality features.
+
+Permutation importance is often more reliable.
+
+## Code example
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+
+model = RandomForestClassifier(
+    n_estimators=200,
+    max_features="sqrt",
+    random_state=0,
+)
+model.fit(X_train, y_train)
+pred = model.predict(X_test)
+```
+
+## Common mistakes
+
+Do not assume feature importance proves causation.
+
+Do not ignore correlated features in importance analysis.
+
+Do not expect random forests to extrapolate well outside training ranges.
+```

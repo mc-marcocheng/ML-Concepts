@@ -1,0 +1,97 @@
+---
+id: applied-ml/jax-pytorch-tensorflow
+title: JAX, PyTorch, TensorFlow
+category: applied-ml
+summary: JAX, PyTorch, and TensorFlow are tensor frameworks with autodiff, accelerator support, and graph tools.
+tags:
+  - frameworks
+  - autodiff
+difficulty: 3
+prereqs:
+  - general-ml/backprop
+  - applied-ml/jit-compiling
+related:
+  - applied-ml/profiling
+  - applied-ml/mixed-precision-training
+  - applied-ml/ddp
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+JAX, PyTorch, and TensorFlow all support tensors, autodiff, and accelerators. They differ in programming style, compiler model, and ecosystem.
+</TLDR>
+
+## Core idea
+
+A tensor framework provides arrays, automatic differentiation, neural-network layers, and accelerator execution.
+
+The three common frameworks are JAX, PyTorch, and TensorFlow.
+
+All three can train large models.
+
+All three can use GPUs and TPUs, with different support levels.
+
+## PyTorch
+
+PyTorch uses eager execution by default.
+
+This makes debugging direct and Python-like.
+
+PyTorch also has `torch.compile` for graph capture and compilation.
+
+PyTorch has strong support for research code and distributed training.
+
+See <a href="/learn/applied-ml/ddp">DDP</a> and <a href="/learn/applied-ml/fsdp">FSDP</a>.
+
+## JAX
+
+JAX uses function transformations.
+
+Important transformations include `grad`, `jit`, `vmap`, and `pmap`.
+
+JAX code usually works best with pure functions and immutable arrays.
+
+JAX integrates closely with XLA compilation.
+
+See <a href="/learn/applied-ml/jit-compiling">JIT Compiling</a>.
+
+## TensorFlow
+
+TensorFlow supports eager execution and graph execution.
+
+`tf.function` converts Python functions into TensorFlow graphs.
+
+Keras provides a high-level model API.
+
+TensorFlow has production tools such as TensorFlow Serving and TensorFlow Lite.
+
+## Choosing a framework
+
+Choose based on team skill, ecosystem, deployment target, and distributed needs.
+
+Use <a href="/learn/applied-ml/profiling">Profiling</a> before making performance claims.
+
+Small examples can mislead because compiler warmup and input pipelines matter.
+
+## Code comparison
+
+```python
+# PyTorch gradient
+x = torch.tensor(2.0, requires_grad=True)
+y = x * x
+y.backward()
+print(x.grad)
+
+# JAX gradient
+grad_fn = jax.grad(lambda z: z * z)
+print(grad_fn(2.0))
+```
+
+## Common mistakes
+
+Do not assume one framework is always fastest.
+
+Do not compare eager code in one framework with compiled code in another.
+
+Do not ignore deployment and debugging needs.

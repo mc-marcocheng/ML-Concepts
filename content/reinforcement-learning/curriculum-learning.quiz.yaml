@@ -1,0 +1,44 @@
+- id: curriculum-mcq-1
+  type: mcq
+  prompt: "What is curriculum learning?"
+  difficulty: 2
+  options:
+    - "Training on tasks in a useful order"
+    - "Removing rewards from an MDP"
+    - "Using only random actions"
+    - "Freezing all policy parameters"
+  correctIndex: 0
+  explanation: "A curriculum controls the task distribution during training."
+  anchor: core-idea
+- id: curriculum-short-1
+  type: short
+  prompt: "Why can a curriculum help sparse-reward learning?"
+  difficulty: 3
+  answer: "Easier early tasks can make rewards reachable, which gives the agent a useful learning signal."
+  rubric:
+    - "Mentions easier early tasks."
+    - "Mentions reachable rewards or learning signal."
+  explanation: "The curriculum can reduce the exploration burden."
+  anchor: link-to-exploration
+- id: curriculum-mcq-2
+  type: mcq
+  prompt: "Which variable can a curriculum change?"
+  difficulty: 1
+  options:
+    - "Goal distance"
+    - "Only the programming language"
+    - "Only the CPU clock"
+    - "Only the file name"
+  correctIndex: 0
+  explanation: "Curricula can adjust task difficulty through goal distance."
+  anchor: curriculum-variables
+- id: curriculum-short-2
+  type: short
+  prompt: "What is one risk of a curriculum?"
+  difficulty: 3
+  answer: "The agent can overfit to easy curriculum tasks and fail on the final task distribution."
+  rubric:
+    - "Mentions overfitting or a train-test gap."
+    - "Mentions final task distribution."
+  explanation: "The curriculum must still prepare the agent for the final task."
+  anchor: risks

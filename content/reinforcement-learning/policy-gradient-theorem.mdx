@@ -1,0 +1,155 @@
+---
+id: reinforcement-learning/policy-gradient-theorem
+title: Policy Gradient Theorem
+category: reinforcement-learning
+summary: The policy gradient theorem gives the gradient of expected return with respect to policy parameters.
+tags:
+  - rl
+  - policy-gradient
+  - optimization
+difficulty: 4
+prereqs:
+  - reinforcement-learning/markov-decision-process
+  - general-ml/expectation
+  - general-ml/backprop
+related:
+  - reinforcement-learning/actor-critic
+  - reinforcement-learning/ppo
+  - reinforcement-learning/variance-reduction-in-rl
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+The policy gradient theorem turns return maximization into a gradient estimator. It uses the score function $\nabla_\theta \log \pi_\theta(a \mid s)$ times a value signal.
+</TLDR>
+
+## Core idea
+
+Let $\pi_\theta(a \mid s)$ be a differentiable policy.
+
+The objective is expected return:
+
+$$
+J(\theta)=\mathbb{E}_{\tau \sim \pi_\theta}[G_0].
+$$
+
+A common policy gradient form is:
+
+$$
+\nabla_\theta J(\theta)
+=
+\mathbb{E}_{\pi_\theta}
+\left[
+\nabla_\theta \log \pi_\theta(a_t \mid s_t)
+Q^{\pi_\theta}(s_t,a_t)
+\right].
+$$
+
+The score term changes the policy probability.
+
+The value term says whether the action was good.
+
+## REINFORCE estimator
+
+A Monte Carlo estimator uses returns:
+
+$$
+\nabla_\theta J(\theta)
+\approx
+\sum_t
+\nabla_\theta \log \pi_\theta(a_t \mid s_t)G_t.
+$$
+
+This estimator is unbiased under standard assumptions.
+
+It can have high variance.
+
+Baselines reduce variance.
+
+See <a href="/learn/reinforcement-learning/variance-reduction-in-rl">Variance Reduction in RL</a>.
+
+## Baseline
+
+You can subtract a state-only baseline:
+
+$$
+\nabla_\theta J(\theta)
+=
+\mathbb{E}
+\left[
+\nabla_\theta \log \pi_\theta(a_t \mid s_t)
+(Q(s_t,a_t)-b(s_t))
+\right].
+$$
+
+The baseline does not change the expected gradient.
+
+A common baseline is $V(s_t)$.
+
+Then the weight becomes the advantage:
+
+$$
+A(s_t,a_t)=Q(s_t,a_t)-V(s_t).
+$$
+
+## Proof
+
+<Proof title="Score function derivation">
+Write the objective over trajectories:
+
+$$
+J(\theta)
+=
+\int p_\theta(\tau)R(\tau)\,d\tau.
+$$
+
+Differentiate under the integral:
+
+$$
+\nabla_\theta J(\theta)
+=
+\int \nabla_\theta p_\theta(\tau)R(\tau)\,d\tau.
+$$
+
+Use the identity:
+
+$$
+\nabla_\theta p_\theta(\tau)
+=
+p_\theta(\tau)\nabla_\theta \log p_\theta(\tau).
+$$
+
+Then:
+
+$$
+\nabla_\theta J(\theta)
+=
+\mathbb{E}_{\tau}
+[
+\nabla_\theta \log p_\theta(\tau)R(\tau)
+].
+$$
+
+The trajectory log probability contains policy terms and dynamics terms.
+
+Dynamics do not depend on $\theta$.
+
+Thus:
+
+$$
+\nabla_\theta \log p_\theta(\tau)
+=
+\sum_t \nabla_\theta \log \pi_\theta(a_t \mid s_t).
+$$
+
+This gives the REINFORCE estimator.
+</Proof>
+
+## Common mistakes
+
+Do not differentiate through sampled actions directly for discrete actions.
+
+Do not forget that baselines must not depend on the sampled action.
+
+Do not ignore variance in long episodes.

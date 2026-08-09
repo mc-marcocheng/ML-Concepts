@@ -1,0 +1,158 @@
+---
+id: general-ml/k-nearest-neighbours
+title: K-Nearest Neighbours
+category: general-ml
+summary: k-NN predicts from the labels of the k closest training points, with no training phase and full memory cost.
+tags:
+  - classification
+  - non-parametric
+difficulty: 2
+prereqs:
+  - general-ml/unsupervised-vs-supervised
+  - general-ml/bias-variance-tradeoff
+related:
+  - general-ml/curse-of-dimensionality
+  - general-ml/clustering-algorithms
+  - general-ml/cross-validation
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+k-NN stores the training set and predicts by majority vote or average over the k nearest points. Small k gives low bias and high variance. The method needs feature scaling and it degrades in high dimensions.
+</TLDR>
+
+## Algorithm
+
+For a query $x$:
+
+1. Compute the distance from $x$ to every training point.
+2. Take the $k$ points with the smallest distance.
+3. Classification returns the majority label. Regression returns the mean target.
+
+There is no fitted parameter. All work happens at prediction time. This is called a lazy or memory based method.
+
+## Distance metrics
+
+| Metric | Formula | Use |
+|---|---|---|
+| Euclidean | $\|x-x'\|_2$ | Continuous features on the same scale |
+| Manhattan | $\|x-x'\|_1$ | High dimension, robust to outliers |
+| Minkowski | $\left(\sum_j |x_j-x'_j|^p\right)^{1/p}$ | General family |
+| Cosine | $1 - \frac{x^\top x'}{\|x\|\|x'\|}$ | Text and embeddings |
+| Hamming | Count of differing entries | Categorical features |
+
+Feature scaling is mandatory for Euclidean distance. A feature measured in meters and a feature measured in millimeters do not contribute equally.
+
+## Choosing k
+
+$k$ controls smoothness.
+
+| $k$ | Bias | Variance | Boundary |
+|---|---|---|---|
+| 1 | Low | High | Very jagged |
+| Moderate | Balanced | Balanced | Smooth |
+| $n$ | High | Low | Constant prediction |
+
+Pick $k$ with <a href="/learn/general-ml/cross-validation">cross validation</a>. For binary classification an odd $k$ avoids ties.
+
+The effective number of parameters is about $n/k$.
+
+## Distance weighting
+
+Uniform voting treats all $k$ neighbors equally. Distance weighting gives closer points more influence:
+
+$$
+\hat{y}(x)
+=
+\frac{\sum_{i \in N_k(x)} w_i y_i}{\sum_{i \in N_k(x)} w_i},
+\qquad
+w_i = \frac{1}{\|x - x_i\| + \epsilon}.
+$$
+
+This softens the effect of a large $k$.
+
+## Error bound for 1-NN
+
+The asymptotic error of 1-NN is at most twice the Bayes error.
+
+<Proof title="Asymptotic 1-NN error is at most twice the Bayes error">
+Consider binary classification. Let $\eta(x) = p(y=1\mid x)$. The Bayes error at $x$ is
+
+$$
+e^\star(x) = \min\big(\eta(x), 1-\eta(x)\big).
+$$
+
+As $n \to \infty$, the nearest neighbor $x'$ of $x$ converges to $x$ under mild continuity conditions. So $\eta(x') \to \eta(x)$.
+
+The 1-NN rule copies the label of $x'$. An error occurs when the true label of $x$ differs from the label of $x'$. Since the two labels are drawn independently given the same $\eta$,
+
+$$
+e_{1\mathrm{NN}}(x)
+=
+\eta(x)\big(1-\eta(x)\big) + \big(1-\eta(x)\big)\eta(x)
+=
+2\eta(x)\big(1-\eta(x)\big).
+$$
+
+Write $e^\star = \min(\eta, 1-\eta)$. Then $\max(\eta, 1-\eta) = 1-e^\star$ and
+
+$$
+e_{1\mathrm{NN}}
+=
+2 e^\star (1 - e^\star)
+\le
+2 e^\star .
+$$
+
+Averaging over $x$ preserves the bound.
+</Proof>
+
+So a very simple rule is never worse than twice the best possible error, in the large sample limit.
+
+## Computational cost
+
+Brute force prediction costs $O(nd)$ per query. For large $n$ this is slow.
+
+| Structure | Best case | Weakness |
+|---|---|---|
+| KD-tree | $O(\log n)$ per query | Degrades above roughly 20 dimensions |
+| Ball tree | Better for higher $d$ | Still limited |
+| LSH | Sublinear approximate | Approximate results |
+| HNSW graph | Fast approximate | Extra memory |
+
+Memory cost is $O(nd)$ because the whole training set stays in memory.
+
+## High dimensions
+
+Distance concentration weakens the notion of a nearest neighbor. See <a href="/learn/general-ml/curse-of-dimensionality">curse of dimensionality</a>.
+
+Mitigations include <a href="/learn/general-ml/dimensionality-reduction">dimensionality reduction</a>, metric learning, and feature selection.
+
+## Code example
+
+```python
+import numpy as np
+
+def knn_predict(X_train, y_train, X_query, k=5):
+    d = ((X_query[:, None, :] - X_train[None, :, :]) ** 2).sum(-1)
+    idx = np.argsort(d, axis=1)[:, :k]
+    votes = y_train[idx]
+    return np.array([np.bincount(v).argmax() for v in votes])
+
+rng = np.random.default_rng(0)
+X = rng.normal(size=(300, 4))
+y = (X[:, 0] + X[:, 1] > 0).astype(int)
+pred = knn_predict(X[:250], y[:250], X[250:], k=5)
+print((pred == y[250:]).mean())
+```
+
+Note the `np.argsort` call costs $O(n \log n)$. Use `np.argpartition` for speed.
+
+## Common mistakes
+
+Do not skip feature standardization.
+
+Do not include the query point itself when you evaluate on training data. That gives a false perfect score at $k=1$.
+
+Do not use a small $k$ on noisy data. Noise then dominates the vote.

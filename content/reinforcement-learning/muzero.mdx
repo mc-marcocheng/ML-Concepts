@@ -1,0 +1,84 @@
+---
+id: reinforcement-learning/muzero
+title: MuZero
+category: reinforcement-learning
+summary: MuZero learns a latent dynamics model for planning without reconstructing observations.
+tags:
+  - rl
+  - model-based
+  - planning
+difficulty: 5
+prereqs:
+  - reinforcement-learning/model-based-vs-model-free
+  - reinforcement-learning/bellman-equations
+related:
+  - reinforcement-learning/alphago
+  - reinforcement-learning/world-models-dreamer
+  - reinforcement-learning/markov-decision-process
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+MuZero learns a latent model that predicts rewards, values, and policies. It uses Monte Carlo tree search over the latent model for planning.
+</TLDR>
+
+## Core idea
+
+MuZero combines learning and planning.
+
+It does not require known environment dynamics.
+
+It does not need to reconstruct observations.
+
+It learns a latent model useful for search.
+
+## Model parts
+
+MuZero uses three learned functions.
+
+The representation function maps an observation history to a latent state:
+
+$$
+h_0 = f_\theta(o_{\le t}).
+$$
+
+The dynamics function predicts the next latent state and reward:
+
+$$
+h_{k+1}, r_k = g_\theta(h_k,a_k).
+$$
+
+The prediction function outputs policy and value:
+
+$$
+p_k, v_k = p_\theta(h_k).
+$$
+
+## Planning
+
+MuZero runs Monte Carlo tree search in latent space.
+
+The search uses predicted rewards, values, and policies.
+
+The improved search policy becomes a training target.
+
+The value target comes from real rewards and search estimates.
+
+## Why it matters
+
+MuZero works without a hand-coded simulator.
+
+It learns only what is needed for planning.
+
+This separates it from models that reconstruct pixels.
+
+See <a href="/learn/reinforcement-learning/world-models-dreamer">World Models and Dreamer</a>.
+
+## Common mistakes
+
+Do not say MuZero learns a full observation simulator.
+
+Do not say it is purely model-free.
+
+Do not ignore the role of tree search.

@@ -1,0 +1,207 @@
+---
+id: generative-modeling/diffusion-sde
+title: Diffusion Forward and Reverse SDE
+category: generative-modeling
+summary: Diffusion SDEs describe continuous-time noising and denoising through stochastic differential equations.
+tags:
+  - diffusion
+  - stochastic-processes
+difficulty: 4
+prereqs:
+  - generative-modeling/score-function
+  - generative-modeling/diffusion-forward-process
+related:
+  - generative-modeling/diffusion-reverse-process
+  - generative-modeling/flow-matching-ode
+  - generative-modeling/classifier-free-guidance
+estReadMin: 9
+updated: 2026-01-01
+---
+
+<TLDR>
+A diffusion SDE adds noise in continuous time. The reverse-time SDE uses the score function to turn noise back into data.
+</TLDR>
+
+## Core idea
+
+Discrete diffusion has many small noising steps.
+
+A diffusion SDE describes the limit of very small steps.
+
+The forward SDE has the form:
+
+$$
+dx = f(x,t)\,dt + g(t)\,dw.
+$$
+
+Here, $w$ is Brownian motion.
+
+The drift $f$ moves the state deterministically.
+
+The diffusion coefficient $g$ controls random noise.
+
+The reverse-time process uses the score:
+
+$$
+\nabla_x \log p_t(x).
+$$
+
+See <a href="/learn/generative-modeling/score-function">Score Function</a> for this vector field.
+
+## Forward SDE
+
+A common variance-preserving SDE is:
+
+$$
+dx
+=
+-\frac{1}{2}\beta(t)x\,dt
++
+\sqrt{\beta(t)}\,dw.
+$$
+
+This process slowly turns data into a standard normal distribution.
+
+It preserves a bounded variance scale when the schedule is chosen well.
+
+Another family is the variance-exploding SDE.
+
+It increases noise variance directly.
+
+## Reverse-time SDE
+
+The reverse-time SDE is:
+
+$$
+dx
+=
+\left[
+f(x,t)-g(t)^2\nabla_x\log p_t(x)
+\right]dt
++
+g(t)d\bar w.
+$$
+
+This equation runs from large $t$ to small $t$.
+
+The term $d\bar w$ is Brownian motion in reverse time.
+
+The score term changes the drift so the process denoises.
+
+In practice, a neural network estimates the score:
+
+$$
+s_\theta(x,t)\approx \nabla_x\log p_t(x).
+$$
+
+<Proof title="Why the score appears in reverse time">
+The forward SDE changes densities according to the Fokker-Planck equation.
+
+For a scalar diffusion coefficient, the density $p_t(x)$ follows:
+
+$$
+\partial_t p_t
+=
+-\nabla\cdot(f p_t)
++
+\frac{1}{2}g(t)^2\Delta p_t.
+$$
+
+Use the identity:
+
+$$
+\Delta p_t
+=
+\nabla\cdot(p_t\nabla \log p_t).
+$$
+
+Then:
+
+$$
+\partial_t p_t
+=
+-\nabla\cdot(f p_t)
++
+\frac{1}{2}g(t)^2
+\nabla\cdot(p_t\nabla \log p_t).
+$$
+
+A reverse-time process must produce the same density path in the opposite time direction.
+
+The drift must include a correction from the density gradient.
+
+This correction is proportional to:
+
+$$
+-g(t)^2\nabla_x\log p_t(x).
+$$
+
+Thus, the reverse drift depends on the score.
+</Proof>
+
+## Probability flow ODE
+
+The same marginals can come from a deterministic ODE.
+
+$$
+dx
+=
+\left[
+f(x,t)
+-
+\frac{1}{2}g(t)^2\nabla_x\log p_t(x)
+\right]dt.
+$$
+
+This is called the probability flow ODE.
+
+It has no Brownian noise term.
+
+It allows deterministic sampling and likelihood computation with a trace term.
+
+It links diffusion models to <a href="/learn/generative-modeling/flow-matching-ode">Flow Matching ODE</a> methods.
+
+## Training the score
+
+Training usually samples a time $t$ and a noisy sample $x_t$.
+
+The model learns a denoising score or an equivalent noise prediction.
+
+A continuous-time objective often has the form:
+
+$$
+\mathbb{E}_{t,x_0,x_t}
+\left[
+\lambda(t)
+\|s_\theta(x_t,t)-\nabla_{x_t}\log p(x_t \mid x_0)\|^2
+\right].
+$$
+
+The weighting function $\lambda(t)$ balances noise levels.
+
+## Code example
+
+```python
+import torch
+
+def reverse_sde_euler(x, t, dt, score, beta):
+    drift = -0.5 * beta(t) * x
+    diffusion = torch.sqrt(beta(t))
+
+    reverse_drift = drift - diffusion.pow(2) * score(x, t)
+    noise = torch.randn_like(x)
+
+    return x + reverse_drift * dt + diffusion * torch.sqrt(dt) * noise
+```
+
+This simple code uses a positive step size variable.
+
+Production samplers must handle time direction carefully.
+
+## Common mistakes
+
+Do not forget that the reverse SDE runs backward in time.
+
+Do not replace the score with a density value.
+
+Do not confuse the stochastic reverse SDE with the deterministic probability flow ODE.

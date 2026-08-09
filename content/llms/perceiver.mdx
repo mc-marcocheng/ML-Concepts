@@ -1,0 +1,86 @@
+---
+id: llms/perceiver
+title: Perceiver
+category: llms
+summary: Perceiver uses a latent bottleneck and cross attention to process large or multimodal inputs.
+tags:
+  - attention
+  - multimodal
+  - architecture
+difficulty: 4
+prereqs:
+  - llms/cross-attention
+  - llms/causal-attention
+related:
+  - llms/griffin
+  - llms/mixture-of-experts
+  - llms/llm-vs-rnn-vs-s4
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Perceiver maps large inputs into a fixed-size latent array with cross attention. It then processes the latent array with self-attention.
+</TLDR>
+
+## Core idea
+
+Perceiver separates input size from internal attention cost.
+
+It uses a learned latent array $Z$.
+
+The latent array cross-attends to input features $X$.
+
+Then the model applies self-attention inside the latent array.
+
+If $X$ has $N$ items and $Z$ has $M$ latent items, then cross attention costs $O(NM)$.
+
+Latent self-attention costs $O(M^2)$.
+
+This helps when $M$ is much smaller than $N$.
+
+## Cross attention bottleneck
+
+In Perceiver cross attention:
+
+$$
+Q = ZW_Q
+$$
+
+$$
+K = XW_K
+$$
+
+$$
+V = XW_V.
+$$
+
+The output updates the latent array.
+
+See <a href="/learn/llms/cross-attention">cross attention</a> for the query, key, and value roles.
+
+## Latent processing
+
+After cross attention, the model applies several latent self-attention blocks.
+
+These blocks mix information inside the latent array.
+
+The compute depends on $M$, not directly on $N$.
+
+## Perceiver IO
+
+Perceiver IO adds flexible outputs.
+
+Output queries attend to the latent array.
+
+This lets the model produce labels, sequences, or dense predictions.
+
+## Common mistakes
+
+Do not say Perceiver removes attention.
+
+It still uses attention.
+
+Do not confuse input tokens with latent tokens.
+
+Do not make $M$ too small for a hard task.

@@ -1,0 +1,44 @@
+- id: onoff-mcq-1
+  type: mcq
+  prompt: "What does on-policy learning use?"
+  difficulty: 2
+  options:
+    - "Data from the policy being learned"
+    - "Only random data"
+    - "Only expert data"
+    - "No rewards"
+  correctIndex: 0
+  explanation: "On-policy learning evaluates or improves the same policy that collects data."
+  anchor: core-idea
+- id: onoff-short-1
+  type: short
+  prompt: "Why can off-policy learning improve data efficiency?"
+  difficulty: 3
+  answer: "It can learn from data collected by older or different behavior policies, such as replay-buffer data."
+  rubric:
+    - "Mentions different or older behavior policies."
+    - "Mentions reuse of data or replay."
+  explanation: "Off-policy methods do not require all data to come from the current target policy."
+  anchor: why-off-policy-learning-helps
+- id: onoff-mcq-2
+  type: mcq
+  prompt: "Which pair is usually correct?"
+  difficulty: 3
+  options:
+    - "SARSA is off-policy and Q-learning is on-policy"
+    - "SARSA is on-policy and Q-learning is off-policy"
+    - "Both are always on-policy"
+    - "Both require no exploration"
+  correctIndex: 1
+  explanation: "Basic SARSA follows the behavior policy. Q-learning targets a greedy policy."
+  anchor: examples
+- id: onoff-short-2
+  type: short
+  prompt: "What risk appears when target and behavior policies differ greatly?"
+  difficulty: 4
+  answer: "The data distribution can mismatch the target policy, and correction weights can have high variance."
+  rubric:
+    - "Mentions distribution mismatch."
+    - "Mentions high-variance correction or unstable learning."
+  explanation: "Off-policy learning often needs correction or conservative updates."
+  anchor: main-tradeoffs

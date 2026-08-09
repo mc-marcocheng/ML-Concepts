@@ -1,0 +1,115 @@
+---
+id: llms/causal-attention
+title: Causal Attention
+category: llms
+summary: Causal attention masks future tokens so each position can only use past and current tokens.
+tags:
+  - attention
+  - transformers
+  - language-modeling
+difficulty: 3
+prereqs:
+  - llms/llm-scaling-factor
+related:
+  - llms/cross-attention
+  - llms/flash-attention
+  - llms/decoding-techniques
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Causal attention prevents a token from attending to future tokens. This makes next-token prediction valid for autoregressive language modeling.
+</TLDR>
+
+## Core idea
+
+Self-attention lets each token read other token representations.
+
+In autoregressive language modeling, position $t$ must not read positions greater than $t$.
+
+Causal attention applies a mask to future positions.
+
+The attention weights for future tokens become zero after softmax.
+
+## Masked attention formula
+
+For queries $Q$, keys $K$, and values $V$:
+
+$$
+S = \frac{QK^\top}{\sqrt{d_k}} + M.
+$$
+
+The mask $M$ has value $0$ for allowed positions.
+
+It has value $-\infty$ for disallowed future positions.
+
+Then:
+
+$$
+\operatorname{Attention}(Q,K,V)
+=
+\operatorname{softmax}(S)V.
+$$
+
+## Why the mask works
+
+Softmax of a very negative value becomes zero.
+
+Thus future positions get zero attention weight.
+
+The model cannot use future tokens when it predicts the next token.
+
+<Proof title="Future positions get zero weight">
+For a disallowed future position, the masked logit is:
+
+$$
+s_j + (-\infty) = -\infty.
+$$
+
+Softmax gives:
+
+$$
+\frac{e^{-\infty}}{\sum_i e^{s_i}} = 0.
+$$
+
+Thus the future token contributes no value vector.
+</Proof>
+
+## Training versus generation
+
+During training, the model can process the whole sequence in parallel.
+
+The causal mask prevents future leakage.
+
+During generation, the model appends one token at a time.
+
+A key-value cache stores past keys and values.
+
+## Code example
+
+```python
+import torch
+import torch.nn.functional as F
+
+def causal_attention(q, k, v):
+    t = q.shape[-2]
+    d_k = q.shape[-1]
+
+    scores = q @ k.transpose(-2, -1) / d_k**0.5
+    mask = torch.triu(torch.ones(t, t, device=q.device), diagonal=1).bool()
+    scores = scores.masked_fill(mask, float("-inf"))
+
+    weights = F.softmax(scores, dim=-1)
+    return weights @ v
+```
+
+## Common mistakes
+
+Do not let labels leak through the attention mask.
+
+Do not apply the causal mask after softmax.
+
+Do not confuse causal attention with cross attention.
+
+Do not forget padding masks when batches have different lengths.

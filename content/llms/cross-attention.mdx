@@ -1,0 +1,104 @@
+---
+id: llms/cross-attention
+title: Cross Attention
+category: llms
+summary: Cross attention lets one sequence query information from another sequence.
+tags:
+  - attention
+  - transformers
+  - multimodal
+difficulty: 3
+prereqs:
+  - llms/llm-scaling-factor
+related:
+  - llms/causal-attention
+  - llms/perceiver
+  - llms/relative-positional-embeddings
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Cross attention uses queries from one source and keys and values from another source. It lets a target sequence read an input sequence or memory.
+</TLDR>
+
+## Core idea
+
+Self-attention uses queries, keys, and values from the same sequence.
+
+Cross attention uses queries from one sequence.
+
+It uses keys and values from another sequence.
+
+For target states $Y$ and source states $X$:
+
+$$
+Q = YW_Q
+$$
+
+$$
+K = XW_K
+$$
+
+$$
+V = XW_V.
+$$
+
+Then attention is:
+
+$$
+\operatorname{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V.
+$$
+
+## Encoder-decoder use
+
+In an encoder-decoder Transformer, the decoder uses cross attention.
+
+The decoder queries the encoder output.
+
+This lets generated tokens use the input sequence.
+
+Machine translation is a common example.
+
+## Multimodal use
+
+Cross attention can connect text to images, audio, or retrieved documents.
+
+For example, text queries can attend to image patch features.
+
+A retriever can provide document embeddings as keys and values.
+
+## Shapes
+
+If the target length is $T$ and source length is $S$, then $QK^\top$ has shape:
+
+$$
+T \times S.
+$$
+
+Each target position gets a distribution over source positions.
+
+## Code example
+
+```python
+import torch.nn.functional as F
+
+def cross_attention(y, x, wq, wk, wv):
+    q = y @ wq
+    k = x @ wk
+    v = x @ wv
+
+    scores = q @ k.transpose(-2, -1) / q.shape[-1]**0.5
+    weights = F.softmax(scores, dim=-1)
+    return weights @ v
+```
+
+## Common mistakes
+
+Do not call cross attention the same as causal self-attention.
+
+Do not use source states for queries in the standard decoder cross-attention block.
+
+Do not forget masks for padded source tokens.
+
+Do not assume target and source lengths must match.

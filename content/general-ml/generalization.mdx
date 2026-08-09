@@ -1,0 +1,88 @@
+---
+id: general-ml/generalization
+title: Generalization
+category: general-ml
+summary: Generalization measures how well a model performs on new data from the target distribution.
+tags:
+  - evaluation
+  - generalization
+difficulty: 2
+prereqs:
+  - general-ml/overfitting-underfitting
+related:
+  - general-ml/cross-validation
+  - general-ml/bias-variance-tradeoff
+  - general-ml/domain-adaptation
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+Generalization is performance on new data, not memorized training data. Validation and test sets estimate this performance.
+</TLDR>
+
+## Core idea
+
+A model generalizes when it performs well on new examples.
+
+Training loss measures fit to observed examples.
+
+Test loss estimates performance on unseen examples.
+
+The goal is low expected loss on the target distribution.
+
+$$
+R(f)=\mathbb{E}_{(x,y)\sim p_{\text{target}}}[\ell(f(x),y)].
+$$
+
+See <a href="/learn/general-ml/loss-functions">Loss Functions</a>.
+
+## Train, validation, and test sets
+
+A training set fits parameters.
+
+A validation set selects models and hyperparameters.
+
+A test set estimates final performance.
+
+Do not tune repeatedly on the test set.
+
+## Generalization gap
+
+The generalization gap is the difference between training performance and validation or test performance.
+
+A large gap often suggests overfitting.
+
+A small gap with poor training performance can suggest underfitting.
+
+See <a href="/learn/general-ml/overfitting-underfitting">Overfitting and Underfitting</a>.
+
+## What affects generalization
+
+Generalization depends on many factors.
+
+- data size
+- data quality
+- model capacity
+- regularization
+- optimization
+- train-test distribution match
+
+Use <a href="/learn/general-ml/cross-validation">Cross-Validation</a> when a single split is too noisy.
+
+## Distribution shift
+
+A model can generalize poorly if the target distribution differs from training data.
+
+This problem is distribution shift.
+
+See <a href="/learn/general-ml/domain-adaptation">Domain Adaptation</a> for a target-domain view.
+
+## Common mistakes
+
+Do not report training performance as final performance.
+
+Do not tune hyperparameters on the test set.
+
+Do not assume random splits are valid for time-dependent data.
+```

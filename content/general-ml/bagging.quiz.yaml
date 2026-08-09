@@ -1,0 +1,82 @@
+- id: bag-latex-1
+  type: latex
+  prompt: "Write the variance of the average of $B$ estimators each with variance $\\sigma^2$ and pairwise correlation $\\rho$."
+  difficulty: 4
+  answer: "\\rho\\sigma^2 + \\frac{1-\\rho}{B}\\sigma^2"
+  rubric:
+    - "Includes the irreducible correlated term."
+    - "Includes the term that decays like one over B."
+  explanation: "Adding models removes only the uncorrelated part of the variance."
+  anchor: why-averaging-reduces-variance
+- id: bag-numeric-1
+  type: numeric
+  prompt: "What fraction of training points is out-of-bag for a single bootstrap sample as $n$ grows large?"
+  difficulty: 2
+  value: 0.367879
+  tolerance: 0.001
+  explanation: "The limit of $(1-1/n)^n$ is $e^{-1}\\approx 0.368$."
+  anchor: out-of-bag-estimate
+- id: bag-mcq-1
+  type: mcq
+  prompt: "Bagging mainly reduces which part of the error?"
+  difficulty: 1
+  options:
+    - "Bias"
+    - "Variance"
+    - "Irreducible noise"
+    - "Training loss"
+  correctIndex: 1
+  explanation: "Averaging independent-ish predictors shrinks variance and leaves bias unchanged."
+  anchor: bias-stays-the-same
+- id: bag-mcq-2
+  type: mcq
+  prompt: "Why does a random forest sample features at each split?"
+  difficulty: 3
+  options:
+    - "To speed up training only"
+    - "To reduce the correlation between trees and lower the variance floor"
+    - "To reduce the bias of each tree"
+    - "To make the trees deterministic"
+  correctIndex: 1
+  explanation: "The variance of the average bottoms out at $\\rho\\sigma^2$, so lowering rho helps."
+  anchor: random-forests
+- id: bag-short-1
+  type: short
+  prompt: "Why does adding more trees never overfit a random forest?"
+  difficulty: 3
+  answer: "Each tree is trained independently of the others, so averaging more of them only reduces the variance term. The expected prediction does not change, so the fit does not become more complex."
+  rubric:
+    - "States that trees are independent given the data."
+    - "States that averaging changes variance but not the expected prediction."
+  explanation: "Depth and feature sampling control the fit, not the tree count."
+  anchor: random-forests
+- id: bag-short-2
+  type: short
+  prompt: "What is the out-of-bag error and why is it useful?"
+  difficulty: 3
+  answer: "It predicts each training point with only the models whose bootstrap sample excluded that point. It estimates generalization error without a separate validation split or extra training."
+  rubric:
+    - "Describes predicting with models that did not see the point."
+    - "States that it estimates generalization for free."
+  explanation: "It behaves much like cross validation at no additional cost."
+  anchor: out-of-bag-estimate
+- id: bag-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the bootstrap index draw and the ensemble prediction."
+  difficulty: 2
+  scaffold: |
+    idx = ___
+    model = DecisionTreeRegressor().fit(X[idx], y[idx])
+    pred = ___
+  blanks:
+    - id: 1
+      answer: "rng.integers(0, n, size=n)"
+      rubric:
+        - "Samples n indices with replacement."
+    - id: 2
+      answer: "np.mean([m.predict(X) for m in models], axis=0)"
+      rubric:
+        - "Averages the predictions of all base models."
+  explanation: "Bootstrap sampling uses replacement, and bagging averages the outputs."
+  anchor: code-example

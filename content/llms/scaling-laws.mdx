@@ -1,0 +1,114 @@
+---
+id: llms/scaling-laws
+title: Scaling Laws
+category: llms
+summary: Scaling laws describe how model loss changes with parameters, data, and compute.
+tags:
+  - scaling
+  - training
+  - empirical-laws
+difficulty: 4
+prereqs:
+  - general-ml/loss-functions
+  - general-ml/entropy
+related:
+  - llms/pretraining
+  - llms/mixture-of-experts
+  - llms/llm-scaling-factor
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+Scaling laws model how loss changes as data, parameters, and compute grow. They help choose model size and training tokens for a compute budget.
+</TLDR>
+
+## Core idea
+
+LLM scaling laws are empirical relationships.
+
+They often fit loss with power laws.
+
+A common form is:
+
+$$
+L(N,D)
+=
+L_{\infty}
++
+aN^{-\alpha}
++
+bD^{-\beta}.
+$$
+
+Here $N$ is parameter count.
+
+Here $D$ is the number of training tokens.
+
+The constants come from experiments.
+
+## Compute tradeoff
+
+Training compute grows roughly with parameters times tokens.
+
+A simple estimate is:
+
+$$
+C \propto ND.
+$$
+
+For a fixed compute budget, you must choose $N$ and $D$.
+
+A larger model trained on too few tokens can undertrain.
+
+A smaller model trained on more tokens can perform better at the same compute.
+
+## Compute-optimal training
+
+Compute-optimal scaling chooses model size and data size together.
+
+Chinchilla-style results showed that many older LLMs used too many parameters for their token count.
+
+The practical lesson is simple.
+
+Use enough training tokens for the model size.
+
+## What scaling laws do not guarantee
+
+Scaling laws extrapolate from measured runs.
+
+They can fail after data quality changes.
+
+They can fail after architecture changes.
+
+They also do not predict all downstream skills.
+
+Use them as planning tools, not proofs.
+
+## Code example
+
+```python
+def predicted_loss(n_params, n_tokens, l_inf, a, alpha, b, beta):
+    return l_inf + a * n_params**(-alpha) + b * n_tokens**(-beta)
+
+loss = predicted_loss(
+    n_params=7e9,
+    n_tokens=1.4e12,
+    l_inf=1.5,
+    a=100,
+    alpha=0.08,
+    b=200,
+    beta=0.10,
+)
+print(loss)
+```
+
+## Common mistakes
+
+Do not treat scaling laws as exact physical laws.
+
+Do not ignore data quality.
+
+Do not compare models with very different training recipes without care.
+
+Do not optimize parameter count alone.

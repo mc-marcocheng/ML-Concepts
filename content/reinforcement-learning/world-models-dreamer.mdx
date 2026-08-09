@@ -1,0 +1,88 @@
+---
+id: reinforcement-learning/world-models-dreamer
+title: World Models and Dreamer
+category: reinforcement-learning
+summary: World models learn latent dynamics so agents can train policies from imagined rollouts.
+tags:
+  - rl
+  - model-based
+  - latent-dynamics
+difficulty: 4
+prereqs:
+  - reinforcement-learning/model-based-vs-model-free
+  - reinforcement-learning/markov-decision-process
+related:
+  - reinforcement-learning/muzero
+  - reinforcement-learning/actor-critic
+  - reinforcement-learning/exploration-vs-exploitation
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+A world model learns a compact predictive model of the environment. Dreamer trains an actor and critic on imagined rollouts in the learned latent space.
+</TLDR>
+
+## Core idea
+
+A world model predicts how the environment changes.
+
+It often uses latent states instead of raw observations.
+
+A latent model can predict rewards, discounts, and future latent states.
+
+Dreamer uses this learned model to imagine trajectories.
+
+Then it trains the policy from those imagined trajectories.
+
+## Dreamer components
+
+Dreamer has three main parts.
+
+1. A representation model encodes observations into latent states.
+
+2. A dynamics model predicts future latent states.
+
+3. Actor and critic networks learn from imagined rollouts.
+
+The model does not need to reconstruct every pixel perfectly.
+
+It must predict information useful for control.
+
+## Imagined rollouts
+
+Dreamer starts from real latent states.
+
+It rolls the dynamics model forward under the actor.
+
+It computes predicted rewards and values.
+
+Then it updates the actor and critic through the imagined trajectory.
+
+This improves data efficiency.
+
+## Main risks
+
+Learned dynamics can be wrong.
+
+Long imagined rollouts can compound model errors.
+
+The policy can exploit mistakes in the model.
+
+Short horizons and model regularization can help.
+
+## Link to other methods
+
+Dreamer is model-based.
+
+MuZero also plans in a learned latent space.
+
+See <a href="/learn/reinforcement-learning/muzero">MuZero</a>.
+
+## Common mistakes
+
+Do not require a world model to reconstruct raw observations.
+
+Do not trust long imagined rollouts without checking model error.
+
+Do not confuse latent dynamics with observed-state dynamics.

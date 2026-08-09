@@ -1,0 +1,97 @@
+---
+id: general-ml/no-free-lunch-theorem
+title: No Free Lunch Theorem
+category: general-ml
+summary: Averaged over all possible problems, every learning algorithm has the same expected performance.
+tags:
+  - theory
+  - generalisation
+difficulty: 3
+prereqs:
+  - general-ml/expectation
+  - general-ml/unsupervised-vs-supervised
+related:
+  - general-ml/bias-variance-tradeoff
+  - general-ml/cross-validation
+  - general-ml/regularisation-methods
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+If you average over every possible target function, all algorithms tie. Useful learning therefore depends on assumptions that match the real problem, and those assumptions are called inductive bias.
+</TLDR>
+
+## Core idea
+
+Wolpert stated the theorem for supervised learning. Wolpert and Macready stated a matching result for search and optimization.
+
+The supervised version says this. Take a finite input space $\mathcal{X}$ and a finite label space $\mathcal{Y}$. Put a uniform distribution over all functions $f:\mathcal{X}\to\mathcal{Y}$. Then for any two algorithms $A$ and $B$,
+
+$$
+\mathbb{E}_f\big[\mathrm{err}_{\text{off}}(A, f)\big]
+=
+\mathbb{E}_f\big[\mathrm{err}_{\text{off}}(B, f)\big],
+$$
+
+where $\mathrm{err}_{\text{off}}$ is the error on inputs outside the training set.
+
+## Why the average ties
+
+The proof rests on symmetry. The training set fixes the labels on seen inputs. The uniform prior leaves the labels on unseen inputs completely free.
+
+<Proof title="Off-training-set error is algorithm independent under a uniform prior">
+Let $S$ be a training set that covers a subset $\mathcal{X}_S \subset \mathcal{X}$. Let $x \notin \mathcal{X}_S$ be an unseen input.
+
+An algorithm $A$ produces a hypothesis $h_A$ that depends only on $S$. So the prediction $h_A(x)$ is fixed once $S$ is fixed.
+
+Now sample $f$ uniformly from all functions consistent with $S$. The value $f(x)$ is uniform over $\mathcal{Y}$ and independent of $f$ on other unseen points.
+
+The probability of an error at $x$ is
+
+$$
+\Pr\big[f(x) \neq h_A(x)\big]
+=
+1 - \frac{1}{|\mathcal{Y}|}.
+$$
+
+This value does not depend on $h_A(x)$. So it does not depend on $A$.
+
+Average over all unseen $x$ and over all training sets. The expected off-training-set error equals $1 - 1/|\mathcal{Y}|$ for every algorithm.
+</Proof>
+
+## What the theorem does not say
+
+The theorem does not say that all algorithms perform equally on real data. Real problems are not uniform over all functions.
+
+Real targets are smooth, compositional, or sparse far more often than chance would allow.
+
+The theorem also says nothing about training set error. It concerns unseen inputs only.
+
+## Inductive bias
+
+Inductive bias is the set of assumptions that an algorithm uses to generalize beyond the data.
+
+| Model | Inductive bias |
+|---|---|
+| Linear regression | The target is close to a linear function |
+| <a href="/learn/general-ml/k-nearest-neighbours">k-NN</a> | Nearby inputs share labels |
+| <a href="/learn/general-ml/cnns">CNN</a> | Local patterns, translation equivariance |
+| <a href="/learn/general-ml/decision-trees">Decision tree</a> | Axis aligned piecewise constant structure |
+| Ridge regression | Small weights are more plausible |
+
+The theorem turns model choice into a claim about the problem. You must pick a bias that fits the data you actually have.
+
+## Practical consequences
+
+1. Compare models with <a href="/learn/general-ml/cross-validation">cross validation</a> on your own data. Do not trust a general ranking.
+2. Encode domain structure when you can. Structure beats raw capacity when data is limited.
+3. Expect no single best optimizer, loss, or architecture across all tasks.
+
+## Common mistakes
+
+Do not use the theorem to argue that model choice does not matter. It argues the opposite for real data.
+
+Do not read the theorem as a statement about a specific dataset.
+
+Do not forget that the result assumes a uniform prior over targets.

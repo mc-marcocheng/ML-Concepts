@@ -1,0 +1,79 @@
+---
+id: applied-ml/profiling
+title: Profiling
+category: applied-ml
+summary: Profiling measures time, memory, and hardware use so you can find training bottlenecks.
+tags:
+  - performance
+  - debugging
+difficulty: 3
+prereqs:
+  - applied-ml/jit-compiling
+related:
+  - applied-ml/mixed-precision-training
+  - applied-ml/gradient-checkpointing
+  - applied-ml/communication-primitives
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+Profiling measures where time and memory go. It helps separate compute bottlenecks, memory bottlenecks, input bottlenecks, and communication bottlenecks.
+</TLDR>
+
+## Core idea
+
+Do not optimize before you measure.
+
+A profiler records operations, duration, memory use, and device activity.
+
+Common tools include PyTorch Profiler, TensorBoard, Nsight Systems, and framework logs.
+
+Profiling answers questions such as:
+
+| Question | Signal |
+|---|---|
+| Is the GPU idle? | input pipeline or synchronization problem |
+| Are kernels small? | launch overhead or fragmentation |
+| Is memory near full? | activation, parameter, or optimizer memory |
+| Is all-reduce slow? | communication bottleneck |
+
+## GPU timing
+
+GPU operations are often asynchronous.
+
+A CPU timer can finish before GPU work finishes.
+
+Use device synchronization around simple timers.
+
+```python
+import time
+import torch
+
+torch.cuda.synchronize()
+t0 = time.time()
+
+loss = model(x).sum()
+loss.backward()
+
+torch.cuda.synchronize()
+print(time.time() - t0)
+```
+
+## Profiling loop
+
+A good profiling loop has warmup steps and measured steps.
+
+Warmup avoids one-time costs.
+
+This matters for <a href="/learn/applied-ml/jit-compiling">JIT Compiling</a> and kernel caching.
+
+## Common mistakes
+
+Do not trust a single step.
+
+Do not include data download time unless you want to measure it.
+
+Do not ignore synchronization.
+
+Do not optimize the largest-looking operation without checking end-to-end time.

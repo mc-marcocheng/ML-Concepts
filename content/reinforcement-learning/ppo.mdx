@@ -1,0 +1,96 @@
+---
+id: reinforcement-learning/ppo
+title: Proximal Policy Optimization
+category: reinforcement-learning
+summary: PPO improves a policy with clipped probability ratios to limit destructive policy updates.
+tags:
+  - rl
+  - policy-gradient
+  - ppo
+difficulty: 4
+prereqs:
+  - reinforcement-learning/policy-gradient-theorem
+  - reinforcement-learning/gae
+  - reinforcement-learning/on-policy-vs-off-policy
+related:
+  - reinforcement-learning/actor-critic
+  - reinforcement-learning/grpo
+  - reinforcement-learning/rlhf
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+PPO is an on-policy actor-critic method. It uses clipped policy ratios so the new policy does not move too far from the data policy.
+</TLDR>
+
+## Core idea
+
+PPO collects rollouts with an old policy.
+
+It updates a new policy with probability ratio:
+
+$$
+r_t(\theta)
+=
+\frac{\pi_\theta(a_t \mid s_t)}
+{\pi_{\theta_{\mathrm{old}}}(a_t \mid s_t)}.
+$$
+
+The clipped surrogate objective is:
+
+$$
+L^{\mathrm{CLIP}}(\theta)
+=
+\mathbb{E}
+\left[
+\min
+\left(
+r_t(\theta)\hat A_t,
+\operatorname{clip}(r_t(\theta),1-\epsilon,1+\epsilon)\hat A_t
+\right)
+\right].
+$$
+
+## Why clipping helps
+
+Large policy updates can destroy performance.
+
+The ratio measures how much action probability changes.
+
+Clipping limits the objective incentive outside a trust region.
+
+It is not a hard KL constraint.
+
+Many implementations also monitor KL divergence.
+
+## PPO training loop
+
+1. Collect rollouts with the current policy.
+
+2. Estimate advantages, often with <a href="/learn/reinforcement-learning/gae">GAE</a>.
+
+3. Optimize the clipped policy loss for several epochs.
+
+4. Train the value function.
+
+5. Repeat with fresh rollouts.
+
+## Code example
+
+```python
+import torch
+
+ratio = torch.exp(logp_new - logp_old)
+unclipped = ratio * adv
+clipped = torch.clamp(ratio, 1 - eps, 1 + eps) * adv
+policy_loss = -torch.mean(torch.minimum(unclipped, clipped))
+```
+
+## Common mistakes
+
+Do not reuse old rollouts for too many epochs.
+
+Do not forget to detach old log probabilities.
+
+Do not treat clipping as a full off-policy correction.

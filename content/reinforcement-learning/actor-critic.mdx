@@ -1,0 +1,91 @@
+---
+id: reinforcement-learning/actor-critic
+title: Actor-Critic
+category: reinforcement-learning
+summary: Actor-critic methods train a policy actor and a value critic together.
+tags:
+  - rl
+  - policy-gradient
+  - value-functions
+difficulty: 3
+prereqs:
+  - reinforcement-learning/policy-gradient-theorem
+  - reinforcement-learning/bellman-equations
+related:
+  - reinforcement-learning/gae
+  - reinforcement-learning/ppo
+  - reinforcement-learning/soft-actor-critic
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+Actor-critic methods use an actor to choose actions and a critic to estimate value. The critic supplies lower-variance learning signals for the actor.
+</TLDR>
+
+## Core idea
+
+The actor is a policy:
+
+$$
+\pi_\theta(a \mid s).
+$$
+
+The critic estimates a value function.
+
+Common critics estimate $V^\pi(s)$ or $Q^\pi(s,a)$.
+
+The actor update uses a policy-gradient term:
+
+$$
+\nabla_\theta \log \pi_\theta(a_t \mid s_t)\hat A_t.
+$$
+
+The critic helps compute $\hat A_t$.
+
+## Critic training
+
+A value critic can minimize squared TD error:
+
+$$
+L_V
+=
+\left(
+V_\phi(s_t)-
+[r_t+\gamma V_\phi(s_{t+1})]
+\right)^2.
+$$
+
+The critic does not need to be perfect.
+
+It should give useful advantage estimates.
+
+## Why use a critic
+
+Pure Monte Carlo policy gradients can have high variance.
+
+A critic reduces variance through bootstrapping and baselines.
+
+This can add bias if the critic is inaccurate.
+
+See <a href="/learn/reinforcement-learning/variance-reduction-in-rl">Variance Reduction in RL</a>.
+
+## Common variants
+
+A2C uses synchronous actor-critic updates.
+
+A3C uses asynchronous workers.
+
+PPO commonly uses an actor-critic architecture.
+
+SAC uses actor-critic with entropy regularization.
+
+See <a href="/learn/reinforcement-learning/soft-actor-critic">Soft Actor-Critic</a>.
+
+## Common mistakes
+
+Do not train the actor through the critic target by accident.
+
+Do not ignore critic loss scale.
+
+Do not assume a lower critic loss always gives a better policy.

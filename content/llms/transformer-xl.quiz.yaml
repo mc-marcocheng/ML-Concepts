@@ -1,0 +1,48 @@
+- id: txl-mcq-1
+  type: mcq
+  prompt: "What does Transformer-XL reuse from previous segments?"
+  difficulty: 2
+  options:
+    - "Hidden states"
+    - "Only token IDs"
+    - "Only gradients"
+    - "Vocabulary logits"
+  correctIndex: 0
+  explanation: "Transformer-XL caches hidden states from previous segments."
+  anchor: core-idea
+
+- id: txl-short-1
+  type: short
+  prompt: "Why does Transformer-XL use stop-gradient on cached hidden states?"
+  difficulty: 3
+  answer: "Stop-gradient prevents the computation graph from growing through all previous segments."
+  rubric:
+    - "Mentions cached hidden states."
+    - "Mentions limiting backpropagation."
+    - "Mentions memory or graph size."
+  explanation: "The cache gives memory without full backpropagation through history."
+  anchor: segment-recurrence
+
+- id: txl-latex-1
+  type: latex
+  prompt: "Write the memory concatenation used by Transformer-XL."
+  difficulty: 4
+  answer: '[\operatorname{SG}(h_{\tau-1}^{n-1});h_{\tau}^{n-1}]'
+  rubric:
+    - "Includes previous segment hidden states."
+    - "Includes stop-gradient."
+    - "Concatenates with current segment hidden states."
+  explanation: "Transformer-XL concatenates stopped previous states with current states."
+  anchor: segment-recurrence
+
+- id: txl-order-1
+  type: order
+  prompt: "Put the Transformer-XL segment steps in order."
+  difficulty: 3
+  steps:
+    - "Load cached hidden states from the previous segment"
+    - "Concatenate cached states with current states for keys and values"
+    - "Apply attention for the current segment"
+    - "Cache new hidden states for the next segment"
+  explanation: "Transformer-XL carries hidden-state memory across segments."
+  anchor: segment-recurrence

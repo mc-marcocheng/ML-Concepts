@@ -1,0 +1,86 @@
+---
+id: llms/griffin
+title: Griffin
+category: llms
+summary: Griffin is a hybrid sequence model that mixes recurrent gated layers with local attention.
+tags:
+  - sequence-models
+  - recurrence
+  - long-context
+difficulty: 4
+prereqs:
+  - llms/llm-vs-rnn-vs-s4
+  - llms/causal-attention
+related:
+  - llms/transformer-xl
+  - llms/perceiver
+  - llms/scaling-laws
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Griffin uses recurrent gated blocks and local attention. It aims to keep long-context memory with lower inference cost than full attention.
+</TLDR>
+
+## Core idea
+
+Griffin is a hybrid architecture for sequence modeling.
+
+It combines local attention with recurrent gated layers.
+
+The recurrent layers carry state across tokens.
+
+The local attention layers model nearby token interactions.
+
+This design can reduce the cost of long-context inference.
+
+## Recurrent gated state
+
+A simple gated recurrence has the form:
+
+$$
+h_t = a_t \odot h_{t-1} + (1-a_t)\odot \tilde{x}_t.
+$$
+
+The gate $a_t$ controls how much old state remains.
+
+A value near one keeps memory.
+
+A value near zero replaces memory with new input.
+
+Griffin uses richer gated recurrent blocks than this simple form.
+
+The idea is still state update through time.
+
+## Local attention
+
+Local attention restricts each token to a nearby window.
+
+This avoids full quadratic attention over all past tokens.
+
+The recurrent state gives another path for long-range information.
+
+Use <a href="/learn/llms/causal-attention">causal attention</a> for the mask idea.
+
+## Comparison to Transformers
+
+A full Transformer attends to many earlier tokens directly.
+
+Griffin compresses part of the history into recurrent state.
+
+This can make decoding cheaper.
+
+It can also change the failure modes.
+
+A small state can forget details that full attention could retrieve.
+
+## Common mistakes
+
+Do not call Griffin a plain RNN.
+
+Do not call it a standard Transformer.
+
+Do not assume recurrent state stores all past tokens exactly.
+
+Do not ignore the role of local attention.

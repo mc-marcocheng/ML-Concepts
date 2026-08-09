@@ -1,0 +1,96 @@
+---
+id: llms/pretraining
+title: Pretraining
+category: llms
+summary: Pretraining teaches a language model general patterns by optimizing a self-supervised objective on large text corpora.
+tags:
+  - training
+  - language-modeling
+  - data
+difficulty: 3
+prereqs:
+  - llms/tokenization
+  - general-ml/loss-functions
+related:
+  - llms/finetuning
+  - llms/scaling-laws
+  - llms/rlhf
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+Pretraining optimizes a self-supervised language-modeling loss on large data. It gives the model general capabilities before task-specific adaptation.
+</TLDR>
+
+## Core idea
+
+Decoder-only LLMs usually train with next-token prediction.
+
+Given tokens $x_1,\dots,x_T$, the model predicts each next token.
+
+The objective is negative log likelihood:
+
+$$
+\mathcal{L}
+=
+-\sum_{t=1}^{T-1}\log p_\theta(x_{t+1}\mid x_{\le t}).
+$$
+
+This is self-supervised.
+
+The target token comes from the input text itself.
+
+## Data mixture
+
+Pretraining data usually mixes many sources.
+
+Examples include web text, books, code, and math data.
+
+Data quality strongly affects the result.
+
+Deduplication can reduce memorization.
+
+Filtering can reduce harmful or low-quality text.
+
+## Training loop
+
+A basic training step uses shifted inputs and labels.
+
+```python
+import torch.nn.functional as F
+
+def lm_loss(model, token_ids):
+    logits = model(token_ids[:, :-1])
+    labels = token_ids[:, 1:]
+    vocab = logits.shape[-1]
+    return F.cross_entropy(logits.reshape(-1, vocab), labels.reshape(-1))
+```
+
+## Evaluation
+
+Perplexity is a common language-model metric.
+
+It is the exponential of average negative log likelihood.
+
+Lower perplexity means the model assigns higher probability to the text.
+
+Perplexity does not measure all useful behavior.
+
+## Link to later adaptation
+
+Pretraining creates a base model.
+
+<a href="/learn/llms/finetuning">Finetuning</a> adapts it to tasks or formats.
+
+<a href="/learn/llms/rlhf">RLHF</a> can align outputs with preferences.
+
+## Common mistakes
+
+Do not train on validation data.
+
+Do not ignore tokenizer changes.
+
+Do not treat low perplexity as complete evaluation.
+
+Do not forget data quality.

@@ -1,0 +1,49 @@
+- id: fp-mcq-1
+  type: mcq
+  prompt: "Which floating point part mainly controls numeric range?"
+  difficulty: 1
+  options:
+    - "Exponent"
+    - "File name"
+    - "Batch size"
+    - "Gradient label"
+  correctIndex: 0
+  explanation: "The exponent controls the scale and range."
+  anchor: core-idea
+
+- id: fp-short-1
+  type: short
+  prompt: "Why is floating point addition not always associative?"
+  difficulty: 3
+  answer: "Each operation rounds to finite precision, so changing the summation order can change the result."
+  rubric:
+    - "Mentions rounding."
+    - "Mentions finite precision."
+    - "Mentions operation order."
+  explanation: "Rounding after each operation can change later inputs."
+  anchor: rounding-and-non-associativity
+
+- id: fp-numeric-1
+  type: numeric
+  prompt: "How many bytes does one fp32 value use?"
+  difficulty: 1
+  value: 4
+  tolerance: 0.000001
+  explanation: "fp32 uses 32 bits, which is 4 bytes."
+  anchor: common-formats
+
+- id: fp-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the NumPy dtype for a 32-bit float."
+  difficulty: 1
+  scaffold: |
+    import numpy as np
+    x = np.array([1.0, 2.0], dtype=np.___)
+  blanks:
+    - id: 1
+      answer: "float32"
+      rubric:
+        - "Uses np.float32."
+  explanation: "np.float32 stores 32-bit floating point values."
+  anchor: code-example

@@ -1,0 +1,62 @@
+- id: lora-mcq-1
+  type: mcq
+  prompt: "What does LoRA train for a frozen weight matrix?"
+  difficulty: 1
+  options:
+    - "A low-rank update"
+    - "A new tokenizer"
+    - "A larger vocabulary"
+    - "A new optimizer state only"
+  correctIndex: 0
+  explanation: "LoRA trains a low-rank update to a frozen weight matrix."
+  anchor: core-idea
+
+- id: lora-latex-1
+  type: latex
+  prompt: "Write the LoRA update for a frozen matrix W."
+  difficulty: 2
+  answer: 'W+\frac{\alpha}{r}BA'
+  rubric:
+    - "Includes the frozen base matrix W."
+    - "Includes the product BA."
+    - "Includes the alpha over r scale."
+  explanation: "LoRA uses W plus a scaled low-rank update."
+  anchor: core-idea
+
+- id: lora-numeric-1
+  type: numeric
+  prompt: "For a 4096 by 4096 weight and rank 8, how many LoRA parameters do A and B have?"
+  difficulty: 3
+  value: 65536
+  tolerance: 0
+  explanation: "The count is 8 times 4096 plus 4096 times 8."
+  anchor: why-low-rank-helps
+
+- id: lora-short-1
+  type: short
+  prompt: "Why can LoRA reduce training memory?"
+  difficulty: 3
+  answer: "LoRA freezes the base weights and trains only small low-rank matrices, so it stores fewer gradients and optimizer states."
+  rubric:
+    - "Mentions frozen base weights."
+    - "Mentions fewer trainable parameters."
+    - "Mentions gradients or optimizer state."
+  explanation: "Trainable parameters need gradients and optimizer state."
+  anchor: why-low-rank-helps
+
+- id: lora-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the LoRA delta matrix."
+  difficulty: 3
+  scaffold: |
+    scale = alpha / rank
+    delta = ___
+  blanks:
+    - id: 1
+      answer: "scale * (B @ A)"
+      rubric:
+        - "Multiplies B by A."
+        - "Applies the scale."
+  explanation: "The LoRA update is alpha over rank times B A."
+  anchor: code-example

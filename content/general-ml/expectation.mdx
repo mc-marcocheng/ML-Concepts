@@ -1,0 +1,194 @@
+---
+id: general-ml/expectation
+title: Expectation
+category: general-ml
+summary: The expectation is the weighted average value of a random variable.
+tags:
+  - probability
+  - statistics
+difficulty: 2
+prereqs:
+  - general-ml/pdf-pmf
+related:
+  - general-ml/variance-and-covariance
+  - general-ml/entropy
+  - general-ml/bayes-theorem
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+Expectation gives the long-run average value of a random variable. It weights each value by its probability or density.
+</TLDR>
+
+## Core idea
+
+The expectation of a random variable is its probability-weighted average.
+
+For a discrete random variable $X$ with PMF $p(x)$:
+
+$$
+\mathbb{E}[X] = \sum_x x p(x).
+$$
+
+For a continuous random variable $X$ with PDF $p(x)$:
+
+$$
+\mathbb{E}[X] = \int_{-\infty}^{\infty} x p(x) \, dx.
+$$
+
+Use <a href="/learn/general-ml/pdf-pmf">PDF and PMF</a> to define the probability rule first.
+
+## Expectation of a function
+
+You often need the expectation of $g(X)$, not only $X$.
+
+For a discrete random variable:
+
+$$
+\mathbb{E}[g(X)] = \sum_x g(x)p(x).
+$$
+
+For a continuous random variable:
+
+$$
+\mathbb{E}[g(X)] = \int g(x)p(x)\,dx.
+$$
+
+This result is sometimes called the law of the unconscious statistician.
+
+## Linearity
+
+Expectation is linear.
+
+$$
+\mathbb{E}[aX + bY + c]
+=
+a\mathbb{E}[X] + b\mathbb{E}[Y] + c.
+$$
+
+This holds even when $X$ and $Y$ are dependent.
+
+<Proof title="Linearity of expectation">
+For discrete variables:
+
+$$
+\mathbb{E}[aX + bY + c]
+=
+\sum_x \sum_y (ax + by + c)p(x,y).
+$$
+
+Split the sum:
+
+$$
+=
+a\sum_x \sum_y xp(x,y)
++
+b\sum_x \sum_y yp(x,y)
++
+c\sum_x \sum_y p(x,y).
+$$
+
+Now use the marginal probabilities:
+
+$$
+\sum_y p(x,y) = p(x),
+\quad
+\sum_x p(x,y) = p(y).
+$$
+
+Also:
+
+$$
+\sum_x \sum_y p(x,y) = 1.
+$$
+
+Therefore:
+
+$$
+\mathbb{E}[aX + bY + c]
+=
+a\mathbb{E}[X] + b\mathbb{E}[Y] + c.
+$$
+</Proof>
+
+## Conditional expectation
+
+A conditional expectation averages $X$ under a condition.
+
+$$
+\mathbb{E}[X \mid Y = y]
+=
+\sum_x x p(x \mid y).
+$$
+
+It is itself a function of $y$.
+
+A useful identity is the law of total expectation:
+
+$$
+\mathbb{E}[X]
+=
+\mathbb{E}_Y[\mathbb{E}[X \mid Y]].
+$$
+
+<Proof title="Law of total expectation">
+For discrete variables:
+
+$$
+\mathbb{E}_Y[\mathbb{E}[X \mid Y]]
+=
+\sum_y \left(\sum_x x p(x \mid y)\right)p(y).
+$$
+
+Use the product rule:
+
+$$
+p(x \mid y)p(y) = p(x,y).
+$$
+
+Then:
+
+$$
+=
+\sum_y \sum_x x p(x,y)
+=
+\sum_x x \sum_y p(x,y)
+=
+\sum_x x p(x)
+=
+\mathbb{E}[X].
+$$
+</Proof>
+
+## Relation to variance
+
+Variance measures spread around the expectation.
+
+$$
+\operatorname{Var}(X)
+=
+\mathbb{E}[(X - \mathbb{E}[X])^2].
+$$
+
+See <a href="/learn/general-ml/variance-and-covariance">Variance and Covariance</a> for this second moment.
+
+## Code example
+
+```python
+import numpy as np
+
+values = np.array([0, 1, 2, 3])
+probs = np.array([0.1, 0.2, 0.4, 0.3])
+
+expected_value = np.sum(values * probs)
+print(expected_value)
+```
+
+## Common mistakes
+
+Do not confuse the most likely value with the expected value.
+
+Do not assume the expectation must be a possible value.
+
+Do not require independence for linearity of expectation.

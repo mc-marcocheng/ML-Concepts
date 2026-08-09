@@ -1,0 +1,53 @@
+- id: backprop-mcq-1
+  type: mcq
+  prompt: "What rule does backpropagation mainly use?"
+  difficulty: 1
+  options:
+    - "Bayes rule"
+    - "Chain rule"
+    - "Triangle inequality"
+    - "No free lunch theorem"
+  correctIndex: 1
+  explanation: "Backpropagation applies the chain rule through a computation graph."
+  anchor: chain-rule
+
+- id: backprop-latex-1
+  type: latex
+  prompt: "For $z=xW+b$, write the gradient with respect to $x$ from upstream gradient $g_z$."
+  difficulty: 3
+  answer: 'g_z W^\top'
+  rubric:
+    - "Uses the upstream gradient."
+    - "Multiplies by $W^\\top$."
+  explanation: "The input gradient for a linear layer is $g_z W^\\top$."
+  anchor: linear-layer
+
+- id: backprop-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the ReLU backward expression."
+  difficulty: 2
+  scaffold: |
+    z = x @ W + b
+    a = np.maximum(z, 0.0)
+    g_a = upstream
+    g_z = ___
+  blanks:
+    - id: 1
+      answer: "g_a * (z > 0)"
+      rubric:
+        - "Uses the upstream gradient."
+        - "Masks entries where z is not positive."
+  explanation: "The ReLU derivative is one for positive inputs and zero otherwise."
+  anchor: code-example
+
+- id: backprop-short-1
+  type: short
+  prompt: "Why does backpropagation store forward values?"
+  difficulty: 3
+  answer: "Backward rules often need intermediate forward values, such as activations and pre-activations."
+  rubric:
+    - "Mentions intermediate values."
+    - "Gives an example or states they are needed for derivatives."
+  explanation: "Many local derivatives depend on values computed during the forward pass."
+  anchor: core-idea

@@ -1,0 +1,44 @@
+- id: pp-mcq-1
+  type: mcq
+  prompt: "What does pipeline parallelism split?"
+  difficulty: 1
+  options:
+    - "The model layers into stages"
+    - "Only the labels"
+    - "Only optimizer states"
+    - "Only random seeds"
+  correctIndex: 0
+  explanation: "Pipeline parallelism partitions model layers into sequential stages."
+  anchor: core-idea
+
+- id: pp-numeric-1
+  type: numeric
+  prompt: "For 4 stages and 12 microbatches, what is the simple bubble fraction?"
+  difficulty: 3
+  value: 0.2
+  tolerance: 0.000001
+  explanation: "The fraction is (4 - 1) divided by (12 + 4 - 1), which is 3/15."
+  anchor: pipeline-bubble
+
+- id: pp-short-1
+  type: short
+  prompt: "Why can more microbatches improve pipeline throughput?"
+  difficulty: 3
+  answer: "More microbatches reduce the pipeline bubble because fewer stages sit idle."
+  rubric:
+    - "Mentions reduced idle time."
+    - "Mentions the pipeline bubble."
+  explanation: "Microbatches keep stages busy after warmup."
+  anchor: pipeline-bubble
+
+- id: pp-order-1
+  type: order
+  prompt: "Put a simple pipeline flow in order."
+  difficulty: 2
+  steps:
+    - "Split the model into stages"
+    - "Split a batch into microbatches"
+    - "Send activations forward through stages"
+    - "Send gradients backward through stages"
+  explanation: "Pipeline training sends activations forward and gradients backward."
+  anchor: core-idea

@@ -1,0 +1,45 @@
+- id: alphago-mcq-1
+  type: mcq
+  prompt: "Which method did AlphaGo combine with neural networks?"
+  difficulty: 2
+  options:
+    - "Monte Carlo tree search"
+    - "K-nearest neighbors"
+    - "Naive Bayes"
+    - "Principal component analysis"
+  correctIndex: 0
+  explanation: "MCTS was central to AlphaGo."
+  anchor: monte-carlo-tree-search
+- id: alphago-short-1
+  type: short
+  prompt: "What role did the value network play?"
+  difficulty: 3
+  answer: "It estimated the strength or expected outcome of a board position."
+  rubric:
+    - "Mentions position evaluation."
+    - "Mentions outcome or value prediction."
+  explanation: "The value network helped evaluate search leaves."
+  anchor: core-idea
+- id: alphago-order-1
+  type: order
+  prompt: "Put the early AlphaGo training stages in order."
+  difficulty: 3
+  steps:
+    - "Imitate expert moves with supervised learning"
+    - "Improve the policy through self-play"
+    - "Train a value network to predict outcomes"
+    - "Use networks inside tree search"
+  explanation: "AlphaGo combined expert imitation, self-play, value learning, and search."
+  anchor: training-stages
+- id: alphago-mcq-2
+  type: mcq
+  prompt: "What did AlphaGo Zero remove?"
+  difficulty: 2
+  options:
+    - "Human game data"
+    - "Game rules"
+    - "Tree search"
+    - "Policy networks"
+  correctIndex: 0
+  explanation: "AlphaGo Zero learned from self-play without human game records."
+  anchor: alphago-zero

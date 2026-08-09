@@ -1,0 +1,62 @@
+- id: causal-mcq-1
+  type: mcq
+  prompt: "What does causal attention prevent?"
+  difficulty: 1
+  options:
+    - "A token attending to future tokens"
+    - "A token attending to itself"
+    - "The model using embeddings"
+    - "The model using softmax"
+  correctIndex: 0
+  explanation: "Causal attention masks future positions."
+  anchor: core-idea
+
+- id: causal-latex-1
+  type: latex
+  prompt: "Write masked scaled attention scores using Q, K, d_k, and mask M."
+  difficulty: 3
+  answer: '\frac{QK^\top}{\sqrt{d_k}}+M'
+  rubric:
+    - "Includes QK transpose."
+    - "Divides by square root of d_k."
+    - "Adds the mask."
+  explanation: "The mask is added to logits before softmax."
+  anchor: masked-attention-formula
+
+- id: causal-numeric-1
+  type: numeric
+  prompt: "For a sequence length of 4, how many positions are allowed in a lower-triangular causal mask including the diagonal?"
+  difficulty: 2
+  value: 10
+  tolerance: 0
+  explanation: "The allowed count is 1 plus 2 plus 3 plus 4."
+  anchor: core-idea
+
+- id: causal-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the causal mask construction."
+  difficulty: 3
+  scaffold: |
+    t = q.shape[-2]
+    mask = torch.triu(torch.ones(t, t, device=q.device), diagonal=1).bool()
+    scores = scores.masked_fill(mask, ___)
+  blanks:
+    - id: 1
+      answer: "float(\"-inf\")"
+      rubric:
+        - "Uses negative infinity for masked future positions."
+  explanation: "Future logits must become negative infinity before softmax."
+  anchor: code-example
+
+- id: causal-short-1
+  type: short
+  prompt: "Why can a decoder-only model train on a full sequence in parallel?"
+  difficulty: 3
+  answer: "The causal mask prevents each position from seeing future tokens, so the model can compute all positions at once without leakage."
+  rubric:
+    - "Mentions parallel computation."
+    - "Mentions causal mask."
+    - "Mentions no future leakage."
+  explanation: "The mask preserves the autoregressive constraint during parallel training."
+  anchor: training-versus-generation

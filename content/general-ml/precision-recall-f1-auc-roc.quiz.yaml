@@ -1,0 +1,91 @@
+- id: prf-numeric-1
+  type: numeric
+  prompt: "A model gives TP=30, FP=10, FN=20, TN=940. What is the precision?"
+  difficulty: 1
+  value: 0.75
+  tolerance: 0.0001
+  explanation: "Precision is $30/(30+10)=0.75$."
+  anchor: core-metrics
+- id: prf-numeric-2
+  type: numeric
+  prompt: "With the same counts (TP=30, FP=10, FN=20), what is the F1 score?"
+  difficulty: 2
+  value: 0.666667
+  tolerance: 0.001
+  explanation: "Recall is $30/50=0.6$. F1 is $2(0.75)(0.6)/(0.75+0.6)=0.6667$."
+  anchor: f1-and-f-beta
+- id: prf-mcq-1
+  type: mcq
+  prompt: "What does an ROC-AUC of 0.8 mean?"
+  difficulty: 3
+  options:
+    - "The model is correct 80 percent of the time"
+    - "A random positive outranks a random negative 80 percent of the time"
+    - "Precision is 0.8 at the default threshold"
+    - "The model rejects 80 percent of negatives"
+  correctIndex: 1
+  explanation: "AUC is the probability that a positive gets a higher score than a negative."
+  anchor: roc-curve-and-auc
+- id: prf-mcq-2
+  type: mcq
+  prompt: "For a problem with a 0.5 percent positive rate, which summary is most informative?"
+  difficulty: 3
+  options:
+    - "Accuracy"
+    - "ROC-AUC"
+    - "PR-AUC"
+    - "Specificity"
+  correctIndex: 2
+  explanation: "A large true negative count keeps FPR small, so ROC-AUC can look strong while precision is poor."
+  anchor: precision-recall-curve
+- id: prf-latex-1
+  type: latex
+  prompt: "Write the $F_\\beta$ score in terms of precision $P$ and recall $R$."
+  difficulty: 3
+  answer: "(1+\\beta^2)\\frac{PR}{\\beta^2 P + R}"
+  rubric:
+    - "Includes the factor $1+\\beta^2$."
+    - "Weights precision by $\\beta^2$ in the denominator."
+  explanation: "Setting $\\beta=1$ recovers the harmonic mean."
+  anchor: f1-and-f-beta
+- id: prf-short-1
+  type: short
+  prompt: "Why is F1 a harmonic mean rather than an arithmetic mean?"
+  difficulty: 2
+  answer: "The harmonic mean is dominated by the smaller value, so a model cannot score well by maximizing one metric and ignoring the other. An arithmetic mean would reward that."
+  rubric:
+    - "States that the harmonic mean penalizes imbalance."
+    - "Gives the contrast with the arithmetic mean."
+  explanation: "Precision 1.0 with recall 0.01 gives F1 near 0.02."
+  anchor: f1-and-f-beta
+- id: prf-short-2
+  type: short
+  prompt: "How does raising the decision threshold change precision and recall?"
+  difficulty: 2
+  answer: "Raising the threshold makes fewer positive predictions. Precision usually rises because the remaining predictions are more confident, and recall falls because more true positives are missed."
+  rubric:
+    - "States precision tends to rise."
+    - "States recall falls."
+  explanation: "The threshold traces out the PR curve."
+  anchor: threshold-and-tradeoff
+- id: prf-code-1
+  type: code
+  lang: python
+  prompt: "Fill in precision, recall, and the AUC rank comparison."
+  difficulty: 3
+  scaffold: |
+    precision = ___
+    recall = ___
+    comp = (pos[:, None] > neg[None, :]).sum() + 0.5 * (pos[:, None] == neg[None, :]).sum()
+    auc = comp / (len(pos) * len(neg))
+  blanks:
+    - id: 1
+      answer: "tp / (tp + fp)"
+      rubric:
+        - "Divides true positives by all predicted positives."
+    - id: 2
+      answer: "tp / (tp + fn)"
+      rubric:
+        - "Divides true positives by all actual positives."
+  explanation: "Precision uses predicted positives, recall uses actual positives."
+  anchor: code-example

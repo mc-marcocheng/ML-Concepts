@@ -1,0 +1,133 @@
+---
+id: llms/rope
+title: RoPE
+category: llms
+summary: RoPE encodes positions by rotating query and key pairs before attention.
+tags:
+  - positional-encoding
+  - attention
+  - transformers
+difficulty: 4
+prereqs:
+  - llms/causal-attention
+  - llms/llm-scaling-factor
+related:
+  - llms/sinusoidal-embeddings
+  - llms/relative-positional-embeddings
+  - llms/transformer-xl
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+RoPE applies position-dependent rotations to queries and keys. The resulting dot product depends on relative position.
+</TLDR>
+
+## Core idea
+
+RoPE means rotary positional embedding.
+
+It does not add a position vector to token embeddings.
+
+Instead, it rotates query and key vectors by a position-dependent angle.
+
+Attention then uses the rotated vectors.
+
+This makes relative positions affect dot products.
+
+## Two-dimensional rotation
+
+For a pair of features $(x_1,x_2)$ at position $m$, RoPE applies:
+
+$$
+\begin{bmatrix}
+x_1' \\
+x_2'
+\end{bmatrix}
+=
+\begin{bmatrix}
+\cos(m\theta) & -\sin(m\theta) \\
+\sin(m\theta) & \cos(m\theta)
+\end{bmatrix}
+\begin{bmatrix}
+x_1 \\
+x_2
+\end{bmatrix}.
+$$
+
+The model applies this to pairs of channels with different frequencies.
+
+## Relative position property
+
+Let $R_m$ be the rotation at position $m$.
+
+For query $q$ at position $m$ and key $k$ at position $n$:
+
+$$
+(R_m q)^\top(R_n k)
+=
+q^\top R_{n-m}k.
+$$
+
+Thus the score depends on the relative offset $n-m$.
+
+<Proof title="Relative position property of rotations">
+Rotation matrices satisfy:
+
+$$
+R_m^\top R_n = R_{n-m}.
+$$
+
+The attention dot product is:
+
+$$
+(R_m q)^\top(R_n k).
+$$
+
+Move the first rotation to the middle:
+
+$$
+q^\top R_m^\top R_n k.
+$$
+
+Substitute the rotation identity:
+
+$$
+q^\top R_{n-m} k.
+$$
+
+Thus the score depends on the relative offset.
+</Proof>
+
+## Context extension
+
+Many LLMs use RoPE.
+
+Longer context can need RoPE scaling or interpolation.
+
+These methods change the mapping from position to angle.
+
+They try to reduce mismatch between training and inference lengths.
+
+## Code example
+
+```python
+import torch
+
+def apply_rope_pair(x, cos, sin):
+    x1 = x[..., 0::2]
+    x2 = x[..., 1::2]
+    y1 = x1 * cos - x2 * sin
+    y2 = x1 * sin + x2 * cos
+    return torch.stack((y1, y2), dim=-1).flatten(-2)
+```
+
+## Common mistakes
+
+Do not add RoPE to values.
+
+Most implementations rotate queries and keys.
+
+Do not confuse RoPE with learned absolute positions.
+
+Do not assume context extension works without validation.

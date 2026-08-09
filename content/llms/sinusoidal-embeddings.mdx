@@ -1,0 +1,100 @@
+---
+id: llms/sinusoidal-embeddings
+title: Sinusoidal Embeddings
+category: llms
+summary: Sinusoidal embeddings encode position with fixed sine and cosine waves at many frequencies.
+tags:
+  - positional-encoding
+  - transformers
+  - attention
+difficulty: 3
+prereqs:
+  - llms/causal-attention
+related:
+  - llms/rope
+  - llms/relative-positional-embeddings
+  - llms/transformer-xl
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+Sinusoidal positional embeddings add fixed sine and cosine features to token embeddings. Different frequencies let the model infer positions and distances.
+</TLDR>
+
+## Core idea
+
+A Transformer without position information treats tokens as a set.
+
+Sinusoidal embeddings add position information.
+
+For position $\text{pos}$ and channel index $i$:
+
+$$
+\operatorname{PE}(\text{pos},2i)
+=
+\sin\left(\frac{\text{pos}}{10000^{2i/d_{\text{model}}}}\right)
+$$
+
+$$
+\operatorname{PE}(\text{pos},2i+1)
+=
+\cos\left(\frac{\text{pos}}{10000^{2i/d_{\text{model}}}}\right).
+$$
+
+The model adds these features to token embeddings.
+
+## Why use many frequencies
+
+Short wavelengths distinguish nearby positions.
+
+Long wavelengths vary slowly across long ranges.
+
+Together, they give position features at many scales.
+
+The model can learn to combine these features.
+
+## Fixed versus learned
+
+Sinusoidal embeddings are fixed.
+
+They do not add learned parameters.
+
+Learned absolute embeddings can fit training positions.
+
+They can extrapolate poorly beyond the trained length.
+
+Sinusoidal embeddings can define values at any position.
+
+## Link to RoPE
+
+RoPE also uses sine and cosine.
+
+But RoPE rotates queries and keys.
+
+Sinusoidal embeddings add position vectors to token embeddings.
+
+See <a href="/learn/llms/rope">RoPE</a> for the rotation method.
+
+## Code example
+
+```python
+import torch
+
+def sinusoidal_positions(length, dim):
+    pos = torch.arange(length).float().unsqueeze(1)
+    i = torch.arange(0, dim, 2).float()
+    scale = 10000 ** (i / dim)
+    pe = torch.zeros(length, dim)
+    pe[:, 0::2] = torch.sin(pos / scale)
+    pe[:, 1::2] = torch.cos(pos / scale)
+    return pe
+```
+
+## Common mistakes
+
+Do not forget that even and odd channels use different functions.
+
+Do not confuse fixed sinusoidal embeddings with learned position embeddings.
+
+Do not assume position embeddings alone solve long-context limits.

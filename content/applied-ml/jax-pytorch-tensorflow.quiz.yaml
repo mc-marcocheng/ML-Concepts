@@ -1,0 +1,52 @@
+- id: fw-mcq-1
+  type: mcq
+  prompt: "Which JAX transformation computes gradients?"
+  difficulty: 1
+  options:
+    - "jax.grad"
+    - "jax.print"
+    - "jax.seed"
+    - "jax.label"
+  correctIndex: 0
+  explanation: "jax.grad returns a gradient function."
+  anchor: jax
+
+- id: fw-short-1
+  type: short
+  prompt: "Give one reason PyTorch is often easy to debug."
+  difficulty: 2
+  answer: "PyTorch uses eager execution by default, so operations run directly in Python."
+  rubric:
+    - "Mentions eager execution."
+    - "Mentions direct Python-style debugging or immediate execution."
+  explanation: "Eager execution makes intermediate values easy to inspect."
+  anchor: pytorch
+
+- id: fw-order-1
+  type: order
+  prompt: "Put the PyTorch gradient example in order."
+  difficulty: 2
+  steps:
+    - "Create a tensor with requires_grad"
+    - "Compute a scalar output"
+    - "Call backward"
+    - "Read x.grad"
+  explanation: "PyTorch records operations, then backward populates gradients."
+  anchor: code-comparison
+
+- id: fw-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the PyTorch call that computes gradients for y."
+  difficulty: 1
+  scaffold: |
+    x = torch.tensor(2.0, requires_grad=True)
+    y = x * x
+    y.___()
+  blanks:
+    - id: 1
+      answer: "backward"
+      rubric:
+        - "Calls backward on the scalar output."
+  explanation: "Calling backward computes gradients for tensors that require gradients."
+  anchor: code-comparison

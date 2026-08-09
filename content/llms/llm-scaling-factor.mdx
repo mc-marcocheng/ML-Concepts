@@ -1,0 +1,142 @@
+---
+id: llms/llm-scaling-factor
+title: LLM Attention Scaling Factor
+category: llms
+summary: The attention scaling factor divides dot products by the square root of the key dimension.
+tags:
+  - attention
+  - initialization
+  - stability
+difficulty: 3
+prereqs:
+  - general-ml/variance-and-covariance
+  - llms/causal-attention
+related:
+  - llms/flash-attention
+  - llms/scaling-laws
+  - llms/rope
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+Scaled dot-product attention divides logits by $\sqrt{d_k}$. This keeps logit variance controlled and helps prevent softmax saturation.
+</TLDR>
+
+## Core idea
+
+Attention uses dot products between queries and keys.
+
+For a query $q$ and key $k$:
+
+$$
+s = q^\top k.
+$$
+
+Scaled attention uses:
+
+$$
+s = \frac{q^\top k}{\sqrt{d_k}}.
+$$
+
+Here $d_k$ is the key dimension.
+
+The scale appears inside <a href="/learn/llms/causal-attention">causal attention</a> and cross attention.
+
+## Why scale by square root
+
+Assume each component of $q$ and $k$ has mean zero and variance one.
+
+Assume components are independent.
+
+Then:
+
+$$
+q^\top k = \sum_{i=1}^{d_k} q_i k_i.
+$$
+
+Each product has variance one.
+
+The sum has variance $d_k$.
+
+Dividing by $\sqrt{d_k}$ gives variance near one.
+
+<Proof title="Variance of the attention dot product">
+Let:
+
+$$
+s = \sum_{i=1}^{d_k} q_i k_i.
+$$
+
+Assume $q_i$ and $k_i$ are independent.
+
+Assume each has mean zero and variance one.
+
+Then:
+
+$$
+\mathbb{E}[q_i k_i]=0.
+$$
+
+Also:
+
+$$
+\operatorname{Var}(q_i k_i)
+=
+\mathbb{E}[q_i^2 k_i^2]
+=
+\mathbb{E}[q_i^2]\mathbb{E}[k_i^2]
+=
+1.
+$$
+
+The terms are independent, so variances add:
+
+$$
+\operatorname{Var}(s)=d_k.
+$$
+
+For $s/\sqrt{d_k}$:
+
+$$
+\operatorname{Var}\left(\frac{s}{\sqrt{d_k}}\right)
+=
+\frac{d_k}{d_k}
+=
+1.
+$$
+</Proof>
+
+## Softmax saturation
+
+Large logits make softmax very sharp.
+
+A sharp softmax can produce small gradients for most positions.
+
+The scaling factor keeps logits in a safer range.
+
+It does not solve all stability problems.
+
+## Code example
+
+```python
+import torch
+import torch.nn.functional as F
+
+def scaled_attention_scores(q, k):
+    d_k = q.shape[-1]
+    return q @ k.transpose(-2, -1) / d_k**0.5
+
+scores = scaled_attention_scores(q, k)
+weights = F.softmax(scores, dim=-1)
+```
+
+## Common mistakes
+
+Do not divide by $d_k$.
+
+Do not apply the scale after softmax.
+
+Do not confuse this with LLM scaling laws.
+
+Use <a href="/learn/llms/scaling-laws">scaling laws</a> for model-size scaling.

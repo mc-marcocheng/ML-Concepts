@@ -1,0 +1,90 @@
+---
+id: llms/mixture-of-experts
+title: Mixture of Experts
+category: llms
+summary: Mixture of Experts uses a router to activate only a small subset of expert networks per token.
+tags:
+  - architecture
+  - scaling
+  - routing
+difficulty: 4
+prereqs:
+  - llms/pretraining
+  - general-ml/loss-functions
+related:
+  - llms/scaling-laws
+  - llms/lora
+  - applied-ml/tensor-parallelism
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+A Mixture of Experts model has many expert networks, but a router activates only a few for each token. This increases parameter count without proportional compute.
+</TLDR>
+
+## Core idea
+
+A dense feed-forward layer applies the same network to all tokens.
+
+A Mixture of Experts layer has many expert networks.
+
+A router scores experts for each token.
+
+The model sends each token to the top $k$ experts.
+
+The expert outputs are combined with router weights.
+
+## Sparse activation
+
+If a layer has $E$ experts but uses only $k$ experts per token, then active compute depends on $k$.
+
+Total parameter count depends on $E$.
+
+This lets the model scale parameters faster than compute.
+
+## Router
+
+For token representation $x$, the router can compute:
+
+$$
+p = \operatorname{softmax}(W_r x).
+$$
+
+Then it selects the top $k$ experts.
+
+The output can be:
+
+$$
+y = \sum_{e \in \operatorname{TopK}(p)} p_e f_e(x).
+$$
+
+## Load balancing
+
+Routers can collapse to a few experts.
+
+This wastes capacity.
+
+MoE training often adds a load-balancing loss.
+
+The loss encourages tokens to spread across experts.
+
+## Common systems issues
+
+MoE creates communication between devices.
+
+Tokens must move to the devices that hold their experts.
+
+This can make routing and all-to-all communication expensive.
+
+See <a href="/learn/applied-ml/communication-primitives">communication primitives</a> for the systems view.
+
+## Common mistakes
+
+Do not say all experts run for every token.
+
+Do not ignore load balancing.
+
+Do not compare active parameters and total parameters as the same value.
+
+Do not assume MoE always improves latency.

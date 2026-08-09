@@ -1,0 +1,43 @@
+- id: evg-mcq-1
+  type: mcq
+  prompt: "What repeated operation causes exploding or vanishing gradients?"
+  difficulty: 2
+  options:
+    - "Products of Jacobians"
+    - "Sorting labels"
+    - "Dataset download"
+    - "Token decoding"
+  correctIndex: 0
+  explanation: "Backpropagation multiplies Jacobians through layers or time steps."
+  anchor: core-idea
+
+- id: evg-latex-1
+  type: latex
+  prompt: "Write a chain product for $\\partial h_T / \\partial h_t$."
+  difficulty: 4
+  answer: "\\prod_{k=t+1}^{T} \\frac{\\partial h_k}{\\partial h_{k-1}}"
+  rubric:
+    - "Uses a product over time or layers."
+    - "Includes adjacent hidden-state derivatives."
+  explanation: "Repeated Jacobian products control gradient size."
+  anchor: core-idea
+
+- id: evg-numeric-1
+  type: numeric
+  prompt: "If each scalar derivative has magnitude 0.5, what is the product magnitude after 10 steps?"
+  difficulty: 2
+  value: 0.0009765625
+  tolerance: 0.000000001
+  explanation: "The product is 0.5 raised to the 10th power."
+  anchor: core-idea
+
+- id: evg-short-1
+  type: short
+  prompt: "Name two methods that can help with exploding gradients."
+  difficulty: 2
+  answer: "Gradient clipping and better weight initialization can help with exploding gradients."
+  rubric:
+    - "Mentions gradient clipping."
+    - "Mentions another valid method such as initialization, normalization, or residual connections."
+  explanation: "Clipping limits gradient size, while architecture and initialization reduce the cause."
+  anchor: fixes

@@ -1,0 +1,64 @@
+- id: decode-mcq-1
+  type: mcq
+  prompt: "What does greedy decoding choose?"
+  difficulty: 1
+  options:
+    - "The most likely next token"
+    - "A random hidden layer"
+    - "The least likely token"
+    - "The longest token only"
+  correctIndex: 0
+  explanation: "Greedy decoding chooses the highest-probability token."
+  anchor: greedy-decoding
+
+- id: decode-latex-1
+  type: latex
+  prompt: "Write temperature-scaled softmax probabilities for logits z_i."
+  difficulty: 3
+  answer: '\operatorname{softmax}\left(\frac{z_i}{T}\right)'
+  rubric:
+    - "Includes softmax."
+    - "Divides logits by temperature."
+  explanation: "Temperature rescales logits before softmax."
+  anchor: sampling-and-temperature
+
+- id: decode-short-1
+  type: short
+  prompt: "What is the difference between top-k and top-p sampling?"
+  difficulty: 3
+  answer: "Top-k keeps a fixed number of highest-probability tokens, while top-p keeps the smallest set whose probability mass reaches p."
+  rubric:
+    - "Mentions fixed number for top-k."
+    - "Mentions probability mass for top-p."
+    - "Mentions filtering candidate tokens."
+  explanation: "Top-k uses a count, while top-p uses cumulative probability."
+  anchor: top-k-and-top-p
+
+- id: decode-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the temperature scaling line."
+  difficulty: 2
+  scaffold: |
+    def sample_next(logits, temperature):
+        logits = ___
+        probs = F.softmax(logits, dim=-1)
+  blanks:
+    - id: 1
+      answer: "logits / temperature"
+      rubric:
+        - "Divides logits by temperature."
+  explanation: "Temperature modifies logits before softmax."
+  anchor: code-example
+
+- id: decode-order-1
+  type: order
+  prompt: "Put one autoregressive decoding step in order."
+  difficulty: 2
+  steps:
+    - "Run the model on the current token context"
+    - "Get next-token logits"
+    - "Convert logits or filter them"
+    - "Choose the next token"
+  explanation: "Decoding repeats these steps until a stop condition."
+  anchor: core-idea

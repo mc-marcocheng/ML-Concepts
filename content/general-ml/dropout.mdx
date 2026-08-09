@@ -1,0 +1,93 @@
+---
+id: general-ml/dropout
+title: Dropout
+category: general-ml
+summary: Dropout randomly removes activations during training to reduce co-adaptation and overfitting.
+tags:
+  - regularization
+  - neural-networks
+difficulty: 3
+prereqs:
+  - general-ml/regularization-methods
+  - general-ml/backprop
+related:
+  - general-ml/overfitting-underfitting
+  - general-ml/ensembles
+  - general-ml/bias-variance-tradeoff
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+Dropout randomly sets activations to zero during training. At inference, use the full network with the correct scaling rule.
+</TLDR>
+
+## Core idea
+
+Dropout is a regularization method for neural networks.
+
+During training, it samples a binary mask:
+
+$$
+m_i \sim \operatorname{Bernoulli}(1-p).
+$$
+
+Then it applies the mask to activations.
+
+With inverted dropout:
+
+$$
+\tilde h_i=\frac{m_i h_i}{1-p}.
+$$
+
+Here $p$ is the dropout probability.
+
+## Why it helps
+
+Dropout makes units less dependent on specific other units.
+
+It adds noise during training.
+
+This can reduce overfitting.
+
+See <a href="/learn/general-ml/regularization-methods">Regularization Methods</a>.
+
+## Training and inference
+
+Dropout is active during training.
+
+Dropout is disabled during inference.
+
+Inverted dropout scales activations during training, so no extra inference scaling is needed.
+
+## Relation to ensembles
+
+Dropout can be viewed as training many thinned networks that share weights.
+
+The final network roughly averages these subnetworks.
+
+This view links dropout to <a href="/learn/general-ml/ensembles">Ensembles</a>.
+
+## Code example
+
+```python
+import torch
+import torch.nn as nn
+
+dropout = nn.Dropout(p=0.2)
+
+model.train()
+h_train = dropout(h)
+
+model.eval()
+h_eval = dropout(h)
+```
+
+## Common mistakes
+
+Do not leave dropout active during deterministic inference.
+
+Do not add dropout everywhere by default.
+
+Do not forget that dropout changes activation scale during training.
+```

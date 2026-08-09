@@ -1,0 +1,83 @@
+---
+id: general-ml/second-order-methods
+title: Second Order Methods
+category: general-ml
+summary: Second order methods use curvature information to choose optimization steps.
+tags:
+  - optimization
+  - calculus
+difficulty: 4
+prereqs:
+  - general-ml/newtons-method
+  - linear-algebra/hessian
+related:
+  - general-ml/gradient-descent-sgd
+  - general-ml/adam-adamw-adagrad
+  - general-ml/convex-functions
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Second order methods use Hessian information. They can converge quickly but can cost much more per step.
+</TLDR>
+
+## Core idea
+
+First order methods use gradients.
+
+Second order methods also use curvature.
+
+For loss $L(\theta)$:
+
+$$
+g=\nabla L(\theta),
+\quad
+H=\nabla^2 L(\theta).
+$$
+
+A typical second order step solves:
+
+$$
+H\Delta=-g.
+$$
+
+Then:
+
+$$
+\theta \leftarrow \theta+\Delta.
+$$
+
+## Newton method
+
+Newton's method uses the exact Hessian.
+
+It can converge very fast near a well-behaved optimum.
+
+It can fail when the Hessian is singular or indefinite.
+
+See <a href="/learn/general-ml/newtons-method">Newton's Method</a>.
+
+## Quasi-Newton methods
+
+Quasi-Newton methods approximate curvature.
+
+BFGS and L-BFGS are common examples.
+
+L-BFGS stores a limited history, so it uses less memory.
+
+## Natural gradient
+
+Natural gradient uses the geometry of the model distribution.
+
+It scales the gradient by an information matrix.
+
+This can be useful when parameterization affects ordinary gradients.
+
+## Common mistakes
+
+Do not assume a second order method is always faster overall.
+
+Do not ignore Hessian storage cost.
+
+Do not use curvature information without checking stability.

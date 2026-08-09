@@ -1,0 +1,211 @@
+---
+id: general-ml/rnns-lstms
+title: RNNs and LSTMs
+category: general-ml
+summary: Recurrent networks carry a hidden state across time, and gated cells such as the LSTM fix the vanishing gradient.
+tags:
+  - deep-learning
+  - sequences
+  - architectures
+difficulty: 4
+prereqs:
+  - general-ml/backprop
+  - general-ml/activation-functions
+related:
+  - general-ml/s4
+  - general-ml/cnns
+  - general-ml/gradient-clipping
+estReadMin: 12
+updated: 2026-01-01
+---
+
+<TLDR>
+An RNN applies the same cell at each time step and carries a hidden state. Backpropagation through time multiplies many Jacobians, so gradients vanish or explode. The LSTM adds an additive cell state and gates, which keeps a near constant gradient path.
+</TLDR>
+
+## Vanilla RNN
+
+$$
+h_t = \tanh\big(W_{hh}h_{t-1} + W_{xh}x_t + b_h\big),
+\qquad
+y_t = W_{hy}h_t + b_y .
+$$
+
+The same weights apply at every step. The parameter count does not grow with sequence length.
+
+The hidden state is a lossy summary of everything seen so far.
+
+## Backpropagation through time
+
+Unroll the network and apply the chain rule. The gradient of the loss at step $T$ with respect to the state at step $t$ is
+
+$$
+\frac{\partial h_T}{\partial h_t}
+=
+\prod_{s=t+1}^{T}\frac{\partial h_s}{\partial h_{s-1}}
+=
+\prod_{s=t+1}^{T} D_s W_{hh}^\top ,
+$$
+
+where $D_s = \operatorname{diag}\big(1 - \tanh^2(\cdot)\big)$.
+
+## Vanishing and exploding gradients
+
+<Proof title="The gradient norm decays or grows geometrically">
+Take the spectral norm of the product:
+
+$$
+\left\|\frac{\partial h_T}{\partial h_t}\right\|
+\le
+\prod_{s=t+1}^{T}\|D_s\|\,\|W_{hh}\| .
+$$
+
+For the $\tanh$ nonlinearity, $\tanh'(z) = 1-\tanh^2(z) \in (0,1]$, so $\|D_s\| \le 1$.
+
+Let $\gamma = \|W_{hh}\|$ and let $\delta = \max_s \|D_s\| \le 1$. Then
+
+$$
+\left\|\frac{\partial h_T}{\partial h_t}\right\|
+\le
+(\gamma\delta)^{T-t}.
+$$
+
+If $\gamma\delta < 1$, the bound decays geometrically in the time gap. The gradient vanishes.
+
+A matching lower bound holds with the smallest singular value. If the smallest singular value of $W_{hh}$ times the smallest diagonal entry exceeds one, the gradient grows geometrically. It explodes.
+
+Only $\gamma\delta = 1$ exactly avoids both, and that condition is not stable during training.
+</Proof>
+
+Consequences:
+
+- Vanishing gradients block learning of long range dependencies. The model still trains, but only on short spans.
+- Exploding gradients produce NaN values and sudden loss spikes. <a href="/learn/general-ml/gradient-clipping">Gradient clipping</a> fixes this cheaply.
+
+Truncated BPTT limits the unroll length to $k$ steps to bound memory and compute.
+
+## LSTM
+
+The LSTM adds a cell state $c_t$ with an additive update.
+
+$$
+f_t = \sigma(W_f[h_{t-1}, x_t] + b_f) \quad \text{forget gate}
+$$
+
+$$
+i_t = \sigma(W_i[h_{t-1}, x_t] + b_i) \quad \text{input gate}
+$$
+
+$$
+\tilde{c}_t = \tanh(W_c[h_{t-1}, x_t] + b_c) \quad \text{candidate}
+$$
+
+$$
+c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t
+$$
+
+$$
+o_t = \sigma(W_o[h_{t-1}, x_t] + b_o) \quad \text{output gate}
+$$
+
+$$
+h_t = o_t \odot \tanh(c_t)
+$$
+
+### Why the LSTM helps
+
+The cell state update is additive, not multiplicative through a weight matrix. The Jacobian along the cell path is
+
+$$
+\frac{\partial c_t}{\partial c_{t-1}} = \operatorname{diag}(f_t) + (\text{gate terms}).
+$$
+
+When the forget gate stays near one, the derivative stays near one. Gradients then flow across many steps with little decay. This is called the constant error carousel.
+
+Initialize the forget gate bias to a positive value, often 1.0. The gate then starts near one and the model remembers by default.
+
+## GRU
+
+The GRU merges the forget and input gates.
+
+$$
+z_t = \sigma(W_z[h_{t-1},x_t]),
+\qquad
+r_t = \sigma(W_r[h_{t-1},x_t]),
+$$
+
+$$
+\tilde{h}_t = \tanh\big(W[r_t \odot h_{t-1}, x_t]\big),
+$$
+
+$$
+h_t = (1-z_t)\odot h_{t-1} + z_t \odot \tilde{h}_t .
+$$
+
+The GRU has three gate matrices instead of four and no separate cell state. It trains faster and performs about the same on most tasks.
+
+## Parameter counts
+
+For hidden size $H$ and input size $D$:
+
+| Cell | Parameters |
+|---|---|
+| Vanilla RNN | $H(H+D) + H$ |
+| GRU | $3H(H+D) + 3H$ |
+| LSTM | $4H(H+D) + 4H$ |
+
+## Variants and practice
+
+- Bidirectional RNNs run one pass forward and one backward, then concatenate. They need the full sequence, so they do not suit streaming.
+- Stacked layers increase depth. Add residual connections above two or three layers.
+- Dropout should apply to the non-recurrent connections, or use variational dropout with the same mask at every step.
+- Layer normalization inside the cell stabilizes training.
+
+## Comparison with attention and SSMs
+
+| Property | RNN or LSTM | Transformer | <a href="/learn/general-ml/s4">S4</a> |
+|---|---|---|---|
+| Training parallel over time | No | Yes | Yes |
+| Inference memory per step | $O(H)$ constant | $O(T)$ KV cache | $O(H)$ constant |
+| Path length between distant tokens | $O(T)$ | $O(1)$ | $O(1)$ through the kernel |
+| Sequence length cost | $O(T)$ | $O(T^2)$ | $O(T\log T)$ |
+
+The sequential dependency is the main reason transformers replaced RNNs for large scale training. State space models recovered parallel training while keeping constant state at inference.
+
+## Code example
+
+```python
+import numpy as np
+
+def lstm_step(x, h, c, W, b):
+    """W: (4H, H + D), b: (4H,). Gate order: i, f, g, o."""
+    H = h.shape[0]
+    z = W @ np.concatenate([h, x]) + b
+    i = 1 / (1 + np.exp(-z[0:H]))
+    f = 1 / (1 + np.exp(-z[H:2 * H]))
+    g = np.tanh(z[2 * H:3 * H])
+    o = 1 / (1 + np.exp(-z[3 * H:4 * H]))
+    c_new = f * c + i * g
+    h_new = o * np.tanh(c_new)
+    return h_new, c_new
+
+rng = np.random.default_rng(0)
+H, D = 4, 3
+W = rng.normal(size=(4 * H, H + D)) * 0.1
+b = np.zeros(4 * H)
+b[H:2 * H] = 1.0        # positive forget gate bias
+h, c = np.zeros(H), np.zeros(H)
+for t in range(5):
+    h, c = lstm_step(rng.normal(size=D), h, c, W, b)
+print(np.round(h, 3))
+```
+
+## Common mistakes
+
+Do not clip gradients to fix vanishing gradients. Clipping only handles explosion.
+
+Do not apply standard dropout to the recurrent connection with a fresh mask each step. It destroys the memory.
+
+Do not forget to reset the hidden state between independent sequences.
+
+Do not use a bidirectional model for a task that must run online.

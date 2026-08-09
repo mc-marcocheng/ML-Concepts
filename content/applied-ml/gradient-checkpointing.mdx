@@ -1,0 +1,84 @@
+---
+id: applied-ml/gradient-checkpointing
+title: Gradient Checkpointing
+category: applied-ml
+summary: Gradient checkpointing saves activation memory by recomputing selected forward values during backward.
+tags:
+  - memory
+  - training
+difficulty: 3
+prereqs:
+  - general-ml/backprop
+related:
+  - applied-ml/fsdp
+  - applied-ml/mixed-precision-training
+  - applied-ml/profiling
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+Gradient checkpointing stores fewer activations in the forward pass. During backward, it recomputes missing activations to save memory.
+</TLDR>
+
+## Core idea
+
+Backpropagation needs intermediate activations.
+
+Large models can store many activations.
+
+Gradient checkpointing saves only selected activations.
+
+During backward, it reruns parts of the forward pass.
+
+This trades extra compute for lower memory.
+
+## Memory and compute tradeoff
+
+Without checkpointing, training stores most activations.
+
+With checkpointing, training stores checkpoints and recomputes the rest.
+
+Peak activation memory can fall a lot.
+
+Step time usually increases because recomputation adds work.
+
+Use <a href="/learn/applied-ml/profiling">Profiling</a> to measure the tradeoff.
+
+## When to use it
+
+Use checkpointing when activations limit batch size or sequence length.
+
+It helps transformer models with long sequences.
+
+It combines well with <a href="/learn/applied-ml/fsdp">FSDP</a>.
+
+It does not reduce parameter memory by itself.
+
+## Code example
+
+```python
+import torch
+from torch.utils.checkpoint import checkpoint
+
+class Block(torch.nn.Module):
+    def forward(self, x):
+        return self.ffn(self.attn(x))
+
+block = Block()
+
+def run_block(x):
+    return block(x)
+
+y = checkpoint(run_block, x)
+```
+
+## Common mistakes
+
+Do not expect checkpointing to reduce all memory.
+
+It mainly reduces activation memory.
+
+Do not checkpoint tiny operations.
+
+The recompute overhead can dominate.

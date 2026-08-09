@@ -1,0 +1,50 @@
+- id: bellman-mcq-1
+  type: mcq
+  prompt: "Which expression is the Q-learning Bellman target?"
+  difficulty: 2
+  options:
+    - "$r + \\gamma \\max_{a'} Q(s',a')$"
+    - "$r - \\gamma Q(s,a)$"
+    - "$\\gamma r + Q(s,a)$"
+    - "$\\max_a r(s,a)$ only"
+  correctIndex: 0
+  explanation: "Q-learning uses reward plus discounted best next action value."
+  anchor: bellman-backup
+- id: bellman-latex-1
+  type: latex
+  prompt: "Write the one-step return recursion."
+  difficulty: 2
+  answer: "G_t=r_t+\\gamma G_{t+1}"
+  rubric:
+    - "Includes current reward."
+    - "Includes discounted next return."
+  explanation: "The return separates into the current reward and the discounted future return."
+  anchor: core-idea
+- id: bellman-short-1
+  type: short
+  prompt: "What is the main difference between the policy Bellman equation and the optimal Bellman equation?"
+  difficulty: 3
+  answer: "The policy equation averages over actions from a policy, while the optimal equation takes a maximum over actions."
+  rubric:
+    - "Mentions averaging under a policy."
+    - "Mentions maximization for the optimal equation."
+  explanation: "Policy evaluation follows a policy. Optimal control chooses the best action."
+  anchor: optimal-bellman-equation
+- id: bellman-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the Q-learning target."
+  difficulty: 3
+  scaffold: |
+    r = 1.0
+    gamma = 0.99
+    q_next = [2.0, 3.0, 1.5]
+    target = ___
+  blanks:
+    - id: 1
+      answer: "r + gamma * max(q_next)"
+      rubric:
+        - "Adds the reward."
+        - "Uses the discounted maximum next Q-value."
+  explanation: "The optimal Bellman target uses the best next action value."
+  anchor: bellman-backup

@@ -1,0 +1,90 @@
+---
+id: applied-ml/mixed-precision-training
+title: Mixed Precision Training
+category: applied-ml
+summary: Mixed precision training uses lower-precision tensors for speed and memory while keeping key values stable.
+tags:
+  - training
+  - numerical-precision
+difficulty: 3
+prereqs:
+  - applied-ml/floating-point-representation
+  - general-ml/backprop
+related:
+  - applied-ml/numerical-precision-tricks
+  - applied-ml/fsdp
+  - applied-ml/profiling
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Mixed precision training uses fp16 or bf16 for many operations. It keeps sensitive values in fp32 when stability needs it.
+</TLDR>
+
+## Core idea
+
+Lower precision can reduce memory and improve throughput.
+
+Common formats include fp16 and bf16.
+
+Many accelerators have fast matrix kernels for these formats.
+
+Training still needs care because gradients can underflow or overflow.
+
+Mixed precision usually keeps some operations in fp32.
+
+Examples include loss accumulation, optimizer state, and some reductions.
+
+## fp16 and bf16
+
+fp16 has limited exponent range.
+
+It often needs loss scaling.
+
+bf16 has the same exponent size as fp32.
+
+It has fewer mantissa bits than fp32.
+
+bf16 usually handles large and small values better than fp16.
+
+See <a href="/learn/applied-ml/floating-point-representation">Floating Point Representation</a>.
+
+## Loss scaling
+
+Loss scaling multiplies the loss before backward.
+
+This makes small fp16 gradients larger during computation.
+
+After backward, the scaler divides gradients before the optimizer step.
+
+Dynamic loss scaling changes the scale when overflow appears.
+
+## Code example
+
+```python
+import torch
+
+scaler = torch.cuda.amp.GradScaler()
+
+for x, y in loader:
+    optimizer.zero_grad()
+
+    with torch.cuda.amp.autocast(dtype=torch.float16):
+        pred = model(x.cuda())
+        loss = loss_fn(pred, y.cuda())
+
+    scaler.scale(loss).backward()
+    scaler.step(optimizer)
+    scaler.update()
+```
+
+## Common mistakes
+
+Do not cast every operation to fp16.
+
+Softmax, normalization, and reductions can need fp32.
+
+Do not use fp16 loss scaling rules for every bf16 run.
+
+bf16 often does not need loss scaling.

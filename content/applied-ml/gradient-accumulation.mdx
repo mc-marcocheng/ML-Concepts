@@ -1,0 +1,89 @@
+---
+id: applied-ml/gradient-accumulation
+title: Gradient Accumulation
+category: applied-ml
+summary: Gradient accumulation combines gradients from multiple microbatches before one optimizer step.
+tags:
+  - training
+  - optimization
+difficulty: 3
+prereqs:
+  - general-ml/gradient-descent-sgd
+  - general-ml/backprop
+related:
+  - applied-ml/ddp
+  - applied-ml/pipeline-parallelism
+  - applied-ml/mixed-precision-training
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+Gradient accumulation runs backward on several microbatches before one optimizer step. It simulates a larger batch with lower peak activation memory.
+</TLDR>
+
+## Core idea
+
+A large batch can exceed device memory.
+
+Gradient accumulation splits it into microbatches.
+
+For each microbatch, the code runs forward and backward.
+
+The optimizer step happens after several backward passes.
+
+The accumulated gradient approximates the gradient of the larger batch.
+
+## Loss scaling across microbatches
+
+If the loss function returns a mean over a microbatch, divide the loss by the number of accumulation steps.
+
+This keeps the gradient scale close to the large-batch gradient.
+
+For $A$ accumulation steps:
+
+$$
+\ell_{\text{scaled}} = \frac{\ell}{A}.
+$$
+
+Without this division, the gradient can become $A$ times larger.
+
+## Global batch size
+
+The global batch size is:
+
+$$
+B_{\text{global}}
+=
+B_{\text{micro}}
+\times A
+\times R.
+$$
+
+Here, $R$ is the number of data-parallel ranks.
+
+See <a href="/learn/applied-ml/ddp">DDP</a>.
+
+## Code example
+
+```python
+accum_steps = 4
+optimizer.zero_grad()
+
+for i, (x, y) in enumerate(loader):
+    pred = model(x)
+    loss = loss_fn(pred, y) / accum_steps
+    loss.backward()
+
+    if (i + 1) % accum_steps == 0:
+        optimizer.step()
+        optimizer.zero_grad()
+```
+
+## Common mistakes
+
+Do not forget to divide the loss.
+
+Do not call `zero_grad` after every microbatch.
+
+Do not confuse microbatch size with global batch size.

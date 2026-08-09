@@ -1,0 +1,108 @@
+---
+id: linear-algebra/hessian
+title: Hessian
+category: linear-algebra
+summary: The Hessian stores second partial derivatives and describes local curvature.
+tags:
+  - calculus
+  - optimization
+difficulty: 3
+prereqs:
+  - linear-algebra/jacobian
+  - linear-algebra/positive-semi-definite
+related:
+  - linear-algebra/eigenvectors-eigenvalues
+  - linear-algebra/positive-semi-definite
+  - linear-algebra/jacobian
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+The Hessian is the matrix of second partial derivatives of a scalar function. It describes local curvature.
+</TLDR>
+
+## Core idea
+
+For a scalar function $f:\mathbb{R}^n \to \mathbb{R}$, the Hessian is:
+
+$$
+H_f(x)
+=
+\begin{bmatrix}
+\frac{\partial^2 f}{\partial x_1^2} & \cdots & \frac{\partial^2 f}{\partial x_1 \partial x_n} \\
+\vdots & \ddots & \vdots \\
+\frac{\partial^2 f}{\partial x_n \partial x_1} & \cdots & \frac{\partial^2 f}{\partial x_n^2}
+\end{bmatrix}.
+$$
+
+It is the Jacobian of the gradient.
+
+See <a href="/learn/linear-algebra/jacobian">Jacobian</a>.
+
+## Curvature
+
+The Hessian controls the second-order Taylor approximation:
+
+$$
+f(x+\Delta x)
+\approx
+f(x)
++
+\nabla f(x)^\top \Delta x
++
+\frac{1}{2}\Delta x^\top H_f(x)\Delta x.
+$$
+
+The quadratic term gives curvature.
+
+## Positive semi-definite Hessian
+
+If the Hessian is positive semi-definite everywhere, then the function is convex under standard smoothness conditions.
+
+If the Hessian at a critical point is positive definite, the point is a strict local minimum.
+
+See <a href="/learn/linear-algebra/positive-semi-definite">Positive Semi-Definite</a>.
+
+## Eigenvalue view
+
+Hessian eigenvectors give principal curvature directions.
+
+Eigenvalues give curvature strength in those directions.
+
+A negative eigenvalue means a descent direction exists at a critical point.
+
+## Newton step
+
+Newton's method uses curvature to update parameters:
+
+$$
+x_{\text{new}}
+=
+x - H_f(x)^{-1}\nabla f(x).
+$$
+
+In code, solve the linear system instead of forming $H^{-1}$.
+
+## Code example
+
+```python
+import numpy as np
+
+def hessian_quadratic(A):
+    return A + A.T
+
+A = np.array([[2.0, 1.0],
+              [0.0, 3.0]])
+
+H = hessian_quadratic(A)
+print(H)
+```
+
+## Common mistakes
+
+Do not use a Hessian for a vector-valued output without defining a scalar objective.
+
+Do not confuse a PSD Hessian at one point with global convexity.
+
+Do not compute a matrix inverse when a solver is enough.

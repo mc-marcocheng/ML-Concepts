@@ -1,0 +1,101 @@
+---
+id: reinforcement-learning/gae
+title: Generalized Advantage Estimation
+category: reinforcement-learning
+summary: GAE computes advantages by exponentially weighting multi-step TD errors.
+tags:
+  - rl
+  - policy-gradient
+  - advantage
+difficulty: 4
+prereqs:
+  - reinforcement-learning/policy-gradient-theorem
+  - reinforcement-learning/monte-carlo-vs-td
+related:
+  - reinforcement-learning/ppo
+  - reinforcement-learning/actor-critic
+  - reinforcement-learning/variance-reduction-in-rl
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+GAE estimates advantages from a weighted sum of TD errors. The parameter $\lambda$ controls the bias-variance tradeoff.
+</TLDR>
+
+## Core idea
+
+The one-step TD error is:
+
+$$
+\delta_t
+=
+r_t+\gamma V(s_{t+1})-V(s_t).
+$$
+
+Generalized Advantage Estimation defines:
+
+$$
+\hat A_t^{\mathrm{GAE}(\gamma,\lambda)}
+=
+\sum_{l=0}^{\infty}
+(\gamma\lambda)^l \delta_{t+l}.
+$$
+
+In finite rollouts, the sum ends at the rollout boundary.
+
+## Role of lambda
+
+When $\lambda=0$, GAE uses only one-step TD error.
+
+This has lower variance and more bias.
+
+When $\lambda=1$, GAE approaches a Monte Carlo-style estimate.
+
+This has less bootstrap bias and more variance.
+
+Thus, $\lambda$ controls a bias-variance tradeoff.
+
+## Recursive computation
+
+GAE can be computed backward:
+
+$$
+\hat A_t
+=
+\delta_t+\gamma\lambda \hat A_{t+1}.
+$$
+
+This recursion makes implementation simple.
+
+Use masks to stop the recursion at terminal states.
+
+## Use with PPO
+
+PPO commonly uses GAE for advantage estimates.
+
+The policy loss then weights log-probability ratios by $\hat A_t$.
+
+See <a href="/learn/reinforcement-learning/ppo">PPO</a>.
+
+## Code example
+
+```python
+def compute_gae(rewards, values, dones, gamma, lam):
+    adv = 0.0
+    out = []
+    for t in reversed(range(len(rewards))):
+        mask = 1.0 - dones[t]
+        delta = rewards[t] + gamma * values[t + 1] * mask - values[t]
+        adv = delta + gamma * lam * mask * adv
+        out.append(adv)
+    return list(reversed(out))
+```
+
+## Common mistakes
+
+Do not forget terminal masks.
+
+Do not use stale value estimates without care.
+
+Do not assume larger $\lambda$ is always better.

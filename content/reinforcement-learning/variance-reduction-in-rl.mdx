@@ -1,0 +1,98 @@
+---
+id: reinforcement-learning/variance-reduction-in-rl
+title: Variance Reduction in RL
+category: reinforcement-learning
+summary: Variance reduction makes policy and value estimates more stable without changing the target when possible.
+tags:
+  - rl
+  - variance
+  - policy-gradient
+difficulty: 4
+prereqs:
+  - reinforcement-learning/policy-gradient-theorem
+  - reinforcement-learning/importance-sampling
+  - general-ml/variance-and-covariance
+related:
+  - reinforcement-learning/gae
+  - reinforcement-learning/actor-critic
+  - reinforcement-learning/ppo
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+RL gradients often have high variance because rewards are noisy and delayed. Baselines, advantage estimates, bootstrapping, clipping, and normalization reduce variance.
+</TLDR>
+
+## Core idea
+
+Policy-gradient estimates can vary greatly across trajectories.
+
+High variance slows learning and can destabilize updates.
+
+Variance reduction tries to make estimates less noisy.
+
+Some methods keep the estimator unbiased.
+
+Other methods add bias for lower variance.
+
+## Baselines
+
+A baseline subtracts a value that does not depend on the sampled action.
+
+The common choice is $V(s)$.
+
+This gives the advantage:
+
+$$
+A(s,a)=Q(s,a)-V(s).
+$$
+
+The expected policy gradient stays the same.
+
+The variance often becomes smaller.
+
+## Reward and advantage normalization
+
+Many implementations normalize advantages in a batch:
+
+$$
+\hat A
+=
+\frac{A-\operatorname{mean}(A)}
+{\operatorname{std}(A)+\epsilon}.
+$$
+
+This changes scale and can improve optimization.
+
+It does not solve biased value estimates.
+
+## Bootstrapping and GAE
+
+TD targets use bootstrapping to reduce return variance.
+
+GAE mixes TD errors across multiple horizons.
+
+The GAE parameter $\lambda$ controls the bias-variance tradeoff.
+
+See <a href="/learn/reinforcement-learning/gae">GAE</a>.
+
+## Importance weight control
+
+Off-policy corrections can have high variance.
+
+Clipping importance weights reduces variance.
+
+It also adds bias.
+
+PPO clips policy ratios for a related reason.
+
+See <a href="/learn/reinforcement-learning/ppo">PPO</a>.
+
+## Common mistakes
+
+Do not assume lower variance always improves final performance.
+
+Do not normalize rewards across tasks without checking meaning.
+
+Do not use clipped weights without tracking the bias.

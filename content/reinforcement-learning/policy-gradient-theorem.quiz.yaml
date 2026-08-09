@@ -1,0 +1,48 @@
+- id: pgt-mcq-1
+  type: mcq
+  prompt: "Which term appears in the policy gradient estimator?"
+  difficulty: 2
+  options:
+    - "$\\nabla_\\theta \\log \\pi_\\theta(a \\mid s)$"
+    - "$\\nabla_\\theta r$ only"
+    - "$\\max_a Q(s,a)$ only"
+    - "$p(s')/p(s)$ only"
+  correctIndex: 0
+  explanation: "The score function term gives the policy gradient direction."
+  anchor: core-idea
+- id: pgt-latex-1
+  type: latex
+  prompt: "Write the advantage in terms of $Q$ and $V$."
+  difficulty: 2
+  answer: "Q(s_t,a_t)-V(s_t)"
+  rubric:
+    - "Includes action value."
+    - "Subtracts state value."
+  explanation: "The advantage measures action value above the state baseline."
+  anchor: baseline
+- id: pgt-short-1
+  type: short
+  prompt: "Why can a state-value baseline reduce variance without changing the expected policy gradient?"
+  difficulty: 4
+  answer: "The baseline does not depend on the sampled action, so its score-function expectation is zero."
+  rubric:
+    - "Mentions the baseline is action independent."
+    - "Mentions zero expected score-function contribution."
+  explanation: "Subtracting $V(s)$ changes variance but not the expected gradient."
+  anchor: baseline
+- id: pgt-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the simple policy-gradient loss for gradient ascent through a minimizer."
+  difficulty: 3
+  scaffold: |
+    # logp is log pi(a|s), advantage is treated as fixed
+    loss = ___
+  blanks:
+    - id: 1
+      answer: "-logp * advantage"
+      rubric:
+        - "Uses negative sign for minimization."
+        - "Multiplies log probability by advantage."
+  explanation: "Minimizing negative log probability times advantage performs ascent on expected return."
+  anchor: core-idea

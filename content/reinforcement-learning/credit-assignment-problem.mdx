@@ -1,0 +1,76 @@
+---
+id: reinforcement-learning/credit-assignment-problem
+title: Credit Assignment Problem
+category: reinforcement-learning
+summary: Credit assignment asks which past actions caused a later reward or loss.
+tags:
+  - rl
+  - temporal-credit
+  - rewards
+difficulty: 3
+prereqs:
+  - reinforcement-learning/markov-decision-process
+  - reinforcement-learning/monte-carlo-vs-td
+related:
+  - reinforcement-learning/gae
+  - reinforcement-learning/variance-reduction-in-rl
+  - reinforcement-learning/policy-gradient-theorem
+estReadMin: 5
+updated: 2026-01-01
+---
+
+<TLDR>
+Credit assignment asks how much responsibility each earlier action has for later outcomes. Delayed rewards make this problem hard.
+</TLDR>
+
+## Core idea
+
+An action can affect rewards many steps later.
+
+The credit assignment problem asks which actions caused the reward.
+
+This is hard when rewards are delayed, sparse, or noisy.
+
+A good algorithm gives useful learning signals to important decisions.
+
+## Temporal credit
+
+Temporal credit assigns reward across time.
+
+Monte Carlo returns assign the same future return to many past actions.
+
+TD methods assign credit through bootstrapped value estimates.
+
+Eligibility traces keep a decayed memory of visited states or actions.
+
+GAE also mixes short and long credit paths.
+
+See <a href="/learn/reinforcement-learning/gae">GAE</a>.
+
+## Structural credit
+
+Structural credit assigns reward across parts of a model or action.
+
+For example, a multi-action policy may need to know which component mattered.
+
+Neural networks use backpropagation for parameter credit.
+
+RL adds the challenge that rewards can arrive after many decisions.
+
+## Reward shaping
+
+Reward shaping gives intermediate rewards.
+
+It can speed learning.
+
+It can also change the task if designed incorrectly.
+
+Potential-based shaping can preserve the optimal policy.
+
+## Common mistakes
+
+Do not reward only the final outcome when useful intermediate signals exist.
+
+Do not add shaping rewards that change the desired behavior.
+
+Do not confuse noisy rewards with delayed rewards.

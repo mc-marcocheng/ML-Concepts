@@ -1,0 +1,129 @@
+---
+id: applied-ml/tensor-parallelism
+title: Tensor Parallelism
+category: applied-ml
+summary: Tensor parallelism splits large tensor operations across devices to reduce per-device memory and compute.
+tags:
+  - distributed-training
+  - parallelism
+difficulty: 4
+prereqs:
+  - linear-algebra/dot-product
+  - applied-ml/communication-primitives
+related:
+  - applied-ml/pipeline-parallelism
+  - applied-ml/fsdp
+  - applied-ml/ddp
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Tensor parallelism splits one large layer across devices. Each device computes part of the tensor operation, then devices communicate partial results.
+</TLDR>
+
+## Core idea
+
+Large models often contain weight matrices that do not fit well on one device.
+
+Tensor parallelism partitions these matrices across devices.
+
+For a linear layer:
+
+$$
+Y = XW.
+$$
+
+A column split partitions the output columns:
+
+$$
+W = [W_1, W_2, \dots, W_k].
+$$
+
+Each device computes:
+
+$$
+Y_i = XW_i.
+$$
+
+Then the system concatenates the outputs:
+
+$$
+Y = [Y_1, Y_2, \dots, Y_k].
+$$
+
+A row split partitions the input dimension:
+
+$$
+W =
+\begin{bmatrix}
+W_1 \\
+W_2 \\
+\vdots \\
+W_k
+\end{bmatrix},
+\quad
+X = [X_1, X_2, \dots, X_k].
+$$
+
+Each device computes a partial output:
+
+$$
+Z_i = X_iW_i.
+$$
+
+Then devices use an all-reduce sum:
+
+$$
+Y = \sum_i Z_i.
+$$
+
+See <a href="/learn/applied-ml/communication-primitives">Communication Primitives</a> for all-reduce and all-gather.
+
+## Where it helps
+
+Tensor parallelism helps when one layer is too large or too slow for one device.
+
+It often appears in transformer MLP layers and attention projections.
+
+It can combine with <a href="/learn/applied-ml/pipeline-parallelism">Pipeline Parallelism</a> and <a href="/learn/applied-ml/ddp">DDP</a>.
+
+## Communication cost
+
+Tensor parallelism reduces local work.
+
+It adds communication inside a layer.
+
+The best split depends on tensor shape, network speed, and kernel support.
+
+Small layers can become slower because communication dominates compute.
+
+## Code sketch
+
+```python
+import torch
+
+x = torch.randn(8, 4096)
+w = torch.randn(4096, 8192)
+
+# Column split across two devices or ranks.
+w1, w2 = torch.chunk(w, chunks=2, dim=1)
+
+y1 = x @ w1
+y2 = x @ w2
+
+y = torch.cat([y1, y2], dim=1)
+print(y.shape)
+```
+
+## Common mistakes
+
+Do not confuse tensor parallelism with data parallelism.
+
+Tensor parallelism splits one layer.
+
+Data parallelism copies the model and splits the batch.
+
+Do not ignore collective communication.
+
+The communication pattern often decides the speed.

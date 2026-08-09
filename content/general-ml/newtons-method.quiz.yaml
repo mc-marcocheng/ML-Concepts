@@ -1,0 +1,51 @@
+- id: newton-mcq-1
+  type: mcq
+  prompt: "What extra information does Newton's method use compared with gradient descent?"
+  difficulty: 2
+  options:
+    - "Second derivatives"
+    - "Class labels only"
+    - "Test accuracy"
+    - "A random seed only"
+  correctIndex: 0
+  explanation: "Newton's method uses curvature through the Hessian."
+  anchor: core-idea
+
+- id: newton-latex-1
+  type: latex
+  prompt: "Write the Newton optimization update."
+  difficulty: 3
+  answer: '\theta_{t+1}=\theta_t-H^{-1}g'
+  rubric:
+    - "Includes the current parameter."
+    - "Subtracts inverse Hessian times gradient."
+  explanation: "The Newton step is curvature-scaled gradient descent."
+  anchor: core-idea
+
+- id: newton-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the Newton step solve."
+  difficulty: 3
+  scaffold: |
+    import numpy as np
+    delta = ___
+  blanks:
+    - id: 1
+      answer: "np.linalg.solve(H, -g)"
+      rubric:
+        - "Solves with H."
+        - "Uses negative gradient."
+  explanation: "The Newton direction solves H delta equals negative g."
+  anchor: code-example
+
+- id: newton-short-1
+  type: short
+  prompt: "Why should you avoid forming $H^{-1}$ explicitly?"
+  difficulty: 3
+  answer: "Solving the linear system is usually more stable and efficient than computing the inverse."
+  rubric:
+    - "Mentions numerical stability or efficiency."
+    - "Mentions solving the system."
+  explanation: "Use a linear solver for the Newton direction."
+  anchor: practical-issues

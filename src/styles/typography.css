@@ -1,0 +1,66 @@
+.t-display-mega { font-size: clamp(54px, 6vw, 86px); font-weight: 800; line-height: .98; letter-spacing: -.055em; }
+.t-display-xxl { font-size: clamp(48px, 5.6vw, 72px); font-weight: 800; line-height: 1; letter-spacing: -.05em; }
+.t-display-xl { font-size: clamp(42px, 5vw, 64px); font-weight: 800; line-height: 1.04; letter-spacing: -.045em; }
+.t-display-lg { font-size: clamp(38px, 4.2vw, 52px); font-weight: 800; line-height: 1.06; letter-spacing: -.04em; }
+.t-display-md { font-size: clamp(32px, 3.2vw, 40px); font-weight: 750; line-height: 1.10; letter-spacing: -.03em; }
+.t-display-sm { font-size: clamp(26px, 2.4vw, 30px); font-weight: 750; line-height: 1.16; letter-spacing: -.02em; }
+.t-title-lg { font-size: clamp(21px, 1.8vw, 24px); font-weight: 750; line-height: 1.25; letter-spacing: -.02em; }
+.t-title-md { font-size: clamp(19px, 1.5vw, 21px); font-weight: 750; line-height: 1.35; letter-spacing: -.02em; }
+.t-body-lg { font-size: 18px; font-weight: 400; line-height: 1.70; }
+.t-body-md { font-size: 16px; font-weight: 400; line-height: 1.65; }
+.t-body-md-strong { font-size: 16px; font-weight: 650; line-height: 1.55; }
+.t-body-sm { font-size: 14px; font-weight: 400; line-height: 1.65; }
+.t-body-sm-strong { font-size: 14px; font-weight: 650; line-height: 1.45; }
+.t-caption { font-size: 12px; font-weight: 600; line-height: 1.40; }
+.t-eyebrow { font-family: var(--font-mono); font-size: 11px; font-weight: 600; line-height: 1.30; letter-spacing: .08em; text-transform: uppercase; }
+.t-mono-sm { font-family: var(--font-mono); font-size: 13px; line-height: 1.55; letter-spacing: 0; }
+
+@media (max-width: 767px) {
+  .t-body-lg { font-size: 17px; }
+}
+
+/* ---- assistant message markdown -------------------------------------- */
+.chat-md > * + * { margin-top: .7em; }
+.chat-md p { margin: 0; }
+.chat-md ul, .chat-md ol { margin: 0; padding-left: 1.3em; }
+.chat-md ul { list-style: disc; }
+.chat-md ol { list-style: decimal; }
+.chat-md li + li { margin-top: .25em; }
+.chat-md h1, .chat-md h2, .chat-md h3 { font-size: 1.02em; font-weight: 800; color: var(--color-ink); }
+.chat-md a { text-decoration: underline; }
+.chat-md blockquote {
+  border-left: 2px solid var(--color-line);
+  padding-left: .75em;
+  color: var(--color-muted);
+}
+.chat-md code { font-family: var(--font-mono); font-size: .9em; }
+.chat-md pre {
+  overflow-x: auto;
+  padding: .75rem .9rem;
+  border-radius: 8px;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-line);
+}
+.chat-md pre code { background: none; padding: 0; }
+.chat-md table { width: 100%; border-collapse: collapse; font-size: .95em; }
+.chat-md th, .chat-md td { border: 1px solid var(--color-line); padding: .35em .5em; text-align: left; }
+.chat-md .katex-display {
+  display: block;
+  margin: .8em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 2px;
+  text-align: center;
+}
+.chat-md .katex-display > .katex { white-space: nowrap; }
+.chat-md .katex { font-size: 1.03em; }
+.chat-caret {
+  display: inline-block;
+  width: .5ch;
+  height: 1em;
+  vertical-align: -.15em;
+  background: currentColor;
+  animation: chat-caret 1s steps(2, start) infinite;
+}
+@keyframes chat-caret { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .chat-caret { animation: none; } }

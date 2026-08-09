@@ -1,0 +1,60 @@
+- id: scale-mcq-1
+  type: mcq
+  prompt: "What factor scales attention dot products?"
+  difficulty: 1
+  options:
+    - "1 over square root of d_k"
+    - "d_k"
+    - "The vocabulary size"
+    - "The sequence length only"
+  correctIndex: 0
+  explanation: "Scaled dot-product attention divides by square root of d_k."
+  anchor: core-idea
+
+- id: scale-latex-1
+  type: latex
+  prompt: "Write the scaled attention logit for query q and key k."
+  difficulty: 2
+  answer: '\frac{q^\top k}{\sqrt{d_k}}'
+  rubric:
+    - "Includes q transpose k."
+    - "Divides by square root of d_k."
+  explanation: "The attention logit uses the dot product scaled by square root of d_k."
+  anchor: core-idea
+
+- id: scale-numeric-1
+  type: numeric
+  prompt: "If d_k is 64, what value divides the attention dot product?"
+  difficulty: 1
+  value: 8
+  tolerance: 0
+  explanation: "The divisor is square root of 64."
+  anchor: core-idea
+
+- id: scale-short-1
+  type: short
+  prompt: "Why does attention divide by square root of d_k?"
+  difficulty: 3
+  answer: "The dot product variance grows with d_k, and dividing by square root of d_k keeps the variance near one."
+  rubric:
+    - "Mentions dot product variance grows with d_k."
+    - "Mentions division by square root of d_k."
+    - "Mentions stable logits or softmax."
+  explanation: "The scale keeps logits from growing too large as dimension grows."
+  anchor: why-scale-by-square-root
+
+- id: scale-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the scaled attention score."
+  difficulty: 2
+  scaffold: |
+    d_k = q.shape[-1]
+    scores = (q @ k.transpose(-2, -1)) / ___
+  blanks:
+    - id: 1
+      answer: "d_k**0.5"
+      rubric:
+        - "Uses the square root of the key dimension."
+  explanation: "Attention divides scores by square root of d_k."
+  anchor: code-example

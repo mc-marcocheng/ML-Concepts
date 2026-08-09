@@ -1,0 +1,61 @@
+- id: diff-sde-mcq-1
+  type: mcq
+  prompt: "Which term lets the reverse-time SDE denoise samples?"
+  difficulty: 3
+  options:
+    - "The score $\\nabla_x \\log p_t(x)$"
+    - "The batch size"
+    - "The discriminator label"
+    - "The token embedding"
+  correctIndex: 0
+  explanation: "The reverse drift uses the score of the time-dependent density."
+  anchor: reverse-time-sde
+
+- id: diff-sde-latex-1
+  type: latex
+  prompt: "Write the reverse-time SDE drift for forward drift $f(x,t)$ and diffusion coefficient $g(t)$."
+  difficulty: 4
+  answer: 'f(x,t)-g(t)^2\nabla_x\log p_t(x)'
+  rubric:
+    - "Includes the forward drift."
+    - "Subtracts $g(t)^2$ times the score."
+  explanation: "The reverse drift adds a score correction to reverse the density path."
+  anchor: reverse-time-sde
+
+- id: diff-sde-short-1
+  type: short
+  prompt: "How does the probability flow ODE differ from the reverse SDE?"
+  difficulty: 3
+  answer: "The probability flow ODE is deterministic and has no Brownian noise term, while the reverse SDE is stochastic."
+  rubric:
+    - "Mentions that the probability flow ODE is deterministic."
+    - "Mentions that the reverse SDE has a noise term."
+  explanation: "Both can share the same marginal density path, but one is deterministic."
+  anchor: probability-flow-ode
+
+- id: diff-sde-numeric-1
+  type: numeric
+  prompt: "For $f=0$, $g=2$, and score $s=3$, what is the reverse drift $f-g^2s$?"
+  difficulty: 2
+  value: -12
+  tolerance: 0.000001
+  explanation: "The reverse drift is $0-2^2\\cdot3=-12$."
+  anchor: reverse-time-sde
+
+- id: diff-sde-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the reverse SDE drift correction."
+  difficulty: 3
+  scaffold: |
+    drift = -0.5 * beta_t * x
+    diffusion = torch.sqrt(beta_t)
+    reverse_drift = ___
+  blanks:
+    - id: 1
+      answer: "drift - diffusion.pow(2) * score"
+      rubric:
+        - "Uses the forward drift."
+        - "Subtracts diffusion squared times the score."
+  explanation: "The reverse drift contains the score correction."
+  anchor: code-example

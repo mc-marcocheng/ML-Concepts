@@ -1,0 +1,155 @@
+---
+id: generative-modeling/classifier-free-guidance
+title: Classifier-Free Guidance
+category: generative-modeling
+summary: Classifier-free guidance combines conditional and unconditional denoising predictions to control generation.
+tags:
+  - diffusion
+  - conditioning
+difficulty: 3
+prereqs:
+  - generative-modeling/diffusion-reverse-process
+  - generative-modeling/score-function
+related:
+  - generative-modeling/diffusion-forward-process
+  - generative-modeling/diffusion-sde
+  - generative-modeling/flow-matching-ode
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+Classifier-free guidance strengthens conditional generation without a separate classifier. It combines unconditional and conditional model predictions during sampling.
+</TLDR>
+
+## Core idea
+
+Conditional diffusion models generate samples from a condition $c$.
+
+The condition can be a class label, text, an image, or another signal.
+
+Classifier-free guidance trains one model for two modes.
+
+One mode uses the condition.
+
+The other mode drops the condition.
+
+At sampling time, the two predictions are combined.
+
+This increases how strongly samples follow the condition.
+
+See <a href="/learn/generative-modeling/diffusion-reverse-process">Diffusion Reverse Process</a> for the denoising step.
+
+## Training with condition dropout
+
+During training, randomly replace the condition with a null condition.
+
+For example, use a special empty condition $\varnothing$.
+
+The model learns:
+
+$$
+\epsilon_\theta(x_t,t,c)
+$$
+
+and:
+
+$$
+\epsilon_\theta(x_t,t,\varnothing).
+$$
+
+The same network handles both calls.
+
+No separate classifier is required.
+
+This is why the method is called classifier-free guidance.
+
+## Guidance formula
+
+For noise prediction, a common guidance formula is:
+
+$$
+\epsilon_{\text{guided}}
+=
+\epsilon_{\text{uncond}}
++
+w
+\left(
+\epsilon_{\text{cond}}-\epsilon_{\text{uncond}}
+\right).
+$$
+
+Here:
+
+$$
+\epsilon_{\text{cond}}
+=
+\epsilon_\theta(x_t,t,c).
+$$
+
+Also:
+
+$$
+\epsilon_{\text{uncond}}
+=
+\epsilon_\theta(x_t,t,\varnothing).
+$$
+
+When $w=0$, sampling is unconditional.
+
+When $w=1$, sampling uses the conditional prediction.
+
+When $w>1$, sampling extrapolates beyond the conditional prediction.
+
+Some libraries use a different scale convention.
+
+Always check the exact formula.
+
+## Why guidance works
+
+The conditional prediction points toward samples that match the condition.
+
+The unconditional prediction models the general data distribution.
+
+The difference:
+
+$$
+\epsilon_{\text{cond}}-\epsilon_{\text{uncond}}
+$$
+
+acts like a direction toward condition agreement.
+
+Increasing $w$ strengthens this direction.
+
+For score prediction, the same idea applies to scores instead of noise.
+
+## Tradeoff
+
+Higher guidance often improves condition alignment.
+
+It can reduce diversity.
+
+It can also create artifacts if the scale is too high.
+
+Lower guidance gives more varied samples.
+
+It can make the condition weaker.
+
+Choose the guidance scale with validation samples.
+
+## Code example
+
+```python
+def classifier_free_guidance(eps_cond, eps_uncond, guidance_scale):
+    return eps_uncond + guidance_scale * (eps_cond - eps_uncond)
+```
+
+This function uses the common noise-prediction convention.
+
+## Common mistakes
+
+Do not train only with conditions if you need unconditional predictions.
+
+Do not assume all libraries define guidance scale the same way.
+
+Do not set guidance extremely high without checking artifacts.

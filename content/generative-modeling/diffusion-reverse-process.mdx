@@ -1,0 +1,211 @@
+---
+id: generative-modeling/diffusion-reverse-process
+title: Diffusion Reverse Process
+category: generative-modeling
+summary: The diffusion reverse process uses a learned denoiser to sample from noise back to data.
+tags:
+  - diffusion
+  - sampling
+difficulty: 4
+prereqs:
+  - generative-modeling/diffusion-forward-process
+  - generative-modeling/score-function
+related:
+  - generative-modeling/diffusion-sde
+  - generative-modeling/classifier-free-guidance
+  - generative-modeling/flow-matching-ode
+estReadMin: 9
+updated: 2026-01-01
+---
+
+<TLDR>
+The reverse process starts from Gaussian noise and removes noise step by step. DDPM uses stochastic updates, while DDIM can use deterministic or partly stochastic updates.
+</TLDR>
+
+## Core idea
+
+The forward process is easy because it only adds Gaussian noise.
+
+The reverse process is hard because it must generate data.
+
+A neural network learns to estimate the noise, score, or clean sample.
+
+Most DDPM models train a noise predictor:
+
+$$
+\epsilon_\theta(x_t,t).
+$$
+
+Sampling starts with:
+
+$$
+x_T \sim \mathcal{N}(0,I).
+$$
+
+Then the model applies reverse transitions until it reaches $x_0$.
+
+See <a href="/learn/generative-modeling/diffusion-forward-process">Diffusion Forward Process</a> for the noising chain.
+
+## DDPM update
+
+A common DDPM reverse update is:
+
+$$
+x_{t-1}
+=
+\frac{1}{\sqrt{\alpha_t}}
+\left(
+x_t
+-
+\frac{\beta_t}{\sqrt{1-\bar\alpha_t}}
+\epsilon_\theta(x_t,t)
+\right)
++
+\sigma_t z,
+$$
+
+where:
+
+$$
+z \sim \mathcal{N}(0,I).
+$$
+
+The noise term makes DDPM sampling stochastic.
+
+A common choice is:
+
+$$
+\sigma_t^2 = \tilde\beta_t.
+$$
+
+Here, $\tilde\beta_t$ is the posterior variance from the forward process.
+
+## Estimate of x0
+
+The noise prediction gives an estimate of the clean sample.
+
+From the forward equation:
+
+$$
+x_t
+=
+\sqrt{\bar\alpha_t}x_0
++
+\sqrt{1-\bar\alpha_t}\epsilon.
+$$
+
+Solve for $x_0$:
+
+$$
+\hat x_0
+=
+\frac{x_t-\sqrt{1-\bar\alpha_t}\epsilon_\theta(x_t,t)}
+{\sqrt{\bar\alpha_t}}.
+$$
+
+Many samplers use this estimate directly.
+
+<Proof title="Clean sample estimate">
+Start with the closed form forward sample:
+
+$$
+x_t
+=
+\sqrt{\bar\alpha_t}x_0
++
+\sqrt{1-\bar\alpha_t}\epsilon.
+$$
+
+Move the noise term to the left:
+
+$$
+x_t-\sqrt{1-\bar\alpha_t}\epsilon
+=
+\sqrt{\bar\alpha_t}x_0.
+$$
+
+Divide by $\sqrt{\bar\alpha_t}$:
+
+$$
+x_0
+=
+\frac{x_t-\sqrt{1-\bar\alpha_t}\epsilon}
+{\sqrt{\bar\alpha_t}}.
+$$
+
+Replace $\epsilon$ with the model prediction.
+
+Thus:
+
+$$
+\hat x_0
+=
+\frac{x_t-\sqrt{1-\bar\alpha_t}\epsilon_\theta(x_t,t)}
+{\sqrt{\bar\alpha_t}}.
+$$
+</Proof>
+
+## DDIM update
+
+DDIM uses a non-Markovian reverse process with the same training objective.
+
+A common DDIM update is:
+
+$$
+x_{t-1}
+=
+\sqrt{\bar\alpha_{t-1}}\hat x_0
++
+\sqrt{1-\bar\alpha_{t-1}-\sigma_t^2}\epsilon_\theta(x_t,t)
++
+\sigma_t z.
+$$
+
+When $\sigma_t=0$, DDIM sampling is deterministic.
+
+When $\sigma_t$ is larger, DDIM adds stochasticity.
+
+DDIM can use fewer sampling steps than the training schedule.
+
+## Training objective
+
+The usual simplified training objective is:
+
+$$
+\mathcal{L}
+=
+\mathbb{E}_{x_0,t,\epsilon}
+\left[
+\|\epsilon-\epsilon_\theta(x_t,t)\|^2
+\right].
+$$
+
+This loss trains the reverse model indirectly.
+
+The model learns how much noise each corrupted sample contains.
+
+That information determines how to denoise.
+
+## Code example
+
+```python
+import torch
+
+def predict_x0(x_t, eps_theta, alpha_bar_t):
+    return (
+        x_t - torch.sqrt(1 - alpha_bar_t) * eps_theta
+    ) / torch.sqrt(alpha_bar_t)
+
+def ddpm_mean(x_t, eps_theta, alpha_t, beta_t, alpha_bar_t):
+    return (
+        x_t - beta_t / torch.sqrt(1 - alpha_bar_t) * eps_theta
+    ) / torch.sqrt(alpha_t)
+```
+
+## Common mistakes
+
+Do not add fresh noise at the final reverse step.
+
+Do not confuse DDPM stochastic sampling with DDIM deterministic sampling.
+
+Do not use $\alpha_t$ where $\bar\alpha_t$ is required.

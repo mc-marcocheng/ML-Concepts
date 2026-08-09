@@ -1,0 +1,189 @@
+---
+id: general-ml/data-whitening
+title: Data Whitening
+category: general-ml
+summary: Whitening transforms data so that features have zero mean, unit variance, and no correlation.
+tags:
+  - preprocessing
+  - linear-algebra
+difficulty: 3
+prereqs:
+  - general-ml/variance-and-covariance
+  - linear-algebra/eigenvectors-eigenvalues
+related:
+  - general-ml/dimensionality-reduction
+  - general-ml/batchnorm-layernorm-rmsnorm
+  - general-ml/gradient-descent-sgd
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+Whitening applies a linear map $W$ so that the transformed data has identity covariance. PCA whitening rotates into the eigenbasis and rescales. ZCA whitening rotates back, which keeps the data visually close to the original.
+</TLDR>
+
+## Goal
+
+Let $x \in \mathbb{R}^d$ with mean $\mu$ and covariance $\Sigma$. Whitening finds $W$ such that
+
+$$
+z = W(x-\mu),
+\qquad
+\operatorname{Cov}(z) = I .
+$$
+
+The result has unit variance in every direction and zero correlation between features.
+
+## The eigendecomposition solution
+
+Write the eigendecomposition
+
+$$
+\Sigma = U\Lambda U^\top ,
+$$
+
+where $U$ is orthogonal and $\Lambda = \operatorname{diag}(\lambda_1,\dots,\lambda_d)$ with $\lambda_j > 0$.
+
+PCA whitening uses
+
+$$
+W_{\mathrm{PCA}} = \Lambda^{-1/2}U^\top .
+$$
+
+ZCA whitening uses
+
+$$
+W_{\mathrm{ZCA}} = U\Lambda^{-1/2}U^\top = \Sigma^{-1/2}.
+$$
+
+<Proof title="PCA whitening produces identity covariance">
+Let $z = W(x-\mu)$ with $W = \Lambda^{-1/2}U^\top$.
+
+The covariance of a linear map is
+
+$$
+\operatorname{Cov}(z) = W\Sigma W^\top .
+$$
+
+Substitute $\Sigma = U\Lambda U^\top$:
+
+$$
+\operatorname{Cov}(z)
+=
+\Lambda^{-1/2}U^\top\, U\Lambda U^\top\, U\Lambda^{-1/2}.
+$$
+
+Since $U$ is orthogonal, $U^\top U = I$:
+
+$$
+=
+\Lambda^{-1/2}\Lambda\Lambda^{-1/2}
+=
+\Lambda^{-1/2}\Lambda^{1/2}\Lambda^{1/2}\Lambda^{-1/2}
+=
+I .
+$$
+
+The same computation with $W_{\mathrm{ZCA}} = U\Lambda^{-1/2}U^\top$ gives
+
+$$
+U\Lambda^{-1/2}U^\top U\Lambda U^\top U\Lambda^{-1/2}U^\top
+=
+U\Lambda^{-1/2}\Lambda\Lambda^{-1/2}U^\top
+=
+UU^\top
+=
+I .
+$$
+</Proof>
+
+## Whitening is not unique
+
+If $W$ whitens, then so does $RW$ for any orthogonal $R$, because
+
+$$
+(RW)\Sigma(RW)^\top = R I R^\top = I .
+$$
+
+So the whitening transform is defined only up to a rotation.
+
+| Choice | Formula | Property |
+|---|---|---|
+| PCA | $\Lambda^{-1/2}U^\top$ | Axes align with principal components |
+| ZCA | $U\Lambda^{-1/2}U^\top$ | Closest to the identity in Frobenius norm |
+| Cholesky | $L^{-1}$ with $\Sigma = LL^\top$ | Triangular, cheap |
+
+ZCA is the standard choice for image data because it preserves spatial structure and looks like local edge enhancement.
+
+## Numerical stability
+
+Small eigenvalues make $\lambda^{-1/2}$ huge and amplify noise.
+
+Two standard fixes exist.
+
+1. Add a regularizer:
+
+$$
+W = (\Sigma + \epsilon I)^{-1/2}.
+$$
+
+2. Drop directions with tiny eigenvalues. This is whitening plus <a href="/learn/general-ml/dimensionality-reduction">dimensionality reduction</a>.
+
+Always fit $\mu$, $U$, and $\Lambda$ on the training set only. Applying the same transform to validation and test data prevents leakage.
+
+## Why whitening helps optimization
+
+For a linear model with squared loss, the Hessian is proportional to the input covariance:
+
+$$
+H = \frac{2}{n} X^\top X .
+$$
+
+Whitening makes $X^\top X \propto I$, so the condition number becomes one. <a href="/learn/general-ml/gradient-descent-sgd">Gradient descent</a> then converges in a single well scaled step direction.
+
+This is the same motivation behind <a href="/learn/general-ml/batchnorm-layernorm-rmsnorm">batch normalization</a>, which whitens per feature within a mini-batch but skips the expensive decorrelation across features.
+
+## Standardization compared with whitening
+
+| Operation | Effect on covariance |
+|---|---|
+| Centering | Mean becomes zero, covariance unchanged |
+| Standardization | Diagonal becomes one, off-diagonal correlations remain |
+| Whitening | Full covariance becomes the identity |
+
+Standardization costs $O(d)$. Whitening costs $O(d^3)$ for the decomposition, so it is impractical for very large $d$.
+
+## Code example
+
+```python
+import numpy as np
+
+def fit_whitening(X, eps=1e-5, mode="zca"):
+    mu = X.mean(axis=0)
+    Xc = X - mu
+    cov = (Xc.T @ Xc) / (len(X) - 1)
+    lam, U = np.linalg.eigh(cov)
+    inv_sqrt = np.diag(1.0 / np.sqrt(lam + eps))
+    W = inv_sqrt @ U.T
+    if mode == "zca":
+        W = U @ W
+    return mu, W
+
+rng = np.random.default_rng(0)
+A = rng.normal(size=(3, 3))
+X = rng.normal(size=(2000, 3)) @ A.T
+
+mu, W = fit_whitening(X)
+Z = (X - mu) @ W.T
+print(np.round(np.cov(Z, rowvar=False), 3))
+```
+
+The printed covariance should be close to the identity.
+
+## Common mistakes
+
+Do not fit the whitening matrix on the full dataset including the test split.
+
+Do not omit the epsilon term. Near zero eigenvalues will explode.
+
+Do not confuse standardization with whitening. Standardization leaves correlations in place.

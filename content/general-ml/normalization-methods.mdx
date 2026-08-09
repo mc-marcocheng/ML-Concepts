@@ -1,0 +1,77 @@
+---
+id: general-ml/normalization-methods
+title: BatchNorm, LayerNorm, and RMSNorm
+category: general-ml
+summary: Normalization layers rescale activations to stabilize and speed neural network training.
+tags:
+  - neural-networks
+  - training
+difficulty: 3
+prereqs:
+  - general-ml/expectation
+  - general-ml/variance-and-covariance
+related:
+  - general-ml/activation-functions
+  - general-ml/weight-initialization
+  - general-ml/gradient-descent-sgd
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+BatchNorm normalizes across a batch. LayerNorm normalizes within each example. RMSNorm normalizes by root mean square without mean subtraction.
+</TLDR>
+
+## Core idea
+
+Normalization layers control activation scale.
+
+A common form is:
+
+$$
+\hat x=\frac{x-\mu}{\sqrt{\sigma^2+\epsilon}}.
+$$
+
+Then learned parameters scale and shift:
+
+$$
+y=\gamma \hat x+\beta.
+$$
+
+## BatchNorm
+
+BatchNorm computes mean and variance across the batch.
+
+It works well in many convolutional networks.
+
+It uses running statistics at inference.
+
+Small batches can make its statistics noisy.
+
+## LayerNorm
+
+LayerNorm computes statistics across features within one example.
+
+It does not depend on other batch examples.
+
+It is common in transformers and sequence models.
+
+## RMSNorm
+
+RMSNorm divides by the root mean square:
+
+$$
+\operatorname{RMS}(x)=\sqrt{\frac{1}{d}\sum_i x_i^2+\epsilon}.
+$$
+
+It usually omits mean subtraction.
+
+This can reduce compute in large models.
+
+## Common mistakes
+
+Do not use training BatchNorm statistics at inference.
+
+Do not confuse BatchNorm and LayerNorm axes.
+
+Do not remove epsilon from normalization.

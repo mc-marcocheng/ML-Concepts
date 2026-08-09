@@ -1,0 +1,185 @@
+---
+id: general-ml/decision-trees
+title: Decision Trees
+category: general-ml
+summary: A decision tree splits the feature space with greedy axis aligned rules and predicts a constant in each leaf.
+tags:
+  - classification
+  - regression
+  - trees
+difficulty: 2
+prereqs:
+  - general-ml/entropy
+  - general-ml/overfitting-underfitting
+related:
+  - general-ml/bagging
+  - general-ml/boosting
+  - general-ml/ensembles
+estReadMin: 9
+updated: 2026-01-01
+---
+
+<TLDR>
+A decision tree picks the split that most reduces an impurity measure, then recurses. Trees are readable and need no feature scaling, but a single deep tree overfits. Pruning and ensembles fix that.
+</TLDR>
+
+## Structure
+
+A tree is a set of internal nodes and leaves.
+
+- An internal node holds a test such as $x_j \le t$.
+- Each leaf holds a prediction. Classification uses the majority class or the class frequencies. Regression uses the mean target.
+
+Prediction walks from the root to a leaf. The cost is $O(\text{depth})$.
+
+The model is piecewise constant on axis aligned boxes.
+
+## Impurity measures
+
+For classification with class proportions $p_1,\dots,p_K$ in a node:
+
+$$
+\text{Gini} = 1 - \sum_{k=1}^{K} p_k^2 ,
+$$
+
+$$
+\text{Entropy} = -\sum_{k=1}^{K} p_k \log_2 p_k .
+$$
+
+For regression:
+
+$$
+\text{MSE} = \frac{1}{|S|}\sum_{i\in S}(y_i - \bar{y}_S)^2 .
+$$
+
+Both Gini and entropy peak at a uniform distribution and reach zero at a pure node. See <a href="/learn/general-ml/entropy">entropy</a>.
+
+Gini is slightly cheaper because it needs no logarithm. The two rarely produce different trees.
+
+## Choosing a split
+
+The impurity decrease of a split of node $S$ into $S_L$ and $S_R$ is
+
+$$
+\Delta
+=
+I(S)
+-\frac{|S_L|}{|S|}I(S_L)
+-\frac{|S_R|}{|S|}I(S_R).
+$$
+
+CART evaluates every feature and every candidate threshold, then takes the largest $\Delta$.
+
+For a numeric feature, sort the values and test midpoints between consecutive distinct values. Sorting once per feature makes the search cost $O(nd\log n)$ at the root.
+
+<Proof title="Impurity decrease is nonnegative for concave impurity">
+Let $I$ be a concave function of the class proportion vector. Both Gini and entropy are concave.
+
+Let $\lambda = |S_L|/|S|$, so the right child has weight $1-\lambda$. The parent proportions are the weighted average of the child proportions:
+
+$$
+p_S = \lambda p_{S_L} + (1-\lambda) p_{S_R}.
+$$
+
+Concavity gives
+
+$$
+I(p_S)
+=
+I\big(\lambda p_{S_L} + (1-\lambda)p_{S_R}\big)
+\ge
+\lambda I(p_{S_L}) + (1-\lambda) I(p_{S_R}).
+$$
+
+Therefore
+
+$$
+\Delta = I(p_S) - \lambda I(p_{S_L}) - (1-\lambda)I(p_{S_R}) \ge 0 .
+$$
+
+A split never increases weighted impurity. Equality holds when both children have the same class distribution as the parent.
+</Proof>
+
+Because $\Delta \ge 0$ always, a greedy tree can grow until every leaf is pure. That is why you must limit growth.
+
+## Overfitting control
+
+| Control | Effect |
+|---|---|
+| `max_depth` | Caps the number of splits on a path |
+| `min_samples_split` | Blocks splits on small nodes |
+| `min_samples_leaf` | Forces leaves to hold enough data |
+| `max_features` | Limits features considered per split |
+| `min_impurity_decrease` | Requires a useful gain |
+| Cost-complexity pruning | Removes weak subtrees after growth |
+
+Cost-complexity pruning minimizes
+
+$$
+R_\alpha(T) = R(T) + \alpha |T| ,
+$$
+
+where $R(T)$ is the training error and $|T|$ is the number of leaves. Increasing $\alpha$ produces a nested sequence of subtrees. Pick $\alpha$ with <a href="/learn/general-ml/cross-validation">cross validation</a>.
+
+## Strengths and weaknesses
+
+Strengths:
+
+- No feature scaling is needed. Splits use order only.
+- The model handles mixed numeric and categorical features.
+- The rules are readable.
+- Missing values can go down a surrogate split or a default branch.
+- The model captures interactions without manual feature crosses.
+
+Weaknesses:
+
+- High variance. A small change in the data can change the top split and rebuild the tree.
+- Axis aligned splits approximate a diagonal boundary with a staircase.
+- Greedy search finds no global optimum.
+- Impurity based feature importance is biased toward high cardinality features. Prefer permutation importance.
+- The model cannot extrapolate beyond the training range in regression.
+
+<a href="/learn/general-ml/bagging">Bagging</a> and <a href="/learn/general-ml/boosting">boosting</a> exist mainly to fix the variance problem.
+
+## Code example
+
+```python
+import numpy as np
+
+def gini(y):
+    if len(y) == 0:
+        return 0.0
+    p = np.bincount(y) / len(y)
+    return 1.0 - np.sum(p ** 2)
+
+def best_split(X, y):
+    n, d = X.shape
+    parent = gini(y)
+    best = (0.0, None, None)
+    for j in range(d):
+        order = np.argsort(X[:, j])
+        xs, ys = X[order, j], y[order]
+        for i in range(1, n):
+            if xs[i] == xs[i - 1]:
+                continue
+            left, right = ys[:i], ys[i:]
+            score = parent - (len(left) / n) * gini(left) - (len(right) / n) * gini(right)
+            if score > best[0]:
+                best = (score, j, 0.5 * (xs[i] + xs[i - 1]))
+    return best
+
+rng = np.random.default_rng(0)
+X = rng.normal(size=(200, 3))
+y = (X[:, 1] > 0.3).astype(int)
+print(best_split(X, y))
+```
+
+The routine should recover feature index 1 with a threshold near 0.3.
+
+## Common mistakes
+
+Do not one hot encode a high cardinality categorical feature for a tree without thought. It creates many weak binary splits.
+
+Do not trust default impurity importances for feature ranking.
+
+Do not grow an unpruned tree and report training accuracy. It will be near one.

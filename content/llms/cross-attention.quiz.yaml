@@ -1,0 +1,62 @@
+- id: cross-mcq-1
+  type: mcq
+  prompt: "In standard cross attention, where do keys and values come from?"
+  difficulty: 1
+  options:
+    - "The source sequence"
+    - "Only the target labels"
+    - "Only the optimizer"
+    - "Only the vocabulary file"
+  correctIndex: 0
+  explanation: "Cross attention uses keys and values from the source sequence."
+  anchor: core-idea
+
+- id: cross-latex-1
+  type: latex
+  prompt: "Write the cross-attention formula after Q, K, and V are formed."
+  difficulty: 2
+  answer: '\operatorname{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V'
+  rubric:
+    - "Includes QK transpose."
+    - "Divides by square root of d_k."
+    - "Multiplies by V."
+  explanation: "Cross attention uses the same scaled dot-product form."
+  anchor: core-idea
+
+- id: cross-numeric-1
+  type: numeric
+  prompt: "If target length is 6 and source length is 10, how many entries are in QK transpose?"
+  difficulty: 1
+  value: 60
+  tolerance: 0
+  explanation: "The score matrix has target length times source length entries."
+  anchor: shapes
+
+- id: cross-short-1
+  type: short
+  prompt: "How does cross attention differ from self-attention?"
+  difficulty: 3
+  answer: "Self-attention forms queries, keys, and values from the same sequence, while cross attention uses queries from one sequence and keys and values from another."
+  rubric:
+    - "Mentions self-attention uses one sequence."
+    - "Mentions cross attention uses two sources."
+    - "Identifies queries versus keys and values."
+  explanation: "Cross attention lets a target sequence read a source sequence."
+  anchor: core-idea
+
+- id: cross-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the source-derived keys."
+  difficulty: 2
+  scaffold: |
+    q = y @ wq
+    k = ___
+    v = x @ wv
+  blanks:
+    - id: 1
+      answer: "x @ wk"
+      rubric:
+        - "Computes keys from the source states."
+  explanation: "In cross attention, the source states produce keys and values."
+  anchor: code-example

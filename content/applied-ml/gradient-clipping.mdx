@@ -1,0 +1,106 @@
+---
+id: applied-ml/gradient-clipping
+title: Gradient Clipping
+category: applied-ml
+summary: Gradient clipping limits gradient size to reduce unstable optimizer updates.
+tags:
+  - optimization
+  - stability
+difficulty: 3
+prereqs:
+  - general-ml/gradient-descent-sgd
+  - linear-algebra/dot-product
+related:
+  - applied-ml/exploding-vanishing-gradients
+  - applied-ml/mixed-precision-training
+  - general-ml/rnns-lstms
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+Gradient clipping limits the size of gradients before the optimizer step. It helps when gradients explode and cause unstable updates.
+</TLDR>
+
+## Core idea
+
+Gradient clipping changes gradients when they exceed a threshold.
+
+The most common method clips the global norm.
+
+Let $g$ be the vector of all gradients.
+
+Let $c$ be the maximum norm.
+
+If $\lVert g\rVert_2 > c$, replace $g$ with:
+
+$$
+g_{\text{clipped}}
+=
+g \frac{c}{\lVert g\rVert_2 + \epsilon}.
+$$
+
+If $\lVert g\rVert_2 \le c$, keep $g$ unchanged.
+
+## Why it helps
+
+Large gradients can create very large optimizer steps.
+
+This can destabilize training.
+
+Gradient clipping is common in RNNs, transformers, and reinforcement learning.
+
+It directly helps <a href="/learn/applied-ml/exploding-vanishing-gradients">Exploding and Vanishing Gradients</a>.
+
+## Norm clipping vs value clipping
+
+Norm clipping preserves the gradient direction unless clipping occurs.
+
+Value clipping clips each gradient element separately.
+
+Value clipping can change direction more strongly.
+
+Norm clipping is usually the default choice.
+
+<Proof title="Norm clipping preserves direction">
+Assume $\lVert g\rVert_2 > c$.
+
+The clipped gradient is:
+
+$$
+g_{\text{clipped}}
+=
+\alpha g,
+\quad
+\alpha =
+\frac{c}{\lVert g\rVert_2+\epsilon}.
+$$
+
+The scalar $\alpha$ is positive.
+
+Multiplying a vector by a positive scalar keeps its direction.
+
+Thus, norm clipping reduces magnitude but keeps direction.
+</Proof>
+
+## Code example
+
+```python
+loss.backward()
+
+torch.nn.utils.clip_grad_norm_(
+    model.parameters(),
+    max_norm=1.0,
+)
+
+optimizer.step()
+optimizer.zero_grad()
+```
+
+## Common mistakes
+
+Do not use clipping to hide a broken loss.
+
+Do not clip after the optimizer step.
+
+Do not choose a threshold without monitoring gradient norms.

@@ -1,0 +1,69 @@
+name: Deploy Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  VERCEL_TELEMETRY_DISABLED: '1'
+  ROOT_DIR: ml-concepts
+
+jobs:
+  preview:
+    name: Vercel preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Secrets are unavailable to forked PRs; skip instead of failing.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ env.ROOT_DIR }}/package-lock.json
+
+      - name: Restore Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.ROOT_DIR }}/.next/cache
+          key: next-${{ runner.os }}-${{ hashFiles(format('{0}/package-lock.json', env.ROOT_DIR)) }}-${{ github.sha }}
+          restore-keys: |
+            next-${{ runner.os }}-${{ hashFiles(format('{0}/package-lock.json', env.ROOT_DIR)) }}-
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Pull Vercel project settings (preview)
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build with Vercel
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy prebuilt output
+        id: deploy
+        run: |
+          url="$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment preview URL on the PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: vercel-preview
+          message: |
+            ### 🔍 Preview deployment
+            **URL:** ${{ steps.deploy.outputs.url }}
+            Commit: `${{ github.event.pull_request.head.sha }}`

@@ -1,0 +1,152 @@
+---
+id: general-ml/jensen-shannon-divergence
+title: Jensen-Shannon Divergence
+category: general-ml
+summary: Jensen-Shannon divergence is a symmetric, smoothed version of KL divergence.
+tags:
+  - probability
+  - information-theory
+difficulty: 4
+prereqs:
+  - general-ml/kl-divergence
+  - general-ml/entropy
+related:
+  - general-ml/kl-divergence
+  - generative-modeling/gans
+  - general-ml/loss-functions
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+Jensen-Shannon divergence compares two distributions by measuring their KL divergence to the average distribution. It is symmetric and bounded.
+</TLDR>
+
+## Core idea
+
+Given two distributions $p$ and $q$, define their mixture:
+
+$$
+m = \frac{1}{2}(p+q).
+$$
+
+The Jensen-Shannon divergence is:
+
+$$
+D_{\mathrm{JS}}(p \Vert q)
+=
+\frac{1}{2}D_{\mathrm{KL}}(p \Vert m)
++
+\frac{1}{2}D_{\mathrm{KL}}(q \Vert m).
+$$
+
+See <a href="/learn/general-ml/kl-divergence">KL Divergence</a> first.
+
+## Symmetry
+
+Jensen-Shannon divergence is symmetric.
+
+$$
+D_{\mathrm{JS}}(p \Vert q)
+=
+D_{\mathrm{JS}}(q \Vert p).
+$$
+
+This happens because the mixture $m$ does not change when you swap $p$ and $q$.
+
+<Proof title="Symmetry of Jensen-Shannon divergence">
+Define:
+
+$$
+m = \frac{1}{2}(p+q).
+$$
+
+If you swap $p$ and $q$, the mixture stays the same:
+
+$$
+\frac{1}{2}(q+p)=m.
+$$
+
+Now write the swapped divergence:
+
+$$
+D_{\mathrm{JS}}(q \Vert p)
+=
+\frac{1}{2}D_{\mathrm{KL}}(q \Vert m)
++
+\frac{1}{2}D_{\mathrm{KL}}(p \Vert m).
+$$
+
+The two terms are the same terms in a different order.
+
+Therefore:
+
+$$
+D_{\mathrm{JS}}(q \Vert p)
+=
+D_{\mathrm{JS}}(p \Vert q).
+$$
+</Proof>
+
+## Entropy form
+
+Jensen-Shannon divergence also has an entropy form.
+
+$$
+D_{\mathrm{JS}}(p \Vert q)
+=
+H(m) - \frac{1}{2}H(p) - \frac{1}{2}H(q).
+$$
+
+This form shows that Jensen-Shannon divergence measures the entropy increase from mixing.
+
+See <a href="/learn/general-ml/entropy">Entropy</a> for the entropy definition.
+
+## Bounds
+
+With log base $2$:
+
+$$
+0 \le D_{\mathrm{JS}}(p \Vert q) \le 1.
+$$
+
+With natural logs:
+
+$$
+0 \le D_{\mathrm{JS}}(p \Vert q) \le \log 2.
+$$
+
+The lower bound occurs when $p=q$.
+
+The upper bound occurs when the two distributions have disjoint support.
+
+## Relation to GANs
+
+The original GAN objective has a link to Jensen-Shannon divergence under an optimal discriminator.
+
+See <a href="/learn/generative-modeling/gans">GANs</a> for that model.
+
+## Code example
+
+```python
+import numpy as np
+
+def kl(p, q):
+    mask = p > 0
+    return np.sum(p[mask] * (np.log(p[mask]) - np.log(q[mask])))
+
+p = np.array([0.5, 0.5, 0.0])
+q = np.array([0.0, 0.5, 0.5])
+m = 0.5 * (p + q)
+
+js = 0.5 * kl(p, m) + 0.5 * kl(q, m)
+print(js)
+```
+
+## Common mistakes
+
+Do not confuse Jensen-Shannon divergence with KL divergence.
+
+Do not forget the mixture distribution.
+
+Do not forget that the bound depends on the log base.

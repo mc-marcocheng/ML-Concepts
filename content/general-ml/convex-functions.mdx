@@ -1,0 +1,106 @@
+---
+id: general-ml/convex-functions
+title: Convex Functions
+category: general-ml
+summary: Convex functions have no bad local minima and support strong optimization guarantees.
+tags:
+  - optimization
+  - mathematics
+difficulty: 3
+prereqs:
+  - general-ml/gradient-descent-sgd
+related:
+  - general-ml/newtons-method
+  - general-ml/second-order-methods
+  - linear-algebra/hessian
+estReadMin: 7
+updated: 2026-01-01
+---
+
+<TLDR>
+A convex function lies below the line segment between any two points. Any local minimum is also global.
+</TLDR>
+
+## Core idea
+
+A function $f$ is convex if:
+
+$$
+f(\lambda x+(1-\lambda)y)
+\le
+\lambda f(x)+(1-\lambda)f(y),
+$$
+
+for all $x,y$ and $\lambda \in [0,1]$.
+
+This means the graph bends upward.
+
+## First-order condition
+
+For differentiable convex $f$:
+
+$$
+f(y) \ge f(x)+\nabla f(x)^\top(y-x).
+$$
+
+The tangent plane is a global lower bound.
+
+## Second-order condition
+
+For twice differentiable $f$, convexity is equivalent to:
+
+$$
+\nabla^2 f(x) \succeq 0
+$$
+
+for all $x$ in the domain.
+
+See <a href="/learn/linear-algebra/hessian">Hessian</a> and <a href="/learn/linear-algebra/positive-semi-definite">Positive Semi-Definite</a>.
+
+## Local and global minima
+
+Every local minimum of a convex function is global.
+
+<Proof title="Local minimum is global for a convex function">
+Let $x^\star$ be a local minimum.
+
+Assume there is a point $y$ with:
+
+$$
+f(y) < f(x^\star).
+$$
+
+For $\lambda \in (0,1)$, define:
+
+$$
+z_\lambda = (1-\lambda)x^\star+\lambda y.
+$$
+
+Convexity gives:
+
+$$
+f(z_\lambda)
+\le
+(1-\lambda)f(x^\star)+\lambda f(y).
+$$
+
+Since $f(y)<f(x^\star)$:
+
+$$
+f(z_\lambda)<f(x^\star).
+$$
+
+For small $\lambda$, $z_\lambda$ is near $x^\star$.
+
+This contradicts that $x^\star$ is a local minimum.
+
+Therefore no such $y$ exists.
+</Proof>
+
+## Common mistakes
+
+Do not assume every optimization problem is convex.
+
+Do not confuse convex functions with convex sets.
+
+Do not assume strict convexity when only convexity is given.

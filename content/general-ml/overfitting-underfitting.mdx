@@ -1,0 +1,73 @@
+---
+id: general-ml/overfitting-underfitting
+title: Overfitting and Underfitting
+category: general-ml
+summary: Overfitting fits noise in training data, while underfitting misses real structure.
+tags:
+  - generalization
+  - training
+difficulty: 2
+prereqs:
+  - general-ml/loss-functions
+related:
+  - general-ml/bias-variance-tradeoff
+  - general-ml/cross-validation
+  - general-ml/regularization-methods
+estReadMin: 6
+updated: 2026-01-01
+---
+
+<TLDR>
+Overfitting gives low training error and poor validation error. Underfitting gives poor training and validation error.
+</TLDR>
+
+## Core idea
+
+A model should learn patterns that generalize.
+
+Overfitting occurs when a model learns training noise or spurious detail.
+
+Underfitting occurs when a model is too simple or poorly trained.
+
+## Error patterns
+
+| Case | Training error | Validation error |
+|---|---:|---:|
+| Underfitting | High | High |
+| Good fit | Low | Low |
+| Overfitting | Low | High |
+
+Use <a href="/learn/general-ml/cross-validation">Cross-Validation</a> to estimate validation performance.
+
+## Causes
+
+Overfitting can come from:
+
+- too much model capacity
+- too little data
+- weak regularization
+- data leakage
+- too many training steps
+
+Underfitting can come from:
+
+- too little capacity
+- too much regularization
+- poor features
+- too few training steps
+
+## Controls
+
+To reduce overfitting, use more data, stronger regularization, or early stopping.
+
+To reduce underfitting, use a richer model, better features, or longer training.
+
+See <a href="/learn/general-ml/bias-variance-tradeoff">Bias-Variance Tradeoff</a>.
+
+## Common mistakes
+
+Do not judge overfitting from training loss alone.
+
+Do not tune repeatedly on the test set.
+
+Do not treat a small train-validation gap as always good.

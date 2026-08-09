@@ -1,0 +1,68 @@
+- id: ci-mcq-1
+  type: mcq
+  prompt: "What does a 95 percent confidence interval mean in the frequentist view?"
+  difficulty: 3
+  options:
+    - "There is a 95 percent probability that the fixed parameter lies in this fixed interval"
+    - "About 95 percent of intervals from repeated samples contain the true parameter"
+    - "The sample mean has 95 percent accuracy"
+    - "The data points have 95 percent probability of lying in the interval"
+  correctIndex: 1
+  explanation: "Confidence refers to long-run coverage of the procedure."
+  anchor: meaning-of-95-percent-confidence
+- id: ci-latex-1
+  type: latex
+  prompt: "Write the standard error of the sample mean for independent samples with standard deviation $\\sigma$."
+  difficulty: 2
+  answer: "\\frac{\\sigma}{\\sqrt{n}}"
+  rubric:
+    - "Includes sigma in the numerator."
+    - "Includes square root of n in the denominator."
+  explanation: "The sample mean has standard error $\\sigma/\\sqrt{n}$."
+  anchor: standard-error
+- id: ci-numeric-1
+  type: numeric
+  prompt: "A sample mean has standard error 2. A 95 percent normal critical value is 1.96. What is the margin of error?"
+  difficulty: 1
+  value: 3.92
+  tolerance: 0.000001
+  explanation: "The margin of error is $1.96 \\times 2 = 3.92$."
+  anchor: core-idea
+- id: ci-short-1
+  type: short
+  prompt: "Why does the standard error of the mean shrink as sample size grows?"
+  difficulty: 3
+  answer: "Averaging independent samples reduces variance. The variance of the mean is sigma squared divided by n."
+  rubric:
+    - "Mentions averaging independent samples."
+    - "States that variance of the mean decreases with n."
+  explanation: "For independent samples, $\\operatorname{Var}(\\bar X)=\\sigma^2/n$."
+  anchor: standard-error
+- id: ci-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the normal-theory margin of error."
+  difficulty: 2
+  scaffold: |
+    mean = 10.0
+    se = 2.0
+    crit = 1.96
+    margin = ___
+  blanks:
+    - id: 1
+      answer: "crit * se"
+      rubric:
+        - "Multiplies the critical value by the standard error."
+  explanation: "A confidence interval uses estimate plus or minus critical value times standard error."
+  anchor: core-idea
+- id: ci-order-1
+  type: order
+  prompt: "Put the percentile bootstrap steps in order."
+  difficulty: 3
+  steps:
+    - "Sample data with replacement"
+    - "Compute the statistic"
+    - "Repeat many times"
+    - "Take quantiles of the bootstrap statistics"
+  explanation: "The percentile bootstrap uses resampled statistics and takes their quantiles."
+  anchor: bootstrap-intervals

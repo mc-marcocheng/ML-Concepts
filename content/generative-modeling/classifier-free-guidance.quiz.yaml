@@ -1,0 +1,59 @@
+- id: cfg-mcq-1
+  type: mcq
+  prompt: "What training trick makes classifier-free guidance possible?"
+  difficulty: 2
+  options:
+    - "Dropping the condition for some training examples"
+    - "Training a separate classifier only"
+    - "Removing all noise from the forward process"
+    - "Replacing attention with recurrence"
+  correctIndex: 0
+  explanation: "The model must learn both conditional and unconditional predictions."
+  anchor: training-with-condition-dropout
+
+- id: cfg-latex-1
+  type: latex
+  prompt: "Write the common classifier-free guidance formula for noise prediction."
+  difficulty: 3
+  answer: '\epsilon_{\text{uncond}} + w(\epsilon_{\text{cond}}-\epsilon_{\text{uncond}})'
+  rubric:
+    - "Starts from the unconditional prediction."
+    - "Adds a scaled difference between conditional and unconditional predictions."
+  explanation: "The formula extrapolates from unconditional toward conditional prediction."
+  anchor: guidance-formula
+
+- id: cfg-numeric-1
+  type: numeric
+  prompt: "If $\\epsilon_{\\text{uncond}}=2$, $\\epsilon_{\\text{cond}}=1$, and $w=3$, what is $\\epsilon_{\\text{guided}}$?"
+  difficulty: 2
+  value: -1
+  tolerance: 0.000001
+  explanation: "$2+3(1-2)=-1$."
+  anchor: guidance-formula
+
+- id: cfg-short-1
+  type: short
+  prompt: "What tradeoff can happen when the guidance scale is too high?"
+  difficulty: 3
+  answer: "A high guidance scale can improve condition alignment but reduce diversity and create artifacts."
+  rubric:
+    - "Mentions stronger condition alignment."
+    - "Mentions lower diversity or artifacts."
+  explanation: "Guidance extrapolates the conditional direction, so too much scale can hurt sample quality."
+  anchor: tradeoff
+
+- id: cfg-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the classifier-free guidance combination."
+  difficulty: 2
+  scaffold: |
+    eps_guided = ___
+  blanks:
+    - id: 1
+      answer: "eps_uncond + guidance_scale * (eps_cond - eps_uncond)"
+      rubric:
+        - "Starts with the unconditional prediction."
+        - "Adds the scaled conditional difference."
+  explanation: "This is the common noise-prediction guidance formula."
+  anchor: code-example

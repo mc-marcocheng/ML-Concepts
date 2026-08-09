@@ -1,0 +1,61 @@
+- id: flash-mcq-1
+  type: mcq
+  prompt: "What does FlashAttention avoid storing in high-bandwidth memory?"
+  difficulty: 2
+  options:
+    - "The token embeddings"
+    - "The full attention matrix"
+    - "The model weights"
+    - "The vocabulary"
+  correctIndex: 1
+  explanation: "FlashAttention avoids storing the full attention matrix."
+  anchor: core-idea
+
+- id: flash-short-1
+  type: short
+  prompt: "Why can FlashAttention be faster than naive attention?"
+  difficulty: 3
+  answer: "It reduces memory traffic by computing attention in tiles and using an online softmax."
+  rubric:
+    - "Mentions tiling or blocks."
+    - "Mentions lower memory traffic."
+    - "Mentions exact attention or online softmax."
+  explanation: "FlashAttention changes the implementation of attention, not the result."
+  anchor: why-memory-traffic-matters
+
+- id: flash-latex-1
+  type: latex
+  prompt: "Write the scaled dot-product attention formula."
+  difficulty: 2
+  answer: '\operatorname{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V'
+  rubric:
+    - "Includes QK transpose."
+    - "Divides by square root of d_k."
+    - "Multiplies by V after softmax."
+  explanation: "Scaled dot-product attention applies softmax to scaled scores, then multiplies by values."
+  anchor: core-idea
+
+- id: flash-numeric-1
+  type: numeric
+  prompt: "How many entries are in a full attention matrix for a sequence length of 2048?"
+  difficulty: 2
+  value: 4194304
+  tolerance: 0
+  explanation: "The matrix has 2048 times 2048 entries."
+  anchor: why-memory-traffic-matters
+
+- id: flash-code-1
+  type: code
+  lang: python
+  prompt: "Fill in the scale for naive attention."
+  difficulty: 2
+  scaffold: |
+    d_k = q.shape[-1]
+    scores = q @ k.transpose(-2, -1) / ___
+  blanks:
+    - id: 1
+      answer: "d_k**0.5"
+      rubric:
+        - "Uses the square root of the key dimension."
+  explanation: "Attention logits use the scale square root of d_k."
+  anchor: code-example

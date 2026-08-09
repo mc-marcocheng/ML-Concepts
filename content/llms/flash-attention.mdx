@@ -1,0 +1,161 @@
+---
+id: llms/flash-attention
+title: Flash Attention
+category: llms
+summary: FlashAttention computes exact attention with tiled kernels and much lower memory traffic.
+tags:
+  - attention
+  - systems
+  - optimization
+difficulty: 4
+prereqs:
+  - llms/causal-attention
+  - llms/llm-scaling-factor
+related:
+  - llms/decoding-techniques
+  - llms/mixture-of-experts
+  - applied-ml/mixed-precision-training
+estReadMin: 8
+updated: 2026-01-01
+---
+
+<TLDR>
+FlashAttention is an exact attention algorithm. It uses tiling and an online softmax to avoid writing the full attention matrix to high-bandwidth memory.
+</TLDR>
+
+## Core idea
+
+Standard attention computes:
+
+$$
+\operatorname{Attention}(Q,K,V)
+=
+\operatorname{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V.
+$$
+
+The matrix $QK^\top$ has shape $n \times n$ for a sequence length $n$.
+
+For long sequences, this matrix uses large memory.
+
+FlashAttention changes the implementation, not the math.
+
+It computes attention in blocks.
+
+It keeps block data in fast on-chip memory when possible.
+
+It does not store the full attention matrix.
+
+See <a href="/learn/llms/causal-attention">causal attention</a> for the masking rule.
+
+## Why memory traffic matters
+
+Modern accelerators have fast compute.
+
+They also have slower high-bandwidth memory.
+
+A naive attention kernel can spend much time reading and writing the score matrix.
+
+FlashAttention reduces this memory traffic.
+
+This improves speed and lowers activation memory.
+
+## Online softmax
+
+Softmax needs a maximum and a sum.
+
+FlashAttention computes these values block by block.
+
+It keeps a running maximum $m$ and a running normalizer $\ell$.
+
+For a new block with maximum $m_b$ and softmax sum $\ell_b$:
+
+$$
+m_{\text{new}}=\max(m,m_b)
+$$
+
+$$
+\ell_{\text{new}}
+=
+e^{m-m_{\text{new}}}\ell
++
+e^{m_b-m_{\text{new}}}\ell_b.
+$$
+
+This gives the same result as a full softmax.
+
+<Proof title="Online softmax normalizer">
+Let the old scores have maximum $m$.
+
+Let the new block have maximum $m_b$.
+
+The combined maximum is:
+
+$$
+m_{\text{new}}=\max(m,m_b).
+$$
+
+The old softmax denominator in the new scale is:
+
+$$
+\sum_i e^{s_i-m_{\text{new}}}
+=
+e^{m-m_{\text{new}}}\sum_i e^{s_i-m}.
+$$
+
+Thus it becomes:
+
+$$
+e^{m-m_{\text{new}}}\ell.
+$$
+
+The new block contributes:
+
+$$
+e^{m_b-m_{\text{new}}}\ell_b.
+$$
+
+Add the two terms to get the combined denominator.
+</Proof>
+
+## Causal masking
+
+For autoregressive models, a token cannot attend to future tokens.
+
+FlashAttention applies the causal mask inside each tile.
+
+It still computes exact masked attention.
+
+It only changes the order of computation.
+
+## Code example
+
+This code shows naive attention.
+
+FlashAttention returns the same output, but it avoids the full score matrix.
+
+```python
+import torch
+import torch.nn.functional as F
+
+def attention(q, k, v, causal=False):
+    d_k = q.shape[-1]
+    scores = q @ k.transpose(-2, -1) / d_k**0.5
+
+    if causal:
+        t = q.shape[-2]
+        mask = torch.triu(torch.ones(t, t, device=q.device), diagonal=1).bool()
+        scores = scores.masked_fill(mask, float("-inf"))
+
+    weights = F.softmax(scores, dim=-1)
+    return weights @ v
+```
+
+## Common mistakes
+
+Do not call FlashAttention an approximation.
+
+Do not say it removes the quadratic compute cost.
+
+It keeps the $O(n^2)$ attention pattern.
+
+It mainly reduces memory traffic and stored activations.
