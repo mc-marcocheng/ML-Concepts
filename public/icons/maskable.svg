@@ -1,5 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ML Concepts maskable icon">
-  <rect width="512" height="512" fill="#a6f16c"/>
-  <rect x="56" y="56" width="400" height="400" rx="96" fill="#111510"/>
-  <path d="M128 332V180h62l66 110 66-110h62v152h-44v-92l-56 92h-56l-56-92v92z" fill="#fbfcf9"/>
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="128" height="128" fill="#0F172A"/>
+
+  <g transform="translate(64 65) scale(0.72) translate(-64 -65)">
+    <path d="M51.5 42.5L75.5 40.5" stroke="white" stroke-width="7" stroke-linecap="round" opacity="0.85"/>
+    <path d="M46.5 52.5L59 62" stroke="white" stroke-width="7" stroke-linecap="round" opacity="0.85"/>
+    <path d="M81.5 50.5L69 62" stroke="white" stroke-width="7" stroke-linecap="round" opacity="0.85"/>
+
+    <circle cx="39" cy="42" r="13" fill="#38BDF8"/>
+    <circle cx="88" cy="39" r="13" fill="#A78BFA"/>
+    <circle cx="64" cy="69" r="12" fill="#34D399"/>
+
+    <path d="M40 95C48 103 80 103 88 95" stroke="white" stroke-width="7" stroke-linecap="round" opacity="0.85"/>
+  </g>
 </svg>

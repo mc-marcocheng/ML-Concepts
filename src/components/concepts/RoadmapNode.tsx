@@ -10,7 +10,7 @@ import type { LayoutNode } from '@/lib/content/roadmap-layout';
 export type NodeState = 'idle' | 'active' | 'prereq' | 'unlocks' | 'dim';
 
 export const RoadmapNode = memo(function RoadmapNode({
-  concept, node, step, state, hue, mastery, attempts, done, prereqCount, onActivate, onRegister,
+  concept, node, step, state, hue, mastery, attempts, done, onActivate, onRegister,
 }: {
   concept: ConceptMeta;
   node: LayoutNode;
@@ -20,7 +20,6 @@ export const RoadmapNode = memo(function RoadmapNode({
   mastery: number;
   attempts: number;
   done: boolean;
-  prereqCount: number;
   onActivate: (id: string | null) => void;
   onRegister: (id: string, element: HTMLAnchorElement | null) => void;
 }) {
@@ -54,12 +53,6 @@ export const RoadmapNode = memo(function RoadmapNode({
         </span>
 
         <span className="roadmap-card__title">{concept.title}</span>
-
-        <span className="roadmap-card__meta">
-          {prereqCount ? <span>{prereqCount} prereq{prereqCount === 1 ? '' : 's'}</span> : <span>entry point</span>}
-          <span aria-hidden="true">·</span>
-          <span>{concept.quizCount} item{concept.quizCount === 1 ? '' : 's'}</span>
-        </span>
       </Link>
     </li>
   );

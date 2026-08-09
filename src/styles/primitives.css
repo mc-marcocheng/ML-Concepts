@@ -410,16 +410,6 @@ mark.hl .katex * { background: transparent; }
   overflow: hidden;
 }
 
-.roadmap-card__meta {
-  margin-top: auto;
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--color-muted);
-}
-
 .roadmap-card[data-done='true'] { border-left-color: var(--color-positive); }
 
 @media (prefers-reduced-motion: reduce) {

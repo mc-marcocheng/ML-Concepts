@@ -1,0 +1,92 @@
+site_name: ML Concepts
+site_description: Documentation for ML Concepts, a static-first machine-learning revision app
+site_url: https://mc-marcocheng.github.io/ml-concepts/
+repo_url: https://github.com/mc-marcocheng/ml-concepts
+repo_name: mc-marcocheng/ml-concepts
+edit_uri: edit/master/docs/
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  font: false
+
+  icon:
+    logo: material/brain
+
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Architecture: architecture.md
+  - Content authoring: content-authoring.md
+  - Quiz authoring: quiz-authoring.md
+  - Assistant: assistant.md
+  - Deployment: deployment.md
+  - Troubleshooting: troubleshooting.md
+  - Reference:
+      - Data files: reference/data-files.md
+      - Local storage: reference/local-storage.md
+      - Workflows: reference/workflows.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - md_in_html
+  - sane_lists
+  - tables
+  - toc:
+      permalink: true
+
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+
+  - pymdownx.inlinehilite
+
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js
+
+extra:
+  generator: false
+
+strict: true

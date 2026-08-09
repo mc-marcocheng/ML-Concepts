@@ -165,7 +165,6 @@ export function RoadmapGraph({ graph, visible, masteryById }: {
                     mastery={score?.mastery ?? 0}
                     attempts={score?.attempts ?? 0}
                     done={done.has(node.id)}
-                    prereqCount={graphNode.prereqs.length}
                     onActivate={setActive}
                     onRegister={register}
                   />
