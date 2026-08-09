@@ -1,8 +1,9 @@
 import type { ChatMessage, GenerateOptions } from '../types';
 import { getOnDeviceModel, resolveModelId } from '../capability';
 import { sanitizeMessages } from '../messages';
+import type { MLCEngine } from '@mlc-ai/web-llm';
 
-let engine: any = null;
+let engine: MLCEngine | null = null;
 let activeModelKey = '';
 const cancelled = new Set<string>();
 
@@ -24,7 +25,7 @@ export async function isModelCached(modelKey: string): Promise<boolean> {
   try {
     const spec = getOnDeviceModel(modelKey);
     const modelId = await resolveModelId(spec);
-    const mod: any = await import('@mlc-ai/web-llm');
+    const mod: typeof import('@mlc-ai/web-llm') = await import('@mlc-ai/web-llm');
     if (typeof mod.hasModelInCache !== 'function') return false;
     return await mod.hasModelInCache(modelId, mod.prebuiltAppConfig);
   } catch {
@@ -36,7 +37,7 @@ export async function deleteWebGpuModel(modelKey: string) {
   const spec = getOnDeviceModel(modelKey);
   const modelId = await resolveModelId(spec);
   if (activeModelKey === modelKey) await unloadWebGpuModel();
-  const mod: any = await import('@mlc-ai/web-llm');
+  const mod: typeof import('@mlc-ai/web-llm') = await import('@mlc-ai/web-llm');
   if (typeof mod.deleteModelAllInfoInCache === 'function') {
     await mod.deleteModelAllInfoInCache(modelId, mod.prebuiltAppConfig);
   } else {
