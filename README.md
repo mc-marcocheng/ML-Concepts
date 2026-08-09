@@ -13,7 +13,7 @@
     <a href="https://ml-concepts.vercel.app/">
       <img alt="Vercel app" src="https://img.shields.io/badge/App-Vercel-black?logo=vercel" />
     </a>
-    <a href="https://mc-marcocheng.github.io/ml-concepts/">
+    <a href="https://mc-marcocheng.github.io/ML-Concepts/">
       <img alt="Documentation" src="https://img.shields.io/badge/Docs-GitHub%20Pages-0969DA?logo=githubpages&logoColor=white" />
     </a>
   </p>

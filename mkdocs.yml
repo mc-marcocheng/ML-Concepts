@@ -1,8 +1,8 @@
 site_name: ML Concepts
 site_description: Documentation for ML Concepts, a static-first machine-learning revision app
-site_url: https://mc-marcocheng.github.io/ml-concepts/
-repo_url: https://github.com/mc-marcocheng/ml-concepts
-repo_name: mc-marcocheng/ml-concepts
+site_url: https://mc-marcocheng.github.io/ML-Concepts/
+repo_url: https://github.com/mc-marcocheng/ML-Concepts
+repo_name: mc-marcocheng/ML-Concepts
 edit_uri: edit/master/docs/
 
 docs_dir: docs
@@ -12,6 +12,8 @@ theme:
   name: material
   custom_dir: docs/overrides
   font: false
+  logo: assets/icon.svg
+  favicon: assets/icon.svg
 
   icon:
     logo: material/brain
