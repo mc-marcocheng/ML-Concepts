@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  ROOT_DIR: ml-concepts   # set to "." if package.json is at the repo root
+  ROOT_DIR: .   # set to "." if package.json is at the repo root
 
 jobs:
   verify:
