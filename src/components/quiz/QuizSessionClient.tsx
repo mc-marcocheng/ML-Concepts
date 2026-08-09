@@ -14,11 +14,40 @@ import { VerdictCard } from './VerdictCard';
 import { saveSession, type SessionItemRecord } from '@/lib/persistence/sessions';
 import type { AskContext } from '@/lib/llm/types';
 import type { QuizItem } from '@/lib/content/types';
+import { blanksOf, encodeBlankAnswers } from '@/lib/quiz/scaffold';
 
 type SessionOutcome = SessionItemRecord;
 
+function sessionKey(conceptId: string, itemId: string) {
+  return `${conceptId}::${itemId}`;
+}
+
+function seedFromString(id: string) {
+  let hash = 0;
+  for (let index = 0; index < id.length; index += 1) hash = (hash * 31 + id.charCodeAt(index)) >>> 0;
+  return hash;
+}
+
+/** Deterministic per-item shuffle so the starting order isn't always a plain reverse. */
 function defaultOrderAnswer(item: QuizItem) {
-  return (item.steps ?? []).map((_, stepIndex) => stepIndex).reverse().join(',');
+  const indices = (item.steps ?? []).map((_, stepIndex) => stepIndex);
+  if (indices.length <= 1) return indices.join(',');
+
+  let seed = seedFromString(item.id) || 1;
+  const next = () => {
+    seed = (seed * 1103515245 + 12345) >>> 0;
+    return seed / 0xffffffff;
+  };
+
+  for (let i = indices.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(next() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+
+  const isSorted = indices.every((value, index) => value === index);
+  if (isSorted) [indices[0], indices[1]] = [indices[1], indices[0]];
+
+  return indices.join(',');
 }
 
 export function QuizSessionClient() {
@@ -91,8 +120,20 @@ export function QuizSessionClient() {
     return 'Mixed session';
   }, [current?.conceptTitle, sessionParams.id, sessionParams.scope]);
 
+  const currentBlanks = useMemo(() => (current?.item.type === 'code' ? blanksOf(current.item) : []), [current]);
+
+  const blankChecks = useMemo(() => {
+    if (!result || current?.item.type !== 'code' || !currentBlanks.length) return undefined;
+    const map: Record<number, boolean> = {};
+    currentBlanks.forEach((blank, blankIndex) => {
+      const check = result.checks.find(entry => entry.i === blankIndex + 1);
+      if (check) map[blank.id] = check.ok;
+    });
+    return map;
+  }, [result, current, currentBlanks]);
+
   const answerText = current?.item.type === 'code'
-    ? Object.entries(codeValues).map(([blankId, value]) => `#${blankId}: ${value}`).join('\n')
+    ? encodeBlankAnswers(currentBlanks, codeValues)
     : answer;
 
   const currentHints = current?.item.hints ?? [];
@@ -111,7 +152,7 @@ export function QuizSessionClient() {
   };
 
   const recordOutcome = useCallback((outcome: SessionOutcome) => {
-    setSessionLog(previous => ({ ...previous, [outcome.itemId]: outcome }));
+    setSessionLog(previous => ({ ...previous, [sessionKey(outcome.conceptId, outcome.itemId)]: outcome }));
   }, []);
 
   const advance = useCallback(() => {
@@ -265,15 +306,30 @@ export function QuizSessionClient() {
     });
   };
 
-  const handleNext = () => {
-    if (result?.needsSelfGrade || grading) return;
+  const handleNext = useCallback(() => {
+    if (grading) return;
+    if (current && result?.needsSelfGrade) {
+      recordOutcome({
+        conceptId: current.conceptId,
+        conceptTitle: current.conceptTitle,
+        itemId: current.item.id,
+        prompt: current.item.prompt,
+        answer: answerText,
+        verdict: 'skipped',
+        score: 0,
+        gradedBy: 'pending',
+        note: result.note,
+        ts: Date.now(),
+      });
+    }
     advance();
-  };
+  }, [advance, answerText, current, grading, recordOutcome, result]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      const typing = !!target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable);
+      const target = event.target as HTMLInputElement | null;
+      const textualInput = target?.tagName === 'INPUT' && !['radio', 'checkbox'].includes(target.type);
+      const typing = !!target && (textualInput || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable);
 
       if (grading || !current) return;
 
@@ -287,17 +343,17 @@ export function QuizSessionClient() {
       }
 
       if (event.key.toLowerCase() === 'n' && !typing) {
-        if (result && !result.needsSelfGrade) {
+        if (result) {
           event.preventDefault();
-          advance();
+          handleNext();
         }
         return;
       }
 
       if (event.key === 'Enter' && !typing) {
-        if (result && !result.needsSelfGrade) {
+        if (result) {
           event.preventDefault();
-          advance();
+          handleNext();
           return;
         }
         if (!result) {
@@ -309,7 +365,7 @@ export function QuizSessionClient() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [advance, current, grading, result, revealed, submitCurrent]);
+  }, [current, grading, handleNext, result, revealed, submitCurrent]);
 
   if (loading) {
     return (
@@ -345,7 +401,7 @@ export function QuizSessionClient() {
           <p className="t-eyebrow text-muted">Summary</p>
           <div className="mt-4 grid gap-3">
             {sessionItems.map(item => (
-              <article key={`${item.itemId}-${item.ts}`} className="rounded-lg border border-line bg-canvas-soft p-4">
+              <article key={`${item.conceptId}-${item.itemId}-${item.ts}`} className="rounded-lg border border-line bg-canvas-soft p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h2 className="text-[17px] font-extrabold text-ink">{item.conceptTitle}</h2>
@@ -413,7 +469,7 @@ export function QuizSessionClient() {
         {current.item.type === 'mcq' ? (
           <div className="mt-6 grid gap-2">
             {current.item.options?.map((option, optionIndex) => (
-              <label key={option} className="flex cursor-pointer items-center gap-3 rounded-lg border border-line bg-canvas-soft p-4 text-ink">
+              <label key={`${optionIndex}-${option}`} className="flex cursor-pointer items-center gap-3 rounded-lg border border-line bg-canvas-soft p-4 text-ink">
                 <input type="radio" name="answer" checked={answer === String(optionIndex)} onChange={() => setAnswer(String(optionIndex))} />
                 <span>{option}</span>
               </label>
@@ -426,6 +482,8 @@ export function QuizSessionClient() {
               values={codeValues}
               onChange={(blankId, value) => setCodeValues(values => ({ ...values, [blankId]: value }))}
               onSubmit={() => void submitCurrent()}
+              disabled={grading || revealed}
+              checks={blankChecks}
             />
           </div>
         ) : current.item.type === 'order' ? (
@@ -485,10 +543,11 @@ export function QuizSessionClient() {
             item={current.item}
             result={result}
             answer={answerText}
+            conceptId={current.conceptId}
             onNext={handleNext}
             onSelfGrade={selfGrade}
             askContext={currentAskContext}
-            nextDisabled={result.needsSelfGrade}
+            nextDisabled={grading}
           />
         ) : null}
       </section>

@@ -33,7 +33,12 @@ function shuffle<T>(items: T[]) {
 
 export async function loadConcepts(): Promise<ConceptMeta[]> {
   if (conceptsCache) return conceptsCache;
-  conceptsCache = await fetch('/data/concepts.json').then(response => response.json());
+  try {
+    const response = await fetch('/data/concepts.json');
+    conceptsCache = response.ok ? await response.json() : [];
+  } catch {
+    conceptsCache = [];
+  }
   return conceptsCache ?? [];
 }
 
@@ -60,19 +65,19 @@ export async function buildSession(params: SessionParams): Promise<QuizEntry[]> 
     if (params.scope === 'category' && params.id) return concepts.filter(concept => concept.category === params.id);
     if (params.scope === 'due') return computeDueQueue(concepts, attempts).map(entry => entry.concept);
     if (params.scope === 'weak') return computeMastery(concepts, attempts)
-      .filter(entry => entry.mastery < 0.7)
+      .filter(entry => entry.attempts > 0 && entry.mastery < 0.7)
       .sort((a, b) => a.mastery - b.mastery)
       .map(entry => entry.concept);
     return concepts;
   })();
 
+  const itemsByConcept = await Promise.all(sourceConcepts.map(concept => loadQuiz(concept.id)));
   const entries: QuizEntry[] = [];
-  for (const concept of sourceConcepts) {
-    const items = await loadQuiz(concept.id);
-    for (const item of items) {
+  sourceConcepts.forEach((concept, index) => {
+    for (const item of itemsByConcept[index]) {
       entries.push({ conceptId: concept.id, conceptTitle: concept.title, conceptSummary: concept.summary, item });
     }
-  }
+  });
 
   const pool = params.scope === 'concept' ? entries : shuffle(entries);
   if (params.scope === 'interview') {

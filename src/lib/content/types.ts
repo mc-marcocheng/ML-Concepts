@@ -33,7 +33,7 @@ export const QuizItemSchema = z.object({
   blanks: z.array(z.object({
     id: z.number().int(),
     answer: z.string(),
-    rubric: z.array(z.string()).min(1),
+    rubric: z.array(z.string()).optional(),
   })).optional(),
   answer: z.string().optional(),
   rubric: z.array(z.string()).default([]),
@@ -43,6 +43,7 @@ export const QuizItemSchema = z.object({
 });
 
 export type QuizItem = z.infer<typeof QuizItemSchema>;
+export type QuizBlank = NonNullable<QuizItem['blanks']>[number];
 
 export interface ConceptMeta extends Frontmatter {
   href: string;

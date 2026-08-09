@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import { Check, Minus, MessageSquare, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import type { QuizItem } from '@/lib/content/types';
 import type { GradeResult } from '@/lib/grading/pipeline';
+import { presentAnswer, presentReference } from '@/lib/grading/present';
 import { RubricList } from './RubricList';
 import { useUiStore } from '@/lib/store/ui';
 import type { AskContext } from '@/lib/llm/types';
@@ -20,6 +22,7 @@ export function VerdictCard({
   item,
   result,
   answer,
+  conceptId,
   onNext,
   onSelfGrade,
   askContext,
@@ -28,16 +31,18 @@ export function VerdictCard({
   item: QuizItem;
   result: GradeResult;
   answer: string;
+  conceptId?: string | null;
   onNext: () => void;
   onSelfGrade: (verdict: 'correct' | 'partial' | 'incorrect', score: number) => void;
   askContext: AskContext;
   nextDisabled?: boolean;
 }) {
   const openAsk = useUiStore(state => state.openAsk);
-  const { tone, label, Icon } = TONE[result.verdict];
+  const { tone, label, Icon } = TONE[result.verdict] ?? TONE.skipped;
   const rubric = result.rubric ?? [];
   const checks = result.checks ?? [];
-  const displayAnswer = formatAnswer(item, answer);
+  const displayAnswer = presentAnswer(item, answer);
+  const referenceAnswer = presentReference(item);
 
   return (
     <section aria-live="polite" className="mt-6 rounded-xl border-2 border-line-strong bg-card p-6 shadow-offset">
@@ -62,10 +67,10 @@ export function VerdictCard({
           <p className="t-eyebrow text-muted">Your answer</p>
           <pre className="mt-2 overflow-x-auto rounded-md bg-canvas-soft p-4 font-mono text-[13px] text-ink whitespace-pre-wrap">{displayAnswer || '(blank)'}</pre>
         </div>
-        {item.answer ? (
+        {referenceAnswer ? (
           <div>
             <p className="t-eyebrow text-muted">Reference answer</p>
-            <pre className="mt-2 overflow-x-auto rounded-md bg-canvas-soft p-4 font-mono text-[13px] text-ink whitespace-pre-wrap">{item.answer}</pre>
+            <pre className="mt-2 overflow-x-auto rounded-md bg-canvas-soft p-4 font-mono text-[13px] text-ink whitespace-pre-wrap">{referenceAnswer}</pre>
           </div>
         ) : null}
         {item.explanation ? (
@@ -89,6 +94,7 @@ export function VerdictCard({
               {(['correct', 'partial', 'incorrect'] as const).map(verdict => (
                 <Button key={verdict} size="sm" variant="tertiary" onClick={() => onSelfGrade(verdict, verdict === 'correct' ? 1 : verdict === 'partial' ? 0.5 : 0)}>
                   {verdict[0].toUpperCase() + verdict.slice(1)}
+                  {result.suggestion?.verdict === verdict ? ' (suggested)' : ''}
                 </Button>
               ))}
             </div>
@@ -102,18 +108,16 @@ export function VerdictCard({
           variant="quiet"
           size="sm"
           className="gap-2"
-          onClick={() => openAsk(askContext, `I answered:\n\n${answer || '(blank)'}\n\nThe reference answer is:\n\n${item.answer ?? '(no reference answer)'}\n\nExplain precisely what is different and why it matters.`)}
+          onClick={() => openAsk(askContext, `I answered:\n\n${displayAnswer || '(blank)'}\n\nThe reference answer is:\n\n${referenceAnswer || '(no reference answer)'}\n\nExplain precisely what is different and why it matters.`)}
         >
           <MessageSquare size={15} aria-hidden="true" /> Explain the difference
         </Button>
+        {conceptId ? (
+          <Link href={`/learn/${conceptId}`} className="rounded-pill border border-line px-4 py-2 text-[14px] font-semibold text-ink">
+            Open the note
+          </Link>
+        ) : null}
       </footer>
     </section>
   );
-}
-
-function formatAnswer(item: QuizItem, answer: string) {
-  if (item.type !== 'mcq') return answer;
-  const optionIndex = Number(answer);
-  const option = Number.isInteger(optionIndex) ? item.options?.[optionIndex] : undefined;
-  return option ? `${optionIndex + 1}. ${option}` : answer;
 }

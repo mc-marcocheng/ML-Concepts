@@ -216,7 +216,7 @@ export const useLlm = create<LlmState>(set => ({
           response = await tracer.span('generate', 'llm', { messages }, async span => {
             const text = await generateWebGpuReply(
               state.onDeviceModelKey,
-              { messages, temperature, maxTokens: maxTokens ?? DEFAULT_MAX_TOKENS, signal, onStatus },
+              { messages, temperature, maxTokens: maxTokens ?? DEFAULT_MAX_TOKENS, signal, responseFormat, onStatus },
               onToken,
             );
             span.setOutput(text);

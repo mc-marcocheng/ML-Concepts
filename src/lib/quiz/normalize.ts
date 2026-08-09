@@ -1,12 +1,12 @@
 import type { QuizItem } from '@/lib/content/types';
+import { blanksOf, canonicaliseScaffold } from './scaffold';
 
 const TYPES = new Set<QuizItem['type']>(['mcq', 'short', 'latex', 'code', 'numeric', 'order']);
 
-const strings = (value: unknown): string[] => (
+const strings = (value: unknown): string[] =>
   Array.isArray(value)
     ? value.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
-    : []
-);
+    : [];
 
 export function normalizeQuizItem(raw: unknown, fallbackId: string): QuizItem | null {
   if (!raw || typeof raw !== 'object') return null;
@@ -14,6 +14,7 @@ export function normalizeQuizItem(raw: unknown, fallbackId: string): QuizItem | 
   if (typeof item.prompt !== 'string' || !item.prompt.trim()) return null;
 
   const type = TYPES.has(item.type as QuizItem['type']) ? (item.type as QuizItem['type']) : 'short';
+  const blanks = type === 'code' ? blanksOf(item as QuizItem) : [];
 
   return {
     ...(item as QuizItem),
@@ -23,7 +24,10 @@ export function normalizeQuizItem(raw: unknown, fallbackId: string): QuizItem | 
     difficulty: Number.isFinite(item.difficulty as number) ? Number(item.difficulty) : 3,
     options: Array.isArray(item.options) ? item.options.map(String) : undefined,
     steps: Array.isArray(item.steps) ? item.steps.map(String) : undefined,
-    blanks: Array.isArray(item.blanks) ? item.blanks : undefined,
+    blanks: blanks.length ? blanks : undefined,
+    // Every downstream consumer can now assume `___BLANK_{id}___`.
+    scaffold: type === 'code' ? canonicaliseScaffold(item.scaffold, blanks) : item.scaffold,
+    lang: typeof item.lang === 'string' && item.lang ? item.lang : type === 'code' ? 'python' : undefined,
     correctIndex: Number.isInteger(item.correctIndex as number) ? Number(item.correctIndex) : undefined,
     rubric: strings(item.rubric),
     hints: strings(item.hints),

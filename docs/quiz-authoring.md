@@ -171,6 +171,41 @@ flowchart TD
         - Computes the mean squared error
 ```
 
+Every entry in `blanks` needs an `id`, a reference `answer`, and a non-empty `rubric`.
+The learner types one value per blank; each blank is graded independently, so a
+mostly-right answer with one wrong blank shows up as `partial`, not `incorrect`.
+
+### Placeholder styles
+
+The `scaffold` string can mark blanks in any of three ways — pick whichever
+reads most naturally in the surrounding code, they are equivalent once loaded:
+
+| Style | Example | Notes |
+| --- | --- | --- |
+| Canonical | `___BLANK_1___` | Explicit blank id. Use this when blanks are reordered or interleaved. |
+| Numbered | `___1___` | Shorthand for `___BLANK_1___`. |
+| Bare | `___` | Positional — the first `___` maps to the first entry in `blanks`, the second to the second, and so on. |
+
+If `scaffold` is omitted entirely, one `___BLANK_{id}___` line is appended per
+blank automatically. Placeholders are canonicalised client-side when the quiz
+loads (`src/lib/quiz/normalize.ts`), so any of the three styles above is safe
+to author directly — no build step rewrites them. `npm run content:validate`
+checks that the number of placeholders in `scaffold` (once you've picked a
+style) matches the number of entries in `blanks`.
+
+## Two-stage grading
+
+Every item is graded deterministically first — exact match against `answer`
+(or, for `code`, against each blank's `answer`). `latex` and `code` answers
+that fail the exact match are **not** immediately marked wrong: they fall
+through to the LLM judge, which checks for mathematical/behavioural
+equivalence (e.g. `\hat{y}^2` vs `y_hat**2`, or `np.mean((y_hat-y)**2)` vs
+`((y_hat-y)**2).mean()`) using the item's `rubric` as the grading criteria.
+If the assistant is off or the judge call fails, the learner is asked to
+self-grade instead of being scored automatically — this is why every item
+should carry a real, specific `rubric` even when the reference `answer` looks
+unambiguous.
+
 ## Validation rules
 
 Run:
@@ -179,12 +214,15 @@ Run:
 npm run content:validate
 ```
 
-The validator checks item shape and required fields.
+The validator checks item shape and required fields per type:
 
-For MCQ items, include:
-
-- non-empty `options`
-- integer `correctIndex`
+- `mcq` — at least 2 `options`, and `correctIndex` in range
+- `numeric` — a numeric `value`
+- `order` — at least 2 `steps`
+- `code` — a non-empty `blanks[]` with unique ids and a non-empty `answer` per
+  blank, and (if `scaffold` uses one of the three placeholder styles) a
+  placeholder count that matches `blanks.length`
+- `latex` / `short` — a non-empty `answer` and a non-empty `rubric`
 
 ## Generated quiz data
 

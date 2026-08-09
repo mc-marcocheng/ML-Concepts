@@ -47,6 +47,74 @@ const QuizItem = z.object({
   anchor: z.string().optional(),
 });
 
+function countScaffoldPlaceholders(scaffold) {
+  const source = scaffold ?? '';
+  const canonical = [...source.matchAll(/___BLANK_(\d+)___/g)];
+  if (canonical.length) return canonical.length;
+  const numbered = [...source.matchAll(/_{3,}\s*(\d+)\s*_{3,}/g)];
+  if (numbered.length) return numbered.length;
+  const bare = [...source.matchAll(/_{3,}/g)];
+  return bare.length;
+}
+
+function validateQuizItem(item, quizPath) {
+  const label = `${quizPath} (${item.id})`;
+
+  if (item.type === 'mcq') {
+    if (!Array.isArray(item.options) || item.options.length < 2) {
+      throw new Error(`[validate] ${label}: mcq needs at least 2 options`);
+    }
+    if (!Number.isInteger(item.correctIndex) || item.correctIndex < 0 || item.correctIndex >= item.options.length) {
+      throw new Error(`[validate] ${label}: mcq correctIndex must index into options[]`);
+    }
+    return;
+  }
+
+  if (item.type === 'numeric') {
+    if (typeof item.value !== 'number' || !Number.isFinite(item.value)) {
+      throw new Error(`[validate] ${label}: numeric item needs a numeric value`);
+    }
+    return;
+  }
+
+  if (item.type === 'order') {
+    if (!Array.isArray(item.steps) || item.steps.length < 2) {
+      throw new Error(`[validate] ${label}: order item needs at least 2 steps`);
+    }
+    return;
+  }
+
+  if (item.type === 'code') {
+    const blanks = item.blanks ?? [];
+    if (!blanks.length) {
+      throw new Error(`[validate] ${label}: code item needs a non-empty blanks[] array`);
+    }
+    const ids = blanks.map(blank => blank.id);
+    if (new Set(ids).size !== ids.length) {
+      throw new Error(`[validate] ${label}: code item has duplicate blank ids`);
+    }
+    for (const blank of blanks) {
+      if (!blank.answer.trim()) {
+        throw new Error(`[validate] ${label}: blank #${blank.id} needs a non-empty answer`);
+      }
+    }
+    const placeholderCount = countScaffoldPlaceholders(item.scaffold);
+    if (placeholderCount > 0 && placeholderCount !== blanks.length) {
+      throw new Error(`[validate] ${label}: scaffold has ${placeholderCount} placeholder(s) but blanks[] has ${blanks.length}`);
+    }
+    return;
+  }
+
+  if (item.type === 'latex' || item.type === 'short') {
+    if (!item.answer?.trim()) {
+      throw new Error(`[validate] ${label}: ${item.type} item needs a non-empty answer`);
+    }
+    if (!item.rubric.length) {
+      throw new Error(`[validate] ${label}: ${item.type} item needs a non-empty rubric[]`);
+    }
+  }
+}
+
 let count = 0;
 const concepts = [];
 for (const category of await fs.readdir(CONTENT)) {
@@ -62,7 +130,10 @@ for (const category of await fs.readdir(CONTENT)) {
     const quizPath = path.join(dir, file.replace(/\.mdx$/, '.quiz.yaml'));
     try {
       const items = YAML.parse(await fs.readFile(quizPath, 'utf8')) ?? [];
-      for (const item of items) QuizItem.parse(item);
+      for (const raw of items) {
+        const item = QuizItem.parse(raw);
+        validateQuizItem(item, quizPath);
+      }
     } catch (error) {
       if (error?.code === 'ENOENT') continue;
       throw new Error(`[validate] malformed quiz file ${quizPath}: ${error.message}`);

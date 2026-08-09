@@ -60,8 +60,30 @@ export function normaliseText(input: string) {
 
 export function normaliseCode(input: string) {
   return input
-    .replace(/#.*$/gm, '')
+    .replace(/#.*$/gm, '')                       // python comments
+    .replace(/\/\/.*$/gm, '')                    // c-style comments
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/;+\s*$/gm, '')
     .replace(/\s+/g, ' ')
-    .replace(/\s*([(),+\-*/=<>\[\]])\s*/g, '$1')
+    .replace(/\s*([(),+\-*/=<>[\]{}@%:.])\s*/g, '$1')
+    .replace(/\bnumpy\./g, 'np.')
     .trim();
+}
+
+/** Accepts 2/3, 50%, 1,000, −1 (unicode minus), 1e-3, \frac{1}{2}. */
+export function parseNumber(input: string): number {
+  const cleaned = (input ?? '')
+    .replace(/\\frac\s*\{([^}]*)\}\s*\{([^}]*)\}/g, '($1)/($2)')
+    .replace(/[−–—]/g, '-')
+    .replace(/[\s,_$]/g, '');
+
+  const isPercent = /%$/.test(cleaned);
+  const body = isPercent ? cleaned.slice(0, -1) : cleaned;
+
+  const fraction = /^\(?([+-]?[\d.]+(?:[eE][+-]?\d+)?)\)?\/\(?([+-]?[\d.]+(?:[eE][+-]?\d+)?)\)?$/.exec(body);
+  const value = fraction ? Number(fraction[1]) / Number(fraction[2]) : Number(body);
+
+  if (!Number.isFinite(value)) return NaN;
+  return isPercent ? value / 100 : value;
 }

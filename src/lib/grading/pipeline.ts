@@ -1,15 +1,11 @@
 import type { QuizItem } from '@/lib/content/types';
 import type { Verdict } from '@/lib/persistence/progress';
-import { gradeDeterministic } from './deterministic';
+import { gradeDeterministic, type DeterministicGrade, type RubricCheck } from './deterministic';
 import { judge } from './judge';
-import { useLlm } from '@/lib/llm/client';
+import { ensureLlmHydrated, useLlm } from '@/lib/llm/client';
 import { rubricFor } from './rubric';
 
-export interface RubricCheck {
-  i: number;
-  ok: boolean;
-  why: string;
-}
+export type { RubricCheck };
 
 export interface GradeResult {
   verdict: Verdict;
@@ -20,14 +16,11 @@ export interface GradeResult {
   note: string;
   rubric: string[];
   needsSelfGrade?: boolean;
+  suggestion?: { verdict: Exclude<Verdict, 'skipped'>; score: number; why: string };
 }
 
 function buildRubricChecks(rubric: string[], verdict: Verdict, why: string): RubricCheck[] {
-  return rubric.map((_, index) => ({
-    i: index + 1,
-    ok: verdict === 'correct',
-    why,
-  }));
+  return rubric.map((_, index) => ({ i: index + 1, ok: verdict === 'correct', why }));
 }
 
 function describeError(error: unknown): string {
@@ -35,40 +28,53 @@ function describeError(error: unknown): string {
   return message || 'Grader unavailable';
 }
 
+function pendingResult(rubric: string[], deterministic: DeterministicGrade, reason: string): GradeResult {
+  const fallback = deterministic.fallback;
+  const suggestion =
+    fallback && fallback.verdict !== 'skipped'
+      ? { verdict: fallback.verdict as Exclude<Verdict, 'skipped'>, score: fallback.score, why: fallback.explanation }
+      : undefined;
+
+  return {
+    verdict: 'skipped',
+    score: 0,
+    explanation: reason,
+    gradedBy: 'pending',
+    checks: fallback?.checks ?? [],
+    note: fallback ? `${reason} Automatic check: ${fallback.explanation}` : reason,
+    rubric,
+    needsSelfGrade: true,
+    suggestion,
+  };
+}
+
 export async function gradeAnswer(item: QuizItem, answer: string): Promise<GradeResult> {
+  ensureLlmHydrated();
   const rubric = rubricFor(item);
 
+  let deterministic: DeterministicGrade = { decided: false };
   try {
-    const deterministic = gradeDeterministic(item, answer);
-    if (deterministic.decided) {
-      const verdict = deterministic.verdict ?? 'skipped';
-      const explanation = deterministic.explanation ?? '';
-      return {
-        verdict,
-        score: deterministic.score ?? 0,
-        explanation,
-        gradedBy: 'deterministic',
-        checks: buildRubricChecks(rubric, verdict, explanation),
-        note: explanation,
-        rubric,
-      };
-    }
+    deterministic = gradeDeterministic(item, answer);
   } catch (error) {
     console.error('[grade] deterministic grader failed', { itemId: item?.id, error });
   }
 
-  const llmState = useLlm.getState();
-  if (!llmState.enabled) {
+  if (deterministic.decided) {
+    const verdict = deterministic.verdict ?? 'skipped';
+    const explanation = deterministic.explanation ?? '';
     return {
-      verdict: 'skipped',
-      score: 0,
-      explanation: 'Assistant is off — grade this answer yourself.',
-      gradedBy: 'pending',
-      checks: [],
-      note: 'Assistant is off — grade this answer yourself.',
+      verdict,
+      score: deterministic.score ?? 0,
+      explanation,
+      gradedBy: 'deterministic',
+      checks: deterministic.checks ?? buildRubricChecks(rubric, verdict, explanation),
+      note: explanation,
       rubric,
-      needsSelfGrade: true,
     };
+  }
+
+  if (!useLlm.getState().enabled) {
+    return pendingResult(rubric, deterministic, 'Assistant is off — grade this answer yourself.');
   }
 
   try {
@@ -85,16 +91,6 @@ export async function gradeAnswer(item: QuizItem, answer: string): Promise<Grade
       rubric,
     };
   } catch (error) {
-    const message = describeError(error);
-    return {
-      verdict: 'skipped',
-      score: 0,
-      explanation: message,
-      gradedBy: 'pending',
-      checks: [],
-      note: message,
-      rubric,
-      needsSelfGrade: true,
-    };
+    return pendingResult(rubric, deterministic, describeError(error));
   }
 }

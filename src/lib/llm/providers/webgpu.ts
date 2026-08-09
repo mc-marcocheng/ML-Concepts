@@ -59,6 +59,7 @@ export async function generateWebGpuReply(modelKey: string, options: GenerateOpt
     temperature: options.temperature ?? 0.2,
     max_tokens: options.maxTokens ?? 512,
     stream: true,
+    ...(options.responseFormat === 'json_object' ? { response_format: { type: 'json_object' as const } } : {}),
   });
 
   let output = '';
